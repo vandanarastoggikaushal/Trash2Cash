@@ -19,6 +19,10 @@
       .card{border:1px solid #e2e8f0;border-radius:12px;padding:16px}
       .success{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;padding:12px;border-radius:10px}
       .error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:12px;border-radius:10px}
+      /* Align confirmation checkboxes and text neatly */
+      .checks{display:flex;flex-direction:column;gap:10px}
+      .check{display:flex;align-items:center;gap:10px;font-weight:500}
+      .check input{width:auto;height:auto;margin:0}
     </style>
   </head>
   <body>
@@ -125,9 +129,11 @@
         </div>
 
         <div class="card">
-          <label style="display:flex; gap:8px; align-items:center"><input type="checkbox" id="clean" /> Items are clean and safe to handle.</label>
-          <label style="display:flex; gap:8px; align-items:center"><input type="checkbox" id="terms" /> I accept the terms.</label>
-          <button class="btn" type="submit" id="submitBtn">Submit request</button>
+          <div class="checks">
+            <label class="check"><input type="checkbox" id="clean" /> Items are clean and safe to handle.</label>
+            <label class="check"><input type="checkbox" id="terms" /> I accept the terms.</label>
+          </div>
+          <button class="btn" type="submit" id="submitBtn" style="margin-top:12px;">Submit request</button>
         </div>
       </form>
     </main>
