@@ -15,7 +15,7 @@ export default function ContactPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const res = await fetch("/api/contact.php", {
+    const res = await fetch("/app/api/contact.php", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ payload: JSON.stringify(form) })
