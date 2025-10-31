@@ -1,0 +1,20 @@
+Options -Indexes
+DirectoryIndex index.html index.htm index.php
+
+<IfModule mod_autoindex.c>
+  IndexIgnore *
+  Options -Indexes
+  AllowOverride All
+</IfModule>
+
+# Allow access to common static assets
+<FilesMatch "\.(html|htm|css|js|mjs|json|svg|png|jpg|jpeg|gif|ico|txt|xml)$">
+  Require all granted
+</FilesMatch>
+
+# For Apache 2.2 compatibility
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Allow from all
+</IfModule>
+
