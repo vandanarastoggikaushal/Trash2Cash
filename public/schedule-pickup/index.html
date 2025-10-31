@@ -1,3 +1,210 @@
 <!doctype html>
-<html lang="en-NZ"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Schedule Pickup | Trash2Cash NZ</title><link rel="icon" href="/favicon.ico"/><style>body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;margin:0;color:#0f172a}a{color:#15803d}main{max-width:900px;margin:0 auto;padding:24px}</style></head><body><main><p><a href="/">← Home</a></p><h1>Schedule a Pickup</h1><p>Please use the homepage form in the app build for full functionality. On static host, contact us at <a href="mailto:hello@trash2cash.nz">hello@trash2cash.nz</a>.</p></main></body></html>
+<html lang="en-NZ">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Schedule Pickup | Trash2Cash NZ</title>
+    <link rel="icon" href="/favicon.ico" />
+    <style>
+      body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;margin:0;color:#0f172a}
+      a{color:#15803d}
+      main{max-width:900px;margin:0 auto;padding:24px}
+      .grid{display:grid;gap:12px;grid-template-columns:1fr}
+      @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+      label{font-size:14px;font-weight:600}
+      input,select,textarea{width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px}
+      .row{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+      .btn{background:#15803d;color:#fff;border:none;border-radius:10px;padding:10px 16px;cursor:pointer}
+      .note{font-size:12px;color:#64748b}
+      .card{border:1px solid #e2e8f0;border-radius:12px;padding:16px}
+      .success{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;padding:12px;border-radius:10px}
+      .error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:12px;border-radius:10px}
+    </style>
+  </head>
+  <body>
+    <main>
+      <p><a href="/">← Home</a></p>
+      <h1>Schedule a Pickup</h1>
+      <div id="alert"></div>
+      <form id="pickupForm" class="grid" novalidate>
+        <div class="card">
+          <h2>Person</h2>
+          <div class="row">
+            <div>
+              <label for="fullName">Full name</label>
+              <input id="fullName" required />
+            </div>
+            <div>
+              <label for="email">Email</label>
+              <input id="email" type="email" required />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="phone">Phone</label>
+              <input id="phone" placeholder="e.g. 0212345678" required />
+            </div>
+            <div style="align-self:end">
+              <label style="display:flex; gap:8px; align-items:center"><input type="checkbox" id="optin" /> I’d like to receive updates</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Address</h2>
+          <div>
+            <label for="street">Street</label>
+            <input id="street" required />
+          </div>
+          <div class="row">
+            <div>
+              <label for="suburb">Suburb</label>
+              <input id="suburb" required />
+            </div>
+            <div>
+              <label for="city">City</label>
+              <input id="city" value="Wellington" required />
+            </div>
+            <div>
+              <label for="postcode">Postcode</label>
+              <input id="postcode" required />
+            </div>
+          </div>
+          <div>
+            <label for="access">Access notes</label>
+            <input id="access" />
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Pickup</h2>
+          <div>
+            <label for="type">Type</label>
+            <select id="type">
+              <option value="cans">Cans only</option>
+              <option value="appliances">Appliance(s)</option>
+              <option value="both">Both</option>
+            </select>
+          </div>
+          <div class="row">
+            <div>
+              <label for="cans">Cans estimate</label>
+              <input id="cans" type="number" min="0" value="0" />
+            </div>
+            <div>
+              <label for="date">Preferred date</label>
+              <input id="date" type="date" />
+            </div>
+            <div>
+              <label for="window">Time window</label>
+              <select id="window"><option></option><option>Morning</option><option>Afternoon</option><option>Evening</option></select>
+            </div>
+          </div>
+          <p class="note">For appliances, add notes below.</p>
+          <textarea id="applianceNotes" placeholder="Appliances & quantities (e.g. 1x washing machine, 2x microwaves)"></textarea>
+        </div>
+
+        <div class="card">
+          <h2>Payout</h2>
+          <div>
+            <label for="method">Method</label>
+            <select id="method"><option value="bank">Bank transfer</option><option value="child_account">Child account</option><option value="kiwisaver">KiwiSaver</option></select>
+          </div>
+          <div class="row">
+            <input id="bankName" placeholder="Bank name" />
+            <input id="bankAcc" placeholder="Account number" />
+          </div>
+          <div class="row">
+            <input id="childName" placeholder="Child name" />
+            <input id="childAcc" placeholder="Optional child bank account" />
+          </div>
+          <div class="row">
+            <input id="ksProvider" placeholder="KiwiSaver provider" />
+            <input id="ksMember" placeholder="KiwiSaver member ID" />
+          </div>
+        </div>
+
+        <div class="card">
+          <label style="display:flex; gap:8px; align-items:center"><input type="checkbox" id="clean" /> Items are clean and safe to handle.</label>
+          <label style="display:flex; gap:8px; align-items:center"><input type="checkbox" id="terms" /> I accept the terms.</label>
+          <button class="btn" type="submit" id="submitBtn">Submit request</button>
+        </div>
+      </form>
+    </main>
+    <script>
+      const form = document.getElementById('pickupForm');
+      const alertBox = document.getElementById('alert');
+      const btn = document.getElementById('submitBtn');
+      const nzPhone = /^(\+64|0)[2-9]\d{7,8}$/;
+      const nzPost = /^\d{4}$/;
+
+      function show(type, msg){
+        alertBox.innerHTML = `<div class="${type}">${msg}</div>`;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btn.disabled = true;
+        try {
+          const data = {
+            person: {
+              fullName: document.getElementById('fullName').value.trim(),
+              email: document.getElementById('email').value.trim(),
+              phone: document.getElementById('phone').value.trim(),
+              marketingOptIn: document.getElementById('optin').checked
+            },
+            address: {
+              street: document.getElementById('street').value.trim(),
+              suburb: document.getElementById('suburb').value.trim(),
+              city: document.getElementById('city').value.trim() || 'Wellington',
+              postcode: document.getElementById('postcode').value.trim(),
+              accessNotes: document.getElementById('access').value.trim()
+            },
+            pickup: {
+              type: document.getElementById('type').value,
+              cansEstimate: parseInt(document.getElementById('cans').value || '0'),
+              appliances: (document.getElementById('applianceNotes').value.trim() ? [{ slug: 'notes', qty: 1, notes: document.getElementById('applianceNotes').value.trim() }] : []),
+              preferredDate: document.getElementById('date').value || undefined,
+              preferredWindow: document.getElementById('window').value || undefined
+            },
+            payout: {
+              method: document.getElementById('method').value,
+              bank: { name: document.getElementById('bankName').value.trim(), accountNumber: document.getElementById('bankAcc').value.trim() },
+              child: { childName: document.getElementById('childName').value.trim(), bankAccount: document.getElementById('childAcc').value.trim() },
+              kiwiSaver: { provider: document.getElementById('ksProvider').value.trim(), memberId: document.getElementById('ksMember').value.trim() }
+            },
+            confirm: {
+              itemsAreClean: document.getElementById('clean').checked,
+              acceptedTerms: document.getElementById('terms').checked
+            }
+          };
+
+          if (!data.person.fullName || !data.person.email || !data.person.phone) { show('error','Please fill in name, email, and phone.'); btn.disabled = false; return; }
+          if (!nzPhone.test(data.person.phone)) { show('error','Please enter a valid NZ phone number.'); btn.disabled = false; return; }
+          if (!data.address.street || !data.address.suburb || !data.address.city || !data.address.postcode) { show('error','Please complete your address.'); btn.disabled = false; return; }
+          if (!nzPost.test(data.address.postcode)) { show('error','Please enter a valid 4-digit postcode.'); btn.disabled = false; return; }
+          if (!data.confirm.itemsAreClean || !data.confirm.acceptedTerms) { show('error','Please confirm items are clean and accept terms.'); btn.disabled = false; return; }
+
+          const res = await fetch('/api/lead.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ payload: JSON.stringify(data) })
+          });
+          const json = await res.json().catch(() => ({}));
+          if (res.ok && json.ok) {
+            show('success', `Thanks! Your request is in. Reference ID: <b>${json.id}</b>`);
+            form.reset();
+          } else {
+            show('error', 'There was a problem submitting your request.');
+          }
+        } catch (err) {
+          show('error', 'Network error. Please try again.');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+  </html>
 
