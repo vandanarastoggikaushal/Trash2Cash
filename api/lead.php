@@ -12,6 +12,9 @@ $data = json_decode($input, true);
 if (!is_array($data) && isset($_POST['payload'])) {
   $data = json_decode($_POST['payload'], true);
 }
+if (!is_array($data) && isset($_POST['p'])) { // alternate key to bypass some WAF rules
+  $data = json_decode($_POST['p'], true);
+}
 if (!is_array($data)) {
   http_response_code(400);
   echo json_encode([ 'ok' => false, 'error' => 'Invalid body' ]);
