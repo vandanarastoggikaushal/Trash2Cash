@@ -40,8 +40,8 @@ export default function SchedulePickupPage() {
     setLoading(true);
     const res = await fetch("/api/lead.php", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form)
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ payload: JSON.stringify(form) })
     });
     setLoading(false);
     if (res.ok) {

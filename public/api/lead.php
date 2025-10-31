@@ -10,9 +10,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $input = file_get_contents('php://input');
 $data = json_decode($input, true);
+// Fallback: accept form-encoded 'payload' containing JSON to avoid WAF blocks
+if (!is_array($data)) {
+  if (isset($_POST['payload'])) {
+    $data = json_decode($_POST['payload'], true);
+  }
+}
 if (!is_array($data)) {
   http_response_code(400);
-  echo json_encode([ 'ok' => false, 'error' => 'Invalid JSON' ]);
+  echo json_encode([ 'ok' => false, 'error' => 'Invalid body' ]);
   exit;
 }
 
