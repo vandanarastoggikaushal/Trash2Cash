@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Sitemap: https://trash2cash.nz/sitemap.xml
+
