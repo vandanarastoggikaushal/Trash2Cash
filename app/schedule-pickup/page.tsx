@@ -38,7 +38,11 @@ export default function SchedulePickupPage() {
     if (!form.confirm.itemsAreClean || !form.confirm.acceptedTerms) return toast.error("Please confirm items are clean and accept terms.");
 
     setLoading(true);
-    const res = await fetch("/api/lead", { method: "POST", body: JSON.stringify(form) });
+    const res = await fetch("/api/lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form)
+    });
     setLoading(false);
     if (res.ok) {
       const data = await res.json();

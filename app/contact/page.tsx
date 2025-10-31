@@ -15,7 +15,11 @@ export default function ContactPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const res = await fetch("/api/contact", { method: "POST", body: JSON.stringify(form) });
+    const res = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form)
+    });
     setLoading(false);
     if (res.ok) {
       toast.success("Message sent successfully");

@@ -5,6 +5,9 @@ import { LeadSchema } from "@/lib/validation";
 import { sendLeadEmail } from "@/lib/email";
 import { appendJsonRecord } from "@/lib/data";
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
     const incoming = await req.json();
