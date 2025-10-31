@@ -1,7 +1,0 @@
-<IfModule mod_security.c>
-  SecFilterEngine Off
-  SecRuleEngine Off
-</IfModule>
-
-Options -Indexes
-
