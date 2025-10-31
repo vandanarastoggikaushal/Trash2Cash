@@ -18,3 +18,15 @@ DirectoryIndex index.html index.htm index.php
   Allow from all
 </IfModule>
 
+# SPA-style fallback: serve index.html for missing routes (keeps existing files working)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  # Skip existing files and directories
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  # Otherwise serve index.html
+  RewriteRule . /index.html [L]
+</IfModule>
+
