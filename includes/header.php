@@ -36,25 +36,22 @@ require_once __DIR__ . '/config.php';
   <link rel="stylesheet" href="/assets/styles.css" />
 </head>
 <body class="min-h-screen bg-white text-slate-800">
-  <header class="sticky top-0 z-50 w-full border-b bg-white/90 backdrop-blur">
+  <header class="sticky top-0 z-50 w-full border-b-2 border-emerald-200 bg-white/95 backdrop-blur-lg shadow-sm">
     <div class="container flex h-16 items-center justify-between">
-      <a href="/" class="flex items-center gap-2 font-semibold">
-        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand text-white">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 6v6l4 2" />
-          </svg>
+      <a href="/" class="flex items-center gap-3 font-bold text-xl hover:scale-105 transition-transform">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg">
+          <span class="text-xl">♻️</span>
         </span>
-        <span><?php echo COMPANY_NAME; ?></span>
+        <span class="gradient-text"><?php echo COMPANY_NAME; ?></span>
       </a>
-      <nav class="hidden gap-6 md:flex">
-        <a href="/" class="text-sm font-medium hover:text-brand <?php echo (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'text-brand' : 'text-slate-700'; ?>">Home</a>
-        <a href="/how-it-works.php" class="text-sm font-medium hover:text-brand <?php echo (basename($_SERVER['PHP_SELF']) == 'how-it-works.php') ? 'text-brand' : 'text-slate-700'; ?>">How it Works</a>
-        <a href="/rewards.php" class="text-sm font-medium hover:text-brand <?php echo (basename($_SERVER['PHP_SELF']) == 'rewards.php') ? 'text-brand' : 'text-slate-700'; ?>">Rewards</a>
-        <a href="/schedule-pickup.php" class="text-sm font-medium hover:text-brand <?php echo (basename($_SERVER['PHP_SELF']) == 'schedule-pickup.php') ? 'text-brand' : 'text-slate-700'; ?>">Schedule Pickup</a>
-        <a href="/partners.php" class="text-sm font-medium hover:text-brand <?php echo (basename($_SERVER['PHP_SELF']) == 'partners.php') ? 'text-brand' : 'text-slate-700'; ?>">Partners</a>
-        <a href="/faq.php" class="text-sm font-medium hover:text-brand <?php echo (basename($_SERVER['PHP_SELF']) == 'faq.php') ? 'text-brand' : 'text-slate-700'; ?>">FAQ</a>
-        <a href="/contact.php" class="text-sm font-medium hover:text-brand <?php echo (basename($_SERVER['PHP_SELF']) == 'contact.php') ? 'text-brand' : 'text-slate-700'; ?>">Contact</a>
+      <nav class="hidden gap-2 md:flex">
+        <a href="/" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>">🏠 Home</a>
+        <a href="/how-it-works.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'how-it-works.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>">📖 How it Works</a>
+        <a href="/rewards.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'rewards.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>">💰 Rewards</a>
+        <a href="/schedule-pickup.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'schedule-pickup.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>">📅 Schedule</a>
+        <a href="/partners.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'partners.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>">🤝 Partners</a>
+        <a href="/faq.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'faq.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>">❓ FAQ</a>
+        <a href="/contact.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'contact.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>">📧 Contact</a>
       </nav>
       <div class="md:hidden">
         <a href="/schedule-pickup.php" class="btn text-sm">Schedule Pickup</a>

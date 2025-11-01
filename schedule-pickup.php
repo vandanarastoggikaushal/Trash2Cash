@@ -5,24 +5,32 @@ require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<div class="container py-10">
-  <h1 class="text-3xl font-bold">Schedule a Pickup</h1>
-  <form id="pickup-form" class="mt-6 grid gap-8 lg:grid-cols-2">
+<div class="container py-16">
+  <div class="text-center mb-12">
+    <h1 class="text-5xl font-extrabold text-slate-900 mb-4">
+      <span class="gradient-text">📅 Schedule a Pickup</span>
+    </h1>
+    <p class="text-xl text-slate-600 max-w-2xl mx-auto">Let's turn your recyclables into cash or savings!</p>
+  </div>
+  
+  <form id="pickup-form" class="grid gap-8 lg:grid-cols-2">
     <div class="space-y-6">
-      <fieldset class="rounded-lg border p-4">
-        <legend class="px-1 text-sm font-semibold">Person</legend>
+      <fieldset class="rounded-xl border-2 border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 p-6 shadow-md">
+        <legend class="px-3 text-base font-bold text-slate-900 flex items-center gap-2">
+          <span>👤</span> Person
+        </legend>
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
-            <label class="block text-sm font-medium" for="fullName">Full name</label>
-            <input id="fullName" name="fullName" type="text" class="mt-1 w-full rounded-md border px-3 py-2" required />
+            <label class="block text-sm font-semibold text-slate-900 mb-2" for="fullName">Full name</label>
+            <input id="fullName" name="fullName" type="text" class="mt-1 w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all" required />
           </div>
           <div>
-            <label class="block text-sm font-medium" for="email">Email</label>
-            <input id="email" name="email" type="email" class="mt-1 w-full rounded-md border px-3 py-2" required />
+            <label class="block text-sm font-semibold text-slate-900 mb-2" for="email">Email</label>
+            <input id="email" name="email" type="email" class="mt-1 w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all" required />
           </div>
           <div>
-            <label class="block text-sm font-medium" for="phone">Phone</label>
-            <input id="phone" name="phone" type="tel" class="mt-1 w-full rounded-md border px-3 py-2" required placeholder="e.g. 0212345678" />
+            <label class="block text-sm font-semibold text-slate-900 mb-2" for="phone">Phone</label>
+            <input id="phone" name="phone" type="tel" class="mt-1 w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all" required placeholder="e.g. 0212345678" />
           </div>
           <div class="sm:col-span-2">
             <label class="inline-flex items-center gap-2 text-sm">
@@ -33,8 +41,10 @@ require_once __DIR__ . '/includes/header.php';
         </div>
       </fieldset>
 
-      <fieldset class="rounded-lg border p-4">
-        <legend class="px-1 text-sm font-semibold">Address</legend>
+      <fieldset class="rounded-xl border-2 border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 p-6 shadow-md">
+        <legend class="px-3 text-base font-bold text-slate-900 flex items-center gap-2">
+          <span>📍</span> Address
+        </legend>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="sm:col-span-2">
             <label class="block text-sm font-medium" for="street">Street</label>
@@ -59,8 +69,10 @@ require_once __DIR__ . '/includes/header.php';
         </div>
       </fieldset>
 
-      <fieldset class="rounded-lg border p-4">
-        <legend class="px-1 text-sm font-semibold">Pickup</legend>
+      <fieldset class="rounded-xl border-2 border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 p-6 shadow-md">
+        <legend class="px-3 text-base font-bold text-slate-900 flex items-center gap-2">
+          <span>♻️</span> Pickup
+        </legend>
         <div class="space-y-4">
           <div class="flex gap-4 text-sm">
             <label class="inline-flex items-center gap-2 rounded-md border px-3 py-2">
@@ -109,8 +121,10 @@ require_once __DIR__ . '/includes/header.php';
         </div>
       </fieldset>
 
-      <fieldset class="rounded-lg border p-4">
-        <legend class="px-1 text-sm font-semibold">Payout preference</legend>
+      <fieldset class="rounded-xl border-2 border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 p-6 shadow-md">
+        <legend class="px-3 text-base font-bold text-slate-900 flex items-center gap-2">
+          <span>💰</span> Payout preference
+        </legend>
         <div class="space-y-3 text-sm">
           <label class="flex items-center gap-2">
             <input type="radio" name="payoutMethod" value="bank" checked />
@@ -149,26 +163,46 @@ require_once __DIR__ . '/includes/header.php';
           I accept the terms.
         </label>
       </div>
-      <button class="btn" type="submit" id="submit-btn">Submit request</button>
+      <button class="w-full btn text-lg px-8 py-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all font-bold" type="submit" id="submit-btn">
+        ✨ Submit Request
+      </button>
     </div>
     <aside class="space-y-4">
-      <div class="rounded-lg border bg-white p-4">
-        <h2 class="font-semibold">Why Trash2Cash?</h2>
-        <ul class="mt-2 list-disc pl-5 text-sm text-slate-700">
-          <li>$1 per 50 aluminium cans—simple and transparent</li>
-          <li>Kids' accounts & KiwiSaver options</li>
-          <li>We handle the heavy lifting</li>
+      <div class="rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50 p-6 shadow-xl">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-4xl">🌟</span>
+          <h2 class="text-2xl font-bold text-slate-900">Why Trash2Cash?</h2>
+        </div>
+        <ul class="space-y-3 text-slate-700">
+          <li class="flex items-start gap-3">
+            <span class="text-brand text-xl">✓</span>
+            <span class="font-semibold">$1 per 50 aluminium cans—simple and transparent</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="text-brand text-xl">✓</span>
+            <span class="font-semibold">Kids' accounts & KiwiSaver options</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="text-brand text-xl">✓</span>
+            <span class="font-semibold">We handle the heavy lifting</span>
+          </li>
         </ul>
       </div>
     </aside>
   </form>
-  <div id="pickup-success" class="mt-6 hidden rounded-lg bg-emerald-50 p-4 text-emerald-800">
-    <h2 class="text-xl font-semibold">Thanks! Your request is in.</h2>
-    <p class="mt-2">Reference ID: <span id="reference-id" class="font-mono font-semibold"></span></p>
-    <p class="mt-4 text-sm">What happens next: we'll confirm a pickup window by email or SMS and handle the rest.</p>
+  <div id="pickup-success" class="mt-6 hidden rounded-2xl bg-gradient-to-r from-emerald-100 to-green-100 border-2 border-brand p-6 text-emerald-900 shadow-xl">
+    <div class="flex items-center gap-3 mb-3">
+      <span class="text-3xl">✅</span>
+      <h2 class="text-2xl font-bold">Thanks! Your request is in.</h2>
+    </div>
+    <p class="mt-2 font-semibold">Reference ID: <span id="reference-id" class="font-mono text-lg bg-white px-2 py-1 rounded">-</span></p>
+    <p class="mt-4 text-slate-800">What happens next: we'll confirm a pickup window by email or SMS and handle the rest.</p>
   </div>
-  <div id="pickup-error" class="mt-6 hidden rounded-lg bg-red-50 p-4 text-red-800">
-    There was a problem submitting your request. Please try again or contact us directly.
+  <div id="pickup-error" class="mt-6 hidden rounded-2xl bg-gradient-to-r from-red-100 to-pink-100 border-2 border-red-300 p-6 text-red-900 shadow-xl">
+    <div class="flex items-center gap-3">
+      <span class="text-3xl">❌</span>
+      <p class="font-semibold">There was a problem submitting your request. Please try again or contact us directly.</p>
+    </div>
   </div>
 </div>
 

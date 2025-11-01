@@ -21,13 +21,29 @@ $faqs = [
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<div class="container py-10">
-  <h1 class="text-3xl font-bold">Frequently Asked Questions</h1>
-  <div class="mt-6 divide-y rounded-lg border bg-white">
-    <?php foreach ($faqs as $faq): ?>
-      <div class="p-4">
-        <h3 class="font-semibold"><?php echo htmlspecialchars($faq['q']); ?></h3>
-        <p class="mt-1 text-sm text-slate-700"><?php echo htmlspecialchars($faq['a']); ?></p>
+<div class="container py-16">
+  <div class="text-center mb-12">
+    <h1 class="text-5xl font-extrabold text-slate-900 mb-4">
+      <span class="gradient-text">❓ FAQ</span>
+    </h1>
+    <p class="text-xl text-slate-600">Everything you need to know</p>
+  </div>
+  
+  <div class="grid gap-4 max-w-4xl mx-auto">
+    <?php foreach ($faqs as $idx => $faq): ?>
+      <div class="card-modern rounded-xl border-2 border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 p-6 shadow-md hover:shadow-lg transition-all hover:border-brand">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center text-white font-bold shadow-md">
+            <?php echo $idx + 1; ?>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+              <span>💬</span>
+              <?php echo htmlspecialchars($faq['q']); ?>
+            </h3>
+            <p class="text-slate-700 leading-relaxed"><?php echo htmlspecialchars($faq['a']); ?></p>
+          </div>
+        </div>
       </div>
     <?php endforeach; ?>
   </div>
