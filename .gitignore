@@ -1,8 +1,14 @@
-node_modules
-.next
-.env
-pnpm-lock.yaml
+# Dependencies
+node_modules/
 package-lock.json
-data/*.json
-!.gitkeep
 
+# Build output (keep the compiled CSS file, but ignore source maps if any)
+*.map
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
