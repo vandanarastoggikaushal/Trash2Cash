@@ -7,11 +7,11 @@ require_once __DIR__ . '/config.php';
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) . ' | ' : ''; ?><?php echo COMPANY_NAME; ?></title>
-  <meta name="description" content="<?php echo isset($pageDescription) ? htmlspecialchars($pageDescription) : htmlspecialchars($SITE['description']); ?>" />
+  <meta name="description" content="<?php echo isset($pageDescription) ? htmlspecialchars($pageDescription) : (isset($SITE) && isset($SITE['description']) ? htmlspecialchars($SITE['description']) : 'Trash2Cash NZ'); ?>" />
   <meta property="og:title" content="<?php echo COMPANY_NAME; ?>" />
-  <meta property="og:description" content="<?php echo htmlspecialchars($SITE['description']); ?>" />
-  <meta property="og:url" content="<?php echo htmlspecialchars($SITE['url'] . ($_SERVER['REQUEST_URI'] ?? '')); ?>" />
-  <meta property="og:image" content="<?php echo htmlspecialchars($SITE['url'] . $SITE['ogImage']); ?>" />
+  <meta property="og:description" content="<?php echo isset($SITE) && isset($SITE['description']) ? htmlspecialchars($SITE['description']) : 'Trash2Cash NZ'; ?>" />
+  <meta property="og:url" content="<?php echo isset($SITE) && isset($SITE['url']) ? htmlspecialchars($SITE['url']) : 'https://trash2cash.nz'; ?><?php echo isset($_SERVER['REQUEST_URI']) ? htmlspecialchars($_SERVER['REQUEST_URI']) : ''; ?>" />
+  <meta property="og:image" content="<?php echo isset($SITE) && isset($SITE['url']) ? htmlspecialchars($SITE['url']) : 'https://trash2cash.nz'; ?><?php echo isset($SITE) && isset($SITE['ogImage']) ? htmlspecialchars($SITE['ogImage']) : '/og.svg'; ?>" />
   <meta property="og:type" content="website" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>

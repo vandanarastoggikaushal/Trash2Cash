@@ -27,10 +27,12 @@ define('SUPPORT_PHONE', '0800 TRASH2CASH');
 define('COMPANY_NAME', 'Trash2Cash NZ');
 define('CITY', 'Wellington');
 
-$SITE = [
-  'name' => COMPANY_NAME,
-  'url' => 'https://trash2cash.nz',
-  'description' => "We collect clean aluminium cans and old appliances from your home across Wellington. Earn \$1 per 50 cans—deposit to kids' accounts or KiwiSaver.",
-  'ogImage' => '/og.svg'
-];
+if (!isset($SITE)) {
+  $SITE = [
+    'name' => COMPANY_NAME,
+    'url' => 'https://trash2cash.nz',
+    'description' => "We collect clean aluminium cans and old appliances from your home across Wellington. Earn \$1 per 50 cans—deposit to kids' accounts or KiwiSaver.",
+    'ogImage' => '/og.svg'
+  ];
+}
 
