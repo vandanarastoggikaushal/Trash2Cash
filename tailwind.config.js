@@ -20,6 +20,9 @@ module.exports = {
       }
     }
   },
+  corePlugins: {
+    container: false // Disable Tailwind's default container plugin
+  },
   plugins: []
 }
 
