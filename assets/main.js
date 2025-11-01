@@ -17,7 +17,7 @@
   };
 
   function calculateCansReward(cansPerWeek) {
-    const yearly = Math.floor((cansPerWeek * 52) / 50) * 1;
+    const yearly = Math.floor((cansPerWeek * 52) / 100) * 1;
     return yearly;
   }
 

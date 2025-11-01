@@ -1,6 +1,6 @@
 <?php
 $pageTitle = 'Turn Your Trash Into Cash (or KiwiSaver)';
-$pageDescription = "We collect clean aluminium cans and old appliances from your home across Wellington. Earn \$1 per 50 cans—deposit to kids' accounts or KiwiSaver.";
+$pageDescription = "We collect clean aluminium cans and old appliances from your home across Wellington. Earn \$1 per 100 cans—deposit to kids' accounts or KiwiSaver.";
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -18,7 +18,7 @@ require_once __DIR__ . '/includes/header.php';
           <span class="text-slate-800">Into Cash or KiwiSaver</span>
         </h1>
         <p class="mt-6 text-xl text-slate-700 leading-relaxed">
-          We collect your clean aluminium cans and old appliances from home. You earn <strong class="text-brand font-bold">$1 for every 50 cans</strong>—and can send it straight to your kids' accounts or KiwiSaver.
+          We collect your clean aluminium cans and old appliances from home. You earn <strong class="text-brand font-bold">$1 for every 100 cans</strong>—and can send it straight to your kids' accounts or KiwiSaver.
         </p>
         <div class="mt-8 flex flex-wrap gap-4">
           <a class="btn text-lg px-8 py-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all" href="/schedule-pickup.php">
@@ -79,7 +79,7 @@ require_once __DIR__ . '/includes/header.php';
           <path d="M12 6v6l4 2" />
         </svg>
       </div>
-      <h3 class="text-xl font-bold text-slate-900 mb-2">💰 $1 per 50 cans</h3>
+      <h3 class="text-xl font-bold text-slate-900 mb-2">💰 $1 per 100 cans</h3>
       <p class="text-slate-700">Simple and transparent pricing - no hidden fees!</p>
     </div>
     <div class="card-modern rounded-2xl border-2 border-emerald-100 bg-gradient-to-br from-white to-emerald-50/50 p-8 shadow-lg hover-lift">

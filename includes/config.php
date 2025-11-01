@@ -1,6 +1,6 @@
 <?php
 // Configuration constants
-define('CAN_REWARD_PER_50', 1);
+define('CAN_REWARD_PER_100', 1);
 
 $APPLIANCE_CREDITS = [
   ['slug' => 'washing_machine', 'label' => 'Washing machine', 'credit' => 6],
@@ -31,7 +31,7 @@ if (!isset($SITE)) {
   $SITE = [
     'name' => COMPANY_NAME,
     'url' => 'https://trash2cash.nz',
-    'description' => "We collect clean aluminium cans and old appliances from your home across Wellington. Earn \$1 per 50 cans—deposit to kids' accounts or KiwiSaver.",
+    'description' => "We collect clean aluminium cans and old appliances from your home across Wellington. Earn \$1 per 100 cans—deposit to kids' accounts or KiwiSaver.",
     'ogImage' => '/og.svg'
   ];
 }

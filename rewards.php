@@ -1,6 +1,6 @@
 <?php
 $pageTitle = 'Rewards';
-$pageDescription = 'Earn $1 per 50 aluminium cans plus appliance pickup credits.';
+$pageDescription = 'Earn $1 per 100 aluminium cans plus appliance pickup credits.';
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -20,20 +20,20 @@ require_once __DIR__ . '/includes/header.php';
         <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center text-4xl shadow-lg">
           🥤
         </div>
-        <h2 class="text-3xl font-bold text-slate-900">$1 per 50 cans</h2>
+        <h2 class="text-3xl font-bold text-slate-900">$1 per 100 cans</h2>
       </div>
       <div class="space-y-4">
         <div class="flex items-center justify-between p-4 rounded-xl bg-white border-2 border-emerald-100 hover:border-brand transition-all">
-          <span class="text-lg font-semibold">50 cans</span>
+          <span class="text-lg font-semibold">100 cans</span>
           <span class="text-2xl font-bold text-brand">→ $1</span>
         </div>
         <div class="flex items-center justify-between p-4 rounded-xl bg-white border-2 border-emerald-100 hover:border-brand transition-all">
-          <span class="text-lg font-semibold">250 cans</span>
+          <span class="text-lg font-semibold">500 cans</span>
           <span class="text-2xl font-bold text-brand">→ $5</span>
         </div>
         <div class="flex items-center justify-between p-4 rounded-xl bg-white border-2 border-emerald-100 hover:border-brand transition-all">
           <span class="text-lg font-semibold">1,000 cans</span>
-          <span class="text-2xl font-bold text-brand">→ $20</span>
+          <span class="text-2xl font-bold text-brand">→ $10</span>
         </div>
       </div>
       <div class="mt-6 p-4 rounded-lg bg-gradient-to-r from-emerald-100 to-green-100 border-l-4 border-brand">

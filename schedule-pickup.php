@@ -176,7 +176,7 @@ require_once __DIR__ . '/includes/header.php';
         <ul class="space-y-3 text-slate-700">
           <li class="flex items-start gap-3">
             <span class="text-brand text-xl">✓</span>
-            <span class="font-semibold">$1 per 50 aluminium cans—simple and transparent</span>
+            <span class="font-semibold">$1 per 100 aluminium cans—simple and transparent</span>
           </li>
           <li class="flex items-start gap-3">
             <span class="text-brand text-xl">✓</span>
