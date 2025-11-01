@@ -11,11 +11,11 @@ $faqs = [
   ['q' => 'Which suburbs?', 'a' => 'Current service areas across Wellington region; more coming soon.'],
   ['q' => 'Appliance condition?', 'a' => 'Must be safe to move; we handle recycling.'],
   ['q' => 'Turnaround time?', 'a' => 'Usually a few days depending on suburb and volume.'],
-  ['q' => 'Cancelled pickups?', 'a' => 'Let us know ASAP—no worries, we'll reschedule.'],
+  ['q' => 'Cancelled pickups?', 'a' => 'Let us know ASAP - no worries, we will reschedule.'],
   ['q' => 'Hygiene?', 'a' => 'Please rinse cans to keep collections clean and safe.'],
   ['q' => 'Heavy items?', 'a' => 'We handle the heavy lifting—just ensure clear access.'],
   ['q' => 'Data privacy?', 'a' => 'We store minimal details securely and never sell your data.'],
-  ['q' => 'Receipts?', 'a' => 'You'll receive a reference ID after scheduling and confirmation after pickup.']
+  ['q' => 'Receipts?', 'a' => 'You will receive a reference ID after scheduling and confirmation after pickup.']
 ];
 
 require_once __DIR__ . '/includes/header.php';
