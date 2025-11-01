@@ -13,6 +13,9 @@ require_once __DIR__ . '/config.php';
   <meta property="og:url" content="<?php echo isset($SITE) && isset($SITE['url']) ? htmlspecialchars($SITE['url']) : 'https://trash2cash.nz'; ?><?php echo isset($_SERVER['REQUEST_URI']) ? htmlspecialchars($_SERVER['REQUEST_URI']) : ''; ?>" />
   <meta property="og:image" content="<?php echo isset($SITE) && isset($SITE['url']) ? htmlspecialchars($SITE['url']) : 'https://trash2cash.nz'; ?><?php echo isset($SITE) && isset($SITE['ogImage']) ? htmlspecialchars($SITE['ogImage']) : '/og.svg'; ?>" />
   <meta property="og:type" content="website" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/favicon.png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
