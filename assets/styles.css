@@ -1,0 +1,147 @@
+/* Custom styles - Tailwind CSS loaded via CDN in header.php */
+:root {
+  --brand: #15803d;
+  --brand-light: #22c55e;
+  --brand-dark: #166534;
+}
+
+html, body {
+  scroll-behavior: smooth;
+}
+
+.bg-brand {
+  background-color: var(--brand);
+}
+
+.text-brand {
+  color: var(--brand);
+}
+
+.bg-brand-light {
+  background-color: var(--brand-light);
+}
+
+.hover\:bg-brand-light:hover {
+  background-color: var(--brand-light);
+}
+
+/* Container */
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 80rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Button */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background-color: var(--brand);
+  color: white;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s;
+}
+
+.btn:hover {
+  background-color: var(--brand-light);
+}
+
+.btn:disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: #f8fafc;
+}
+
+/* Typography */
+.prose {
+  max-width: 65ch;
+}
+
+.prose h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 2.5rem;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 2rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.prose p {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.prose ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.prose li {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Header sticky */
+.sticky {
+  position: sticky;
+}
+
+.top-0 {
+  top: 0;
+}
+
+.z-50 {
+  z-index: 50;
+}
+
+.backdrop-blur {
+  backdrop-filter: blur(8px);
+}
+
+.bg-white\/90 {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
