@@ -13,6 +13,26 @@ require_once __DIR__ . '/config.php';
   <meta property="og:url" content="<?php echo htmlspecialchars($SITE['url'] . ($_SERVER['REQUEST_URI'] ?? '')); ?>" />
   <meta property="og:image" content="<?php echo htmlspecialchars($SITE['url'] . $SITE['ogImage']); ?>" />
   <meta property="og:type" content="website" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#15803d',
+              light: '#22c55e',
+              dark: '#166534'
+            }
+          },
+          borderRadius: {
+            lg: '12px',
+            xl: '14px'
+          }
+        }
+      }
+    }
+  </script>
   <link rel="stylesheet" href="/assets/styles.css" />
 </head>
 <body class="min-h-screen bg-white text-slate-800">
