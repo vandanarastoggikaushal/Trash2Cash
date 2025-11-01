@@ -7,11 +7,11 @@ require_once __DIR__ . '/config.php';
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) . ' | ' : ''; ?><?php echo COMPANY_NAME; ?></title>
-  <meta name="description" content="<?php echo isset($pageDescription) ? htmlspecialchars($pageDescription) : SITE['description']; ?>" />
+  <meta name="description" content="<?php echo isset($pageDescription) ? htmlspecialchars($pageDescription) : (isset($SITE) ? $SITE['description'] : 'Trash2Cash NZ'); ?>" />
   <meta property="og:title" content="<?php echo COMPANY_NAME; ?>" />
-  <meta property="og:description" content="<?php echo SITE['description']; ?>" />
-  <meta property="og:url" content="<?php echo SITE['url']; ?><?php echo $_SERVER['REQUEST_URI'] ?? ''; ?>" />
-  <meta property="og:image" content="<?php echo SITE['url']; ?><?php echo SITE['ogImage']; ?>" />
+  <meta property="og:description" content="<?php echo isset($SITE) ? $SITE['description'] : 'Trash2Cash NZ'; ?>" />
+  <meta property="og:url" content="<?php echo isset($SITE) ? $SITE['url'] : 'https://trash2cash.nz'; ?><?php echo isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : ''; ?>" />
+  <meta property="og:image" content="<?php echo isset($SITE) ? $SITE['url'] : 'https://trash2cash.nz'; ?><?php echo isset($SITE) ? $SITE['ogImage'] : '/og.svg'; ?>" />
   <meta property="og:type" content="website" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
