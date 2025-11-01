@@ -19,14 +19,19 @@ if (!is_array($data)) {
 }
 
 $id = bin2hex(random_bytes(6));
+$name = $data['name'] ?? '';
+$email = $data['email'] ?? '';
+$message = $data['message'] ?? '';
+
 $record = [
   'id' => $id,
   'createdAt' => gmdate('c'),
-  'name' => $data['name'] ?? '',
-  'email' => $data['email'] ?? '',
-  'message' => $data['message'] ?? ''
+  'name' => $name,
+  'email' => $email,
+  'message' => $message
 ];
 
+// Save to JSON file
 $dir = __DIR__ . '/../data';
 @mkdir($dir, 0755, true);
 $file = $dir . '/messages.json';
@@ -40,7 +45,24 @@ if (file_exists($file)) {
 
 $existing[] = $record;
 file_put_contents($file, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-error_log('[email] New contact message: ' . json_encode($record));
+
+// Send email
+$to = 'collect@trash2cash.co.nz';
+$subject = 'New Contact Form Message from ' . htmlspecialchars($name);
+$emailMessage = "You have received a new message from the Trash2Cash contact form.\n\n";
+$emailMessage .= "Name: " . htmlspecialchars($name) . "\n";
+$emailMessage .= "Email: " . htmlspecialchars($email) . "\n\n";
+$emailMessage .= "Message:\n" . htmlspecialchars($message) . "\n\n";
+$emailMessage .= "---\n";
+$emailMessage .= "Submitted at: " . gmdate('Y-m-d H:i:s') . " UTC\n";
+$emailMessage .= "Reference ID: " . $id;
+
+$headers = "From: noreply@trash2cash.co.nz\r\n";
+$headers .= "Reply-To: " . htmlspecialchars($email) . "\r\n";
+$headers .= "X-Mailer: PHP/" . phpversion();
+
+$emailSent = @mail($to, $subject, $emailMessage, $headers);
+error_log('[email] New contact message: ' . json_encode($record) . ' | Email sent: ' . ($emailSent ? 'yes' : 'no'));
 
 echo json_encode([ 'ok' => true, 'id' => $id ]);
 ?>

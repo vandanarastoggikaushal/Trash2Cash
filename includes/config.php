@@ -22,8 +22,8 @@ $SERVICE_AREAS = [
   'Porirua'
 ];
 
-define('SUPPORT_EMAIL', 'hello@trash2cash.nz');
-define('SUPPORT_PHONE', '0800 TRASH2CASH');
+define('SUPPORT_EMAIL', 'collect@trash2cash.co.nz');
+define('SUPPORT_PHONE', '+64221758458');
 define('COMPANY_NAME', 'Trash2Cash NZ');
 define('CITY', 'Wellington');
 
