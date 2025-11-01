@@ -33,5 +33,4 @@ $SITE = [
   'description' => "We collect clean aluminium cans and old appliances from your home across Wellington. Earn \$1 per 50 cans—deposit to kids' accounts or KiwiSaver.",
   'ogImage' => '/og.svg'
 ];
-?>
 

@@ -20,7 +20,7 @@ require_once __DIR__ . '/includes/header.php';
   </ol>
   <div class="prose mt-8">
     <p>Rinse cans quickly (crushing optional). Keep appliances safe to move. Typical turnaround is a few days depending on suburb.</p>
-    <p>Current service areas: <?php echo implode(', ', SERVICE_AREAS); ?></p>
+    <p>Current service areas: <?php echo implode(', ', $SERVICE_AREAS); ?></p>
   </div>
 </div>
 
