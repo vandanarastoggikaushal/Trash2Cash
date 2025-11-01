@@ -19,9 +19,16 @@ if (!is_array($data)) {
 }
 
 $id = bin2hex(random_bytes(6));
-$name = $data['name'] ?? '';
-$email = $data['email'] ?? '';
-$message = $data['message'] ?? '';
+$name = trim($data['name'] ?? '');
+$email = trim($data['email'] ?? '');
+$message = trim($data['message'] ?? '');
+
+// Validate required fields before processing
+if (empty($name) || empty($email) || empty($message)) {
+  http_response_code(400);
+  echo json_encode([ 'ok' => false, 'error' => 'Missing required fields' ]);
+  exit;
+}
 
 $record = [
   'id' => $id,
@@ -64,29 +71,22 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
   error_log('[email] Invalid email address: ' . $email);
   $emailSent = false;
 } else {
-  // Prepare headers - important for Hostinger
-  // Use array format and proper line endings
-  $headers = [];
-  $headers[] = 'MIME-Version: 1.0';
-  $headers[] = 'Content-Type: text/plain; charset=UTF-8';
-  $headers[] = 'From: Trash2Cash NZ <noreply@trash2cash.co.nz>';
-  $headers[] = 'Reply-To: ' . htmlspecialchars($name, ENT_QUOTES) . ' <' . htmlspecialchars($email, ENT_QUOTES) . '>';
-  $headers[] = 'X-Mailer: PHP/' . phpversion();
-  $headers[] = 'X-Priority: 3';
-  $headers[] = 'Return-Path: noreply@trash2cash.co.nz';
-  
-  // Join headers with proper line endings
-  $headersString = implode("\r\n", $headers);
+  // Prepare headers - using the format that worked in test
+  $headers = "MIME-Version: 1.0\r\n";
+  $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+  $headers .= "From: collect@trash2cash.co.nz\r\n";
+  $headers .= "Reply-To: " . htmlspecialchars($email, ENT_QUOTES) . "\r\n";
+  $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
   
   // Clear any previous errors
   error_clear_last();
   
-  // Try to send email - remove @ to see errors
-  $emailSent = mail($to, $subject, $emailMessage, $headersString);
+  // Send email using the working configuration from test
+  $emailSent = mail($to, $subject, $emailMessage, $headers);
   
   // Log detailed information
   if ($emailSent) {
-    error_log('[email] SUCCESS - Contact message sent. ID: ' . $id . ' | To: ' . $to . ' | From: ' . $email);
+    error_log('[email] SUCCESS - Contact message sent. ID: ' . $id . ' | To: ' . $to . ' | From: ' . $email . ' | Subject: ' . $subject);
   } else {
     $lastError = error_get_last();
     $errorMsg = 'Unknown error';
@@ -94,17 +94,6 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
       $errorMsg = $lastError['message'];
     }
     error_log('[email] FAILED - Contact message NOT sent. ID: ' . $id . ' | To: ' . $to . ' | Error: ' . $errorMsg);
-    
-    // Also try alternative header format (sometimes needed on Hostinger)
-    $altHeaders = "MIME-Version: 1.0\r\n";
-    $altHeaders .= "Content-Type: text/plain; charset=UTF-8\r\n";
-    $altHeaders .= "From: noreply@trash2cash.co.nz\r\n";
-    $altHeaders .= "Reply-To: " . htmlspecialchars($email, ENT_QUOTES) . "\r\n";
-    
-    $emailSent = mail($to, $subject, $emailMessage, $altHeaders);
-    if ($emailSent) {
-      error_log('[email] SUCCESS with alternative headers. ID: ' . $id);
-    }
   }
 }
 
