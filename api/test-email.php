@@ -12,12 +12,12 @@ $message = "This is a test email from Trash2Cash website.\n\n";
 $message .= "If you receive this, email functionality is working correctly.\n";
 $message .= "Sent at: " . date('Y-m-d H:i:s') . "\n";
 
-$headers = [];
-$headers[] = 'MIME-Version: 1.0';
-$headers[] = 'Content-Type: text/plain; charset=UTF-8';
-$headers[] = 'From: Trash2Cash NZ <noreply@trash2cash.co.nz>';
-$headers[] = 'X-Mailer: PHP/' . phpversion();
-$headersString = implode("\r\n", $headers);
+// Let Hostinger use its default From address - just set Reply-To
+$headers = "MIME-Version: 1.0\r\n";
+$headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+$headers .= "Reply-To: noreply@trash2cash.co.nz\r\n";
+$headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
+$headersString = $headers;
 
 echo "Attempting to send email to: $to\n";
 echo "Subject: $subject\n\n";

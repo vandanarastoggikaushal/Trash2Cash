@@ -71,29 +71,41 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
   error_log('[email] Invalid email address: ' . $email);
   $emailSent = false;
 } else {
-  // Prepare headers - using the format that worked in test
+  // Use Hostinger's default mail configuration - let Hostinger handle the From address
+  // This works better when sending to external email accounts like M365
   $headers = "MIME-Version: 1.0\r\n";
   $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
-  $headers .= "From: collect@trash2cash.co.nz\r\n";
-  $headers .= "Reply-To: " . htmlspecialchars($email, ENT_QUOTES) . "\r\n";
+  // Let Hostinger use its default From address (usually based on server/domain config)
+  // Just specify Reply-To so replies go to the form submitter
+  $headers .= "Reply-To: " . htmlspecialchars($name, ENT_QUOTES) . " <" . htmlspecialchars($email, ENT_QUOTES) . ">\r\n";
   $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
   
   // Clear any previous errors
   error_clear_last();
   
-  // Send email using the working configuration from test
+  // Send email - let Hostinger choose the From address based on its configuration
   $emailSent = mail($to, $subject, $emailMessage, $headers);
   
   // Log detailed information
   if ($emailSent) {
-    error_log('[email] SUCCESS - Contact message sent. ID: ' . $id . ' | To: ' . $to . ' | From: ' . $email . ' | Subject: ' . $subject);
+    error_log('[email] mail() returned TRUE - Contact message ID: ' . $id);
+    error_log('[email] Details - To: ' . $to . ' | Reply-To: ' . $email . ' | Subject: ' . $subject);
+    error_log('[email] Message length: ' . strlen($emailMessage) . ' bytes');
+    error_log('[email] Using Hostinger default mail configuration');
   } else {
     $lastError = error_get_last();
     $errorMsg = 'Unknown error';
     if ($lastError && isset($lastError['message'])) {
       $errorMsg = $lastError['message'];
     }
-    error_log('[email] FAILED - Contact message NOT sent. ID: ' . $id . ' | To: ' . $to . ' | Error: ' . $errorMsg);
+    error_log('[email] FAILED - mail() returned FALSE. ID: ' . $id . ' | Error: ' . $errorMsg);
+    
+    // Try alternative - even simpler headers
+    $simpleHeaders = "Reply-To: " . htmlspecialchars($email, ENT_QUOTES) . "\r\n";
+    $emailSent = mail($to, $subject, $emailMessage, $simpleHeaders);
+    if ($emailSent) {
+      error_log('[email] SUCCESS with minimal headers');
+    }
   }
 }
 
