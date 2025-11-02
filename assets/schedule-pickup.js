@@ -19,6 +19,118 @@ if (!window.showToast) {
   };
 }
 
+// Handle pickup type selection to show/hide sections
+function handlePickupTypeChange() {
+  const pickupTypeRadios = document.querySelectorAll('input[name="pickupType"]');
+  const cansSection = document.getElementById('cans-section');
+  const appliancesSection = document.getElementById('appliances-section');
+  
+  pickupTypeRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      const selectedType = this.value;
+      
+      // Update label styling
+      document.querySelectorAll('.pickup-type-label').forEach(label => {
+        if (label.dataset.type === selectedType) {
+          label.classList.add('bg-emerald-100', 'border-brand', 'shadow-md');
+          label.classList.remove('bg-transparent');
+        } else {
+          label.classList.remove('bg-emerald-100', 'border-brand', 'shadow-md');
+          label.classList.add('bg-transparent');
+        }
+      });
+      
+      // Show/hide sections based on selection
+      if (selectedType === 'cans') {
+        if (cansSection) {
+          cansSection.style.display = 'block';
+          cansSection.classList.add('animate-fade-in');
+        }
+        if (appliancesSection) {
+          appliancesSection.style.display = 'none';
+        }
+      } else if (selectedType === 'appliances') {
+        if (cansSection) {
+          cansSection.style.display = 'none';
+        }
+        if (appliancesSection) {
+          appliancesSection.style.display = 'block';
+          appliancesSection.classList.add('animate-fade-in');
+        }
+      } else if (selectedType === 'both') {
+        if (cansSection) {
+          cansSection.style.display = 'block';
+          cansSection.classList.add('animate-fade-in');
+        }
+        if (appliancesSection) {
+          appliancesSection.style.display = 'block';
+          appliancesSection.classList.add('animate-fade-in');
+        }
+      }
+      
+      // Recalculate rewards after visibility change
+      setTimeout(calculateRewards, 100);
+    });
+  });
+  
+  // Initialize on page load
+  const checkedRadio = document.querySelector('input[name="pickupType"]:checked');
+  if (checkedRadio) {
+    checkedRadio.dispatchEvent(new Event('change'));
+  }
+}
+
+// Initialize pickup type handler
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', handlePickupTypeChange);
+} else {
+  handlePickupTypeChange();
+}
+
+// Calculate and display reward estimates
+function calculateRewards() {
+  // Calculate cans reward ($1 per 100 cans)
+  const cansEstimate = parseInt(document.getElementById('cansEstimate')?.value || 0);
+  const cansReward = Math.floor(cansEstimate / 100);
+  const cansRewardEl = document.getElementById('cans-reward-estimate');
+  if (cansRewardEl) {
+    cansRewardEl.textContent = `$${cansReward}`;
+  }
+  
+  // Calculate appliances reward
+  let appliancesReward = 0;
+  document.querySelectorAll('.appliance-qty').forEach(input => {
+    const qty = parseInt(input.value || 0);
+    const credit = parseInt(input.dataset.credit || 0);
+    appliancesReward += qty * credit;
+  });
+  const appliancesRewardEl = document.getElementById('appliances-reward-estimate');
+  if (appliancesRewardEl) {
+    appliancesRewardEl.textContent = `$${appliancesReward}`;
+  }
+}
+
+// Update reward estimates when cans input changes
+const cansEstimateInput = document.getElementById('cansEstimate');
+if (cansEstimateInput) {
+  cansEstimateInput.addEventListener('input', calculateRewards);
+  cansEstimateInput.addEventListener('change', calculateRewards);
+}
+
+// Update reward estimates when appliance quantities change
+document.addEventListener('input', function(e) {
+  if (e.target.classList.contains('appliance-qty')) {
+    calculateRewards();
+  }
+});
+
+// Initialize calculations on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', calculateRewards);
+} else {
+  calculateRewards();
+}
+
 // Handle payout method visibility
 document.querySelectorAll('input[name="payoutMethod"]').forEach(radio => {
   radio.addEventListener('change', function() {

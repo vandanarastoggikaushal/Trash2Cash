@@ -75,47 +75,71 @@ require_once __DIR__ . '/includes/header.php';
         </legend>
         <div class="space-y-4">
           <div class="flex gap-4 text-sm">
-            <label class="inline-flex items-center gap-2 rounded-md border px-3 py-2">
-              <input type="radio" name="pickupType" value="cans" checked />
-              Cans
+            <label class="inline-flex items-center gap-2 rounded-lg border-2 border-emerald-200 px-4 py-2 cursor-pointer hover:bg-emerald-50 transition-all pickup-type-label" data-type="cans">
+              <input type="radio" name="pickupType" value="cans" checked class="cursor-pointer" />
+              <span class="font-semibold">🥤 Cans Only</span>
             </label>
-            <label class="inline-flex items-center gap-2 rounded-md border px-3 py-2">
-              <input type="radio" name="pickupType" value="appliances" />
-              Appliances
+            <label class="inline-flex items-center gap-2 rounded-lg border-2 border-blue-200 px-4 py-2 cursor-pointer hover:bg-blue-50 transition-all pickup-type-label" data-type="appliances">
+              <input type="radio" name="pickupType" value="appliances" class="cursor-pointer" />
+              <span class="font-semibold">🔧 Appliances Only</span>
             </label>
-            <label class="inline-flex items-center gap-2 rounded-md border px-3 py-2">
-              <input type="radio" name="pickupType" value="both" />
-              Both
+            <label class="inline-flex items-center gap-2 rounded-lg border-2 border-purple-200 px-4 py-2 cursor-pointer hover:bg-purple-50 transition-all pickup-type-label" data-type="both">
+              <input type="radio" name="pickupType" value="both" class="cursor-pointer" />
+              <span class="font-semibold">♻️ Both</span>
             </label>
           </div>
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label class="block text-sm font-medium" for="cansEstimate">Cans estimate</label>
-              <input id="cansEstimate" name="cansEstimate" type="number" min="0" class="mt-1 w-full rounded-md border px-3 py-2" value="0" />
+          <div class="space-y-4">
+            <div id="cans-section" class="p-4 rounded-lg bg-emerald-50/50 border-2 border-emerald-200 transition-all">
+              <label class="block text-sm font-semibold text-slate-900 mb-2" for="cansEstimate">
+                🥤 Number of Cans (estimate)
+              </label>
+              <div class="flex items-center gap-4">
+                <input id="cansEstimate" name="cansEstimate" type="number" min="0" step="10" class="flex-1 rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all" value="0" placeholder="Enter number of cans" />
+                <div class="text-sm">
+                  <span class="font-semibold text-slate-700">Est. reward:</span>
+                  <span id="cans-reward-estimate" class="ml-2 text-lg font-bold text-brand">$0</span>
+                </div>
+              </div>
+              <p class="mt-2 text-xs text-slate-600">
+                💡 $1 per 100 cans • Example: 500 cans = $5
+              </p>
             </div>
-            <div>
-              <label class="block text-sm font-medium">Appliances</label>
-              <div class="mt-2 grid gap-2" id="appliances-list">
+            
+            <div id="appliances-section" class="p-4 rounded-lg bg-blue-50/50 border-2 border-blue-200 transition-all" style="display: none;">
+              <label class="block text-sm font-semibold text-slate-900 mb-3">
+                🔧 Appliances (quantity per type)
+              </label>
+              <div class="grid gap-3 sm:grid-cols-2" id="appliances-list">
                 <?php foreach ($APPLIANCE_CREDITS as $appliance): ?>
-                  <div class="flex items-center justify-between gap-3">
-                    <span class="text-sm"><?php echo htmlspecialchars($appliance['label']); ?></span>
-                    <input type="number" min="0" name="appliances[<?php echo $appliance['slug']; ?>]" class="w-24 rounded-md border px-2 py-1 appliance-qty" data-slug="<?php echo $appliance['slug']; ?>" value="0" />
+                  <div class="flex items-center justify-between gap-3 p-2 rounded-lg bg-white border border-blue-100">
+                    <span class="text-sm font-medium text-slate-700"><?php echo htmlspecialchars($appliance['label']); ?></span>
+                    <div class="flex items-center gap-2">
+                      <input type="number" min="0" name="appliances[<?php echo $appliance['slug']; ?>]" class="w-20 rounded-md border-2 border-blue-200 px-2 py-1 text-center appliance-qty focus:border-brand" data-slug="<?php echo $appliance['slug']; ?>" data-credit="<?php echo $appliance['credit']; ?>" value="0" />
+                      <span class="text-xs text-slate-500">$<?php echo $appliance['credit']; ?></span>
+                    </div>
                   </div>
                 <?php endforeach; ?>
               </div>
+              <div class="mt-3 pt-3 border-t border-blue-200">
+                <span class="text-sm font-semibold text-slate-700">Total appliance credit:</span>
+                <span id="appliances-reward-estimate" class="ml-2 text-lg font-bold text-blue-600">$0</span>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium" for="preferredDate">Preferred date</label>
-              <input id="preferredDate" name="preferredDate" type="date" class="mt-1 w-full rounded-md border px-3 py-2" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium" for="preferredWindow">Time window</label>
-              <select id="preferredWindow" name="preferredWindow" class="mt-1 w-full rounded-md border px-3 py-2">
-                <option value="">Select</option>
-                <option value="Morning">Morning</option>
-                <option value="Afternoon">Afternoon</option>
-                <option value="Evening">Evening</option>
-              </select>
+            
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="block text-sm font-semibold text-slate-900 mb-2" for="preferredDate">📅 Preferred date</label>
+                <input id="preferredDate" name="preferredDate" type="date" class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all" />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-slate-900 mb-2" for="preferredWindow">🕐 Time window</label>
+                <select id="preferredWindow" name="preferredWindow" class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all">
+                  <option value="">Select</option>
+                  <option value="Morning">Morning</option>
+                  <option value="Afternoon">Afternoon</option>
+                  <option value="Evening">Evening</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
