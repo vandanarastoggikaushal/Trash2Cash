@@ -20,72 +20,84 @@ if (!window.showToast) {
 }
 
 // Handle pickup type selection to show/hide sections
-function handlePickupTypeChange() {
-  const pickupTypeRadios = document.querySelectorAll('input[name="pickupType"]');
+function updatePickupSections(selectedType) {
   const cansSection = document.getElementById('cans-section');
   const appliancesSection = document.getElementById('appliances-section');
   
+  // Update label styling
+  document.querySelectorAll('.pickup-type-label').forEach(label => {
+    if (label.dataset.type === selectedType) {
+      label.classList.add('bg-emerald-100', 'border-brand', 'shadow-md');
+      label.classList.remove('bg-transparent');
+    } else {
+      label.classList.remove('bg-emerald-100', 'border-brand', 'shadow-md');
+      label.classList.add('bg-transparent');
+    }
+  });
+  
+  // Show/hide sections based on selection
+  if (selectedType === 'cans') {
+    if (cansSection) {
+      cansSection.style.display = 'block';
+      cansSection.classList.add('animate-fade-in');
+    }
+    if (appliancesSection) {
+      appliancesSection.style.display = 'none';
+      appliancesSection.classList.remove('animate-fade-in');
+    }
+  } else if (selectedType === 'appliances') {
+    if (cansSection) {
+      cansSection.style.display = 'none';
+      cansSection.classList.remove('animate-fade-in');
+    }
+    if (appliancesSection) {
+      appliancesSection.style.display = 'block';
+      appliancesSection.classList.add('animate-fade-in');
+    }
+  } else if (selectedType === 'both') {
+    if (cansSection) {
+      cansSection.style.display = 'block';
+      cansSection.classList.add('animate-fade-in');
+    }
+    if (appliancesSection) {
+      appliancesSection.style.display = 'block';
+      appliancesSection.classList.add('animate-fade-in');
+    }
+  }
+  
+  // Recalculate rewards after visibility change
+  setTimeout(calculateRewards, 100);
+}
+
+function handlePickupTypeChange() {
+  const pickupTypeRadios = document.querySelectorAll('input[name="pickupType"]');
+  
   pickupTypeRadios.forEach(radio => {
     radio.addEventListener('change', function() {
-      const selectedType = this.value;
-      
-      // Update label styling
-      document.querySelectorAll('.pickup-type-label').forEach(label => {
-        if (label.dataset.type === selectedType) {
-          label.classList.add('bg-emerald-100', 'border-brand', 'shadow-md');
-          label.classList.remove('bg-transparent');
-        } else {
-          label.classList.remove('bg-emerald-100', 'border-brand', 'shadow-md');
-          label.classList.add('bg-transparent');
-        }
-      });
-      
-      // Show/hide sections based on selection
-      if (selectedType === 'cans') {
-        if (cansSection) {
-          cansSection.style.display = 'block';
-          cansSection.classList.add('animate-fade-in');
-        }
-        if (appliancesSection) {
-          appliancesSection.style.display = 'none';
-        }
-      } else if (selectedType === 'appliances') {
-        if (cansSection) {
-          cansSection.style.display = 'none';
-        }
-        if (appliancesSection) {
-          appliancesSection.style.display = 'block';
-          appliancesSection.classList.add('animate-fade-in');
-        }
-      } else if (selectedType === 'both') {
-        if (cansSection) {
-          cansSection.style.display = 'block';
-          cansSection.classList.add('animate-fade-in');
-        }
-        if (appliancesSection) {
-          appliancesSection.style.display = 'block';
-          appliancesSection.classList.add('animate-fade-in');
-        }
-      }
-      
-      // Recalculate rewards after visibility change
-      setTimeout(calculateRewards, 100);
+      updatePickupSections(this.value);
     });
   });
   
   // Initialize on page load
   const checkedRadio = document.querySelector('input[name="pickupType"]:checked');
   if (checkedRadio) {
-    checkedRadio.dispatchEvent(new Event('change'));
+    updatePickupSections(checkedRadio.value);
+  } else {
+    updatePickupSections('cans');
   }
 }
 
-// Initialize pickup type handler
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', handlePickupTypeChange);
-} else {
-  handlePickupTypeChange();
-}
+// Initialize pickup type handler immediately
+handlePickupTypeChange();
+
+// Also ensure it runs on DOMContentLoaded as backup
+document.addEventListener('DOMContentLoaded', function() {
+  // Re-initialize to ensure sections are properly shown/hidden
+  const checkedRadio = document.querySelector('input[name="pickupType"]:checked');
+  if (checkedRadio) {
+    updatePickupSections(checkedRadio.value);
+  }
+});
 
 // Calculate and display reward estimates
 function calculateRewards() {
