@@ -1,10 +1,6 @@
 // API Configuration
-// NOTE: If testing on a physical device, replace 'localhost' with your computer's IP address
-// Find your IP: Windows (ipconfig) or Mac/Linux (ifconfig)
-// Example: 'http://192.168.1.100:8000'
-const API_BASE_URL = __DEV__ 
-  ? 'http://192.168.1.11:8000' // For local development (use your computer's IP if testing on physical device)
-  : 'https://trash2cash.co.nz'; // Production URL
+// Production URL - Connected to Hostinger
+const API_BASE_URL = 'https://trash2cash.co.nz';
 
 export const API_ENDPOINTS = {
   CONTACT: `${API_BASE_URL}/api/contact.php`,
