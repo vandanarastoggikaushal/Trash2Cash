@@ -47,6 +47,20 @@ require_once __DIR__ . '/includes/header.php';
         </legend>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="sm:col-span-2">
+            <label class="block text-sm font-medium" for="address-search">🔍 Search Address</label>
+            <div class="relative">
+              <input 
+                id="address-search" 
+                type="text" 
+                class="mt-1 w-full rounded-md border px-3 py-2" 
+                placeholder="Start typing your address..."
+                autocomplete="off"
+              />
+              <div id="address-suggestions" class="hidden absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto"></div>
+            </div>
+            <p class="mt-1 text-xs text-slate-600">Search for your address and select from suggestions</p>
+          </div>
+          <div class="sm:col-span-2">
             <label class="block text-sm font-medium" for="street">Street</label>
             <input id="street" name="street" type="text" class="mt-1 w-full rounded-md border px-3 py-2" required />
           </div>

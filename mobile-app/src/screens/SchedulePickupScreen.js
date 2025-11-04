@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { submitPickupRequest } from '../services/api';
+import { submitPickupRequest, searchAddress, getAddressDetails } from '../services/api';
 import { APP_CONFIG } from '../config/api';
 import { colors } from '../theme';
 
@@ -46,6 +46,9 @@ export default function SchedulePickupScreen() {
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [addressSearchQuery, setAddressSearchQuery] = useState('');
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
 
   const updateField = (field, value) => {
     setFormData({ ...formData, [field]: value });
@@ -155,6 +158,58 @@ export default function SchedulePickupScreen() {
         {/* Address */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>📍 Address</Text>
+          
+          {/* Address Search */}
+          <View style={styles.addressSearchContainer}>
+            <Text style={styles.label}>🔍 Search Address</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Start typing your address..."
+              value={addressSearchQuery}
+              onChangeText={async (text) => {
+                setAddressSearchQuery(text);
+                if (text.length >= 3) {
+                  const suggestions = await searchAddress(text);
+                  setAddressSuggestions(suggestions);
+                  setShowAddressSuggestions(suggestions.length > 0);
+                } else {
+                  setAddressSuggestions([]);
+                  setShowAddressSuggestions(false);
+                }
+              }}
+            />
+            {showAddressSuggestions && addressSuggestions.length > 0 && (
+              <View style={styles.suggestionsContainer}>
+                <ScrollView style={styles.suggestionsList} nestedScrollEnabled>
+                  {addressSuggestions.map((suggestion, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.suggestionItem}
+                      onPress={async () => {
+                        setAddressSearchQuery(suggestion.address || suggestion.full_address || '');
+                        setShowAddressSuggestions(false);
+                        
+                        if (suggestion.id) {
+                          const details = await getAddressDetails(suggestion.id);
+                          if (details) {
+                            updateField('street', details.street || '');
+                            updateField('suburb', details.suburb || '');
+                            updateField('city', details.city || '');
+                            updateField('postcode', details.postcode || '');
+                          }
+                        }
+                      }}
+                    >
+                      <Text style={styles.suggestionText}>
+                        {suggestion.address || suggestion.full_address || ''}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
+          
           <TextInput
             style={styles.input}
             placeholder="Street *"
@@ -621,6 +676,40 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  addressSearchContainer: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  suggestionsContainer: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    marginTop: 4,
+    maxHeight: 200,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  suggestionsList: {
+    maxHeight: 200,
+  },
+  suggestionItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  suggestionText: {
+    fontSize: 14,
+    color: '#374151',
   },
   submitButton: {
     backgroundColor: colors.brand,

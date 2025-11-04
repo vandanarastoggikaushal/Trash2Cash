@@ -6,6 +6,8 @@ export const API_ENDPOINTS = {
   CONTACT: `${API_BASE_URL}/api/contact.php`,
   LEAD: `${API_BASE_URL}/api/lead.php`,
   HEALTH: `${API_BASE_URL}/api/health.php`,
+  ADDRESS_SEARCH: `${API_BASE_URL}/api/address-search.php`,
+  ADDRESS_DETAILS: `${API_BASE_URL}/api/address-details.php`,
 };
 
 export const APP_CONFIG = {

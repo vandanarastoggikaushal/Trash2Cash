@@ -127,3 +127,27 @@ export const checkHealth = async () => {
   }
 };
 
+// Address search
+export const searchAddress = async (query) => {
+  try {
+    const response = await fetch(`${API_ENDPOINTS.ADDRESS_SEARCH}?q=${encodeURIComponent(query)}`);
+    const data = await response.json();
+    return data.suggestions || [];
+  } catch (error) {
+    console.error('Address search error:', error);
+    return [];
+  }
+};
+
+// Get address details
+export const getAddressDetails = async (addressId) => {
+  try {
+    const response = await fetch(`${API_ENDPOINTS.ADDRESS_DETAILS}?id=${encodeURIComponent(addressId)}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Address details error:', error);
+    return null;
+  }
+};
+

@@ -87,6 +87,132 @@ function handlePickupTypeChange() {
   }
 }
 
+// Address autocomplete functionality
+let addressSearchTimeout = null;
+let addressSuggestions = [];
+
+function initAddressAutocomplete() {
+  const addressSearchInput = document.getElementById('address-search');
+  const suggestionsDiv = document.getElementById('address-suggestions');
+  
+  if (!addressSearchInput || !suggestionsDiv) return;
+  
+  addressSearchInput.addEventListener('input', function(e) {
+    const query = e.target.value.trim();
+    
+    clearTimeout(addressSearchTimeout);
+    
+    if (query.length < 3) {
+      suggestionsDiv.classList.add('hidden');
+      return;
+    }
+    
+    addressSearchTimeout = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/address-search.php?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        
+        if (data.suggestions && data.suggestions.length > 0) {
+          addressSuggestions = data.suggestions;
+          displaySuggestions(data.suggestions);
+        } else {
+          suggestionsDiv.classList.add('hidden');
+        }
+      } catch (error) {
+        console.error('Address search error:', error);
+        suggestionsDiv.classList.add('hidden');
+      }
+    }, 300); // Debounce 300ms
+  });
+  
+  // Hide suggestions when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!addressSearchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+      suggestionsDiv.classList.add('hidden');
+    }
+  });
+}
+
+function displaySuggestions(suggestions) {
+  const suggestionsDiv = document.getElementById('address-suggestions');
+  if (!suggestionsDiv) return;
+  
+  suggestionsDiv.innerHTML = suggestions.map((suggestion, index) => `
+    <div 
+      class="px-4 py-2 hover:bg-emerald-50 cursor-pointer border-b last:border-b-0" 
+      data-index="${index}"
+      data-id="${suggestion.id || ''}"
+    >
+      ${suggestion.address || suggestion.full_address || ''}
+    </div>
+  `).join('');
+  
+  suggestionsDiv.classList.remove('hidden');
+  
+  // Add click handlers
+  suggestionsDiv.querySelectorAll('div[data-index]').forEach(item => {
+    item.addEventListener('click', async function() {
+      const addressId = this.dataset.id;
+      const addressText = this.textContent.trim();
+      
+      if (addressId) {
+        // Fetch full address details
+        try {
+          const response = await fetch(`/api/address-details.php?id=${encodeURIComponent(addressId)}`);
+          const data = await response.json();
+          
+          if (data.street) {
+            document.getElementById('street').value = data.street;
+          }
+          if (data.suburb) {
+            document.getElementById('suburb').value = data.suburb;
+          }
+          if (data.city) {
+            document.getElementById('city').value = data.city;
+          }
+          if (data.postcode) {
+            document.getElementById('postcode').value = data.postcode;
+          }
+        } catch (error) {
+          console.error('Address details error:', error);
+          // Fallback: try to parse from address text
+          parseAddressFromText(addressText);
+        }
+      } else {
+        // Fallback: try to parse from address text
+        parseAddressFromText(addressText);
+      }
+      
+      document.getElementById('address-search').value = addressText;
+      suggestionsDiv.classList.add('hidden');
+    });
+  });
+}
+
+function parseAddressFromText(addressText) {
+  // Simple parsing fallback - split by comma
+  const parts = addressText.split(',').map(p => p.trim());
+  if (parts.length >= 2) {
+    document.getElementById('street').value = parts[0] || '';
+    if (parts.length >= 3) {
+      document.getElementById('suburb').value = parts[1] || '';
+      // Try to extract postcode (usually last part)
+      const lastPart = parts[parts.length - 1];
+      const postcodeMatch = lastPart.match(/\d{4}/);
+      if (postcodeMatch) {
+        document.getElementById('postcode').value = postcodeMatch[0];
+      }
+    }
+  }
+}
+
+// Initialize address autocomplete
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAddressAutocomplete);
+} else {
+  initAddressAutocomplete();
+}
+
 // Initialize pickup type handler immediately
 handlePickupTypeChange();
 
