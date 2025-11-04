@@ -12,3 +12,7 @@ package-lock.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Data files (runtime user submissions)
+data/*.json
+!data/.gitkeep
