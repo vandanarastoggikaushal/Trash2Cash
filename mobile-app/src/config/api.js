@@ -3,7 +3,7 @@
 // Find your IP: Windows (ipconfig) or Mac/Linux (ifconfig)
 // Example: 'http://192.168.1.100:8000'
 const API_BASE_URL = __DEV__ 
-  ? 'http://localhost:8000' // For local development (use your computer's IP if testing on physical device)
+  ? 'http://192.168.1.11:8000' // For local development (use your computer's IP if testing on physical device)
   : 'https://trash2cash.co.nz'; // Production URL
 
 export const API_ENDPOINTS = {
