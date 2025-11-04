@@ -100,10 +100,11 @@ export default function SchedulePickupScreen() {
           }}]
         );
       } else {
-        Alert.alert('Error', 'Failed to submit request. Please try again.');
+        Alert.alert('Error', result.error || 'Failed to submit request. Please try again.');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to submit request. Please try again.');
+      console.error('Pickup submission error:', error);
+      Alert.alert('Error', error.message || 'Failed to submit request. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }

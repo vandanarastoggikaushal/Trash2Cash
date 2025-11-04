@@ -39,10 +39,11 @@ export default function ContactScreen({ navigation }) {
           }}]
         );
       } else {
-        Alert.alert('Error', 'Failed to send message. Please try again.');
+        Alert.alert('Error', result.error || 'Failed to send message. Please try again.');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to send message. Please try again.');
+      console.error('Contact submission error:', error);
+      Alert.alert('Error', error.message || 'Failed to send message. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
