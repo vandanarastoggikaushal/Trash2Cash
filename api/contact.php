@@ -7,14 +7,45 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   exit;
 }
 
-$input = file_get_contents('php://input');
-$data = json_decode($input, true);
-if (!is_array($data) && isset($_POST['payload'])) {
+// Handle form-encoded data (from mobile app)
+$data = null;
+$rawInput = file_get_contents('php://input');
+$contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+
+// First try $_POST (works on most servers)
+if (isset($_POST['payload'])) {
   $data = json_decode($_POST['payload'], true);
 }
+if (!is_array($data) && isset($_POST['p'])) {
+  $data = json_decode($_POST['p'], true);
+}
+
+// If $_POST is empty, parse form-encoded data manually (for PHP built-in server)
+if (!is_array($data) && strpos($contentType, 'application/x-www-form-urlencoded') !== false && !empty($rawInput)) {
+  parse_str($rawInput, $parsed);
+  if (isset($parsed['payload'])) {
+    $data = json_decode($parsed['payload'], true);
+  }
+  if (!is_array($data) && isset($parsed['p'])) {
+    $data = json_decode($parsed['p'], true);
+  }
+}
+
+// Also handle raw JSON (from web form)
+if (!is_array($data) && !empty($rawInput)) {
+  $data = json_decode($rawInput, true);
+}
+
 if (!is_array($data)) {
   http_response_code(400);
-  echo json_encode([ 'ok' => false, 'error' => 'Invalid body' ]);
+  echo json_encode([ 'ok' => false, 'error' => 'Invalid body', 'debug' => [
+    'has_post_payload' => isset($_POST['payload']),
+    'has_post_p' => isset($_POST['p']),
+    'content_type' => $contentType,
+    'request_method' => $_SERVER['REQUEST_METHOD'] ?? 'not set',
+    'raw_input_length' => strlen($rawInput),
+    'raw_input_preview' => substr($rawInput, 0, 100),
+  ]]);
   exit;
 }
 
