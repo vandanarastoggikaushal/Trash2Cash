@@ -3,18 +3,20 @@ import { API_ENDPOINTS } from '../config/api';
 // Helper function to make API calls
 async function apiCall(endpoint, data, method = 'POST') {
   try {
-    const formData = new URLSearchParams();
-    formData.append('payload', JSON.stringify(data));
+    // Convert to form-encoded string manually (URLSearchParams might not work in React Native)
+    const payload = JSON.stringify(data);
+    const formBody = `payload=${encodeURIComponent(payload)}`;
 
     console.log('[API] Calling:', endpoint);
     console.log('[API] Data:', JSON.stringify(data, null, 2));
+    console.log('[API] Form body length:', formBody.length);
 
     const response = await fetch(endpoint, {
       method,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: formData,
+      body: formBody,
     });
 
     console.log('[API] Response status:', response.status);
