@@ -14,13 +14,15 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "nz.trash2cash.mobile"
+      "bundleIdentifier": "nz.trash2cash.mobile",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#15803d"
       },
-      "package": "nz.trash2cash.mobile"
+      "package": "nz.trash2cash.mobile",
+      "versionCode": 1
     }
   }
 }
