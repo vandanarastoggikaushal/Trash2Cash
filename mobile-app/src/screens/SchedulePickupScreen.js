@@ -8,7 +8,9 @@ import {
   TouchableOpacity,
   Alert,
   Switch,
+  Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { submitPickupRequest } from '../services/api';
 import { APP_CONFIG } from '../config/api';
@@ -42,6 +44,8 @@ export default function SchedulePickupScreen() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const updateField = (field, value) => {
     setFormData({ ...formData, [field]: value });
@@ -263,18 +267,73 @@ export default function SchedulePickupScreen() {
           )}
 
           {/* Preferred Date/Time */}
-          <TextInput
-            style={styles.input}
-            placeholder="Preferred date (YYYY-MM-DD)"
-            value={formData.preferredDate}
-            onChangeText={(text) => updateField('preferredDate', text)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Preferred time window (Morning/Afternoon/Evening)"
-            value={formData.preferredWindow}
-            onChangeText={(text) => updateField('preferredWindow', text)}
-          />
+          <View>
+            <Text style={styles.label}>📅 Preferred date</Text>
+            <TouchableOpacity
+              style={styles.input}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text style={formData.preferredDate ? styles.inputText : styles.placeholderText}>
+                {formData.preferredDate || 'Select date'}
+              </Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={(event, date) => {
+                  if (Platform.OS === 'android') {
+                    setShowDatePicker(false);
+                  }
+                  if (date && event.type !== 'dismissed') {
+                    setSelectedDate(date);
+                    const formattedDate = date.toISOString().split('T')[0];
+                    updateField('preferredDate', formattedDate);
+                  }
+                  if (Platform.OS === 'android' && event.type === 'dismissed') {
+                    setShowDatePicker(false);
+                  }
+                }}
+                minimumDate={new Date()}
+              />
+            )}
+            {Platform.OS === 'ios' && showDatePicker && (
+              <View style={styles.datePickerActions}>
+                <TouchableOpacity
+                  style={styles.datePickerButton}
+                  onPress={() => setShowDatePicker(false)}
+                >
+                  <Text style={styles.datePickerButtonText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+          
+          <View>
+            <Text style={styles.label}>🕐 Preferred time window</Text>
+            <View style={styles.timeWindowContainer}>
+              {['Morning', 'Afternoon', 'Evening'].map((window) => (
+                <TouchableOpacity
+                  key={window}
+                  style={[
+                    styles.timeWindowButton,
+                    formData.preferredWindow === window && styles.timeWindowButtonActive,
+                  ]}
+                  onPress={() => updateField('preferredWindow', window)}
+                >
+                  <Text
+                    style={[
+                      styles.timeWindowButtonText,
+                      formData.preferredWindow === window && styles.timeWindowButtonTextActive,
+                    ]}
+                  >
+                    {window}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
         </View>
 
         {/* Payout Preference */}
@@ -510,6 +569,58 @@ const styles = StyleSheet.create({
     color: colors.brand,
     fontWeight: '500',
     marginTop: 8,
+  },
+  inputText: {
+    fontSize: 16,
+    color: '#1f2937',
+  },
+  placeholderText: {
+    fontSize: 16,
+    color: '#9ca3af',
+  },
+  timeWindowContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  timeWindowButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+  },
+  timeWindowButtonActive: {
+    borderColor: colors.brand,
+    backgroundColor: '#ecfdf5',
+  },
+  timeWindowButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  timeWindowButtonTextActive: {
+    color: colors.brand,
+    fontWeight: 'bold',
+  },
+  datePickerActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingTop: 8,
+  },
+  datePickerButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: colors.brand,
+    borderRadius: 8,
+  },
+  datePickerButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   submitButton: {
     backgroundColor: colors.brand,
