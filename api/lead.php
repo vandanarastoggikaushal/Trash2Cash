@@ -217,25 +217,40 @@ if (!filter_var($personEmail, FILTER_VALIDATE_EMAIL)) {
   // Clear any previous errors
   error_clear_last();
   
-  // Send email
-  $emailSent = mail($to, $subject, $emailMessage, $headers);
+  // Check if we're on local development server (mail won't work)
+  $isLocalDev = (strpos($_SERVER['SERVER_NAME'] ?? '', 'localhost') !== false || 
+                 strpos($_SERVER['SERVER_NAME'] ?? '', '192.168.') !== false ||
+                 strpos($_SERVER['SERVER_NAME'] ?? '', '127.0.0.1') !== false);
   
-  // Log detailed information
-  if ($emailSent) {
-    error_log('[email] SUCCESS - Pickup request email sent. ID: ' . $id . ' | To: ' . $to);
+  if ($isLocalDev) {
+    // On local development, just log the email (mail() won't work)
+    error_log('[email] LOCAL DEV - Email would be sent to: ' . $to);
+    error_log('[email] LOCAL DEV - Subject: ' . $subject);
+    error_log('[email] LOCAL DEV - From: ' . $personEmail);
+    error_log('[email] LOCAL DEV - Message preview: ' . substr($emailMessage, 0, 200));
+    $emailSent = true; // Mark as "sent" for local dev
   } else {
-    $lastError = error_get_last();
-    $errorMsg = 'Unknown error';
-    if ($lastError && isset($lastError['message'])) {
-      $errorMsg = $lastError['message'];
-    }
-    error_log('[email] FAILED - Pickup request email NOT sent. ID: ' . $id . ' | Error: ' . $errorMsg);
+    // On production (Hostinger), actually send the email
+    // Send email
+    $emailSent = mail($to, $subject, $emailMessage, $headers);
     
-    // Try alternative - minimal headers
-    $simpleHeaders = "Reply-To: " . htmlspecialchars($personEmail, ENT_QUOTES) . "\r\n";
-    $emailSent = mail($to, $subject, $emailMessage, $simpleHeaders);
+    // Log detailed information
     if ($emailSent) {
-      error_log('[email] SUCCESS with minimal headers');
+      error_log('[email] SUCCESS - Pickup request email sent. ID: ' . $id . ' | To: ' . $to);
+    } else {
+      $lastError = error_get_last();
+      $errorMsg = 'Unknown error';
+      if ($lastError && isset($lastError['message'])) {
+        $errorMsg = $lastError['message'];
+      }
+      error_log('[email] FAILED - Pickup request email NOT sent. ID: ' . $id . ' | Error: ' . $errorMsg);
+      
+      // Try alternative - minimal headers
+      $simpleHeaders = "Reply-To: " . htmlspecialchars($personEmail, ENT_QUOTES) . "\r\n";
+      $emailSent = mail($to, $subject, $emailMessage, $simpleHeaders);
+      if ($emailSent) {
+        error_log('[email] SUCCESS with minimal headers');
+      }
     }
   }
 }
