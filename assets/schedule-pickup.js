@@ -110,6 +110,13 @@ function initAddressAutocomplete() {
     addressSearchTimeout = setTimeout(async () => {
       try {
         const response = await fetch(`/api/address-search.php?q=${encodeURIComponent(query)}`);
+        
+        if (!response.ok) {
+          console.error('Address search API error:', response.status, response.statusText);
+          suggestionsDiv.classList.add('hidden');
+          return;
+        }
+        
         const data = await response.json();
         
         if (data.suggestions && data.suggestions.length > 0) {
@@ -117,10 +124,18 @@ function initAddressAutocomplete() {
           displaySuggestions(data.suggestions);
         } else {
           suggestionsDiv.classList.add('hidden');
+          // Show helpful message if no suggestions
+          if (query.length >= 3) {
+            console.log('No address suggestions found for:', query);
+          }
         }
       } catch (error) {
         console.error('Address search error:', error);
         suggestionsDiv.classList.add('hidden');
+        // Show user-friendly error
+        if (query.length >= 3) {
+          console.warn('Address search is temporarily unavailable. Please enter your address manually.');
+        }
       }
     }, 300); // Debounce 300ms
   });
@@ -155,31 +170,46 @@ function displaySuggestions(suggestions) {
       const addressId = this.dataset.id;
       const addressText = this.textContent.trim();
       
-      if (addressId) {
-        // Fetch full address details
+      // If we have an ID, try to fetch details from API
+      // If no ID or ID is empty, use the address text as the ID (for fallback parsing)
+      const idToUse = addressId || addressText;
+      
+      if (idToUse) {
         try {
-          const response = await fetch(`/api/address-details.php?id=${encodeURIComponent(addressId)}`);
-          const data = await response.json();
+          const response = await fetch(`/api/address-details.php?id=${encodeURIComponent(idToUse)}`);
           
-          if (data.street) {
-            document.getElementById('street').value = data.street;
-          }
-          if (data.suburb) {
-            document.getElementById('suburb').value = data.suburb;
-          }
-          if (data.city) {
-            document.getElementById('city').value = data.city;
-          }
-          if (data.postcode) {
-            document.getElementById('postcode').value = data.postcode;
+          if (response.ok) {
+            const data = await response.json();
+            
+            // Check if we got an error
+            if (data.error) {
+              throw new Error(data.error);
+            }
+            
+            // Fill in the form fields
+            if (data.street) {
+              document.getElementById('street').value = data.street;
+            }
+            if (data.suburb) {
+              document.getElementById('suburb').value = data.suburb;
+            }
+            if (data.city) {
+              document.getElementById('city').value = data.city;
+            }
+            if (data.postcode) {
+              document.getElementById('postcode').value = data.postcode;
+            }
+          } else {
+            // API returned error, fall back to parsing
+            throw new Error('API error');
           }
         } catch (error) {
-          console.error('Address details error:', error);
+          console.log('Using fallback address parsing for:', addressText);
           // Fallback: try to parse from address text
           parseAddressFromText(addressText);
         }
       } else {
-        // Fallback: try to parse from address text
+        // No ID or text, just parse what we have
         parseAddressFromText(addressText);
       }
       
@@ -190,18 +220,51 @@ function displaySuggestions(suggestions) {
 }
 
 function parseAddressFromText(addressText) {
-  // Simple parsing fallback - split by comma
+  // Enhanced parsing fallback - split by comma and handle various formats
   const parts = addressText.split(',').map(p => p.trim());
+  
   if (parts.length >= 2) {
+    // First part is usually street
     document.getElementById('street').value = parts[0] || '';
-    if (parts.length >= 3) {
+    
+    // Second part is usually suburb
+    if (parts.length >= 2) {
       document.getElementById('suburb').value = parts[1] || '';
-      // Try to extract postcode (usually last part)
+    }
+    
+    // City is usually second-to-last or last (if no postcode)
+    if (parts.length >= 3) {
+      const cityField = document.getElementById('city');
+      // Check if last part has postcode
       const lastPart = parts[parts.length - 1];
       const postcodeMatch = lastPart.match(/\d{4}/);
+      
       if (postcodeMatch) {
+        // Last part has postcode, so city is second-to-last
         document.getElementById('postcode').value = postcodeMatch[0];
+        if (parts.length >= 4) {
+          cityField.value = parts[parts.length - 2] || cityField.value;
+        }
+      } else {
+        // No postcode, last part might be city
+        if (parts.length >= 3) {
+          cityField.value = parts[parts.length - 1] || cityField.value;
+        }
       }
+    }
+  } else if (parts.length === 1) {
+    // Single part - might be just suburb or street
+    // Check if it's a known suburb
+    const wellingtonSuburbs = ['Wellington City', 'Churton Park', 'Johnsonville', 'Karori', 
+                               'Newlands', 'Tawa', 'Lower Hutt', 'Upper Hutt', 'Porirua'];
+    const isSuburb = wellingtonSuburbs.some(suburb => 
+      addressText.toLowerCase().includes(suburb.toLowerCase())
+    );
+    
+    if (isSuburb) {
+      document.getElementById('suburb').value = addressText;
+    } else {
+      document.getElementById('street').value = addressText;
     }
   }
 }

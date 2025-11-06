@@ -65,8 +65,45 @@ if (!empty($addressFinderApiKey)) {
   }
 }
 
-// Option 3: Fallback - return empty suggestions
-// This allows the form to still work without API
-echo json_encode(['suggestions' => []]);
+// Option 3: Fallback - Basic Wellington area suggestions
+// This provides basic suggestions when no API is configured
+$wellingtonAreas = [
+    'Wellington City', 'Churton Park', 'Johnsonville', 'Karori', 
+    'Newlands', 'Tawa', 'Lower Hutt', 'Upper Hutt', 'Porirua',
+    'Petone', 'Eastbourne', 'Wainuiomata', 'Kapiti', 'Paraparaumu'
+];
+
+$suggestions = [];
+$queryLower = strtolower($query);
+
+foreach ($wellingtonAreas as $area) {
+    if (stripos($area, $query) !== false) {
+        $suggestions[] = [
+            'id' => '',
+            'address' => $area . ', Wellington, New Zealand',
+            'full_address' => $area . ', Wellington, New Zealand'
+        ];
+    }
+}
+
+// Also add some common street patterns if query looks like a street
+if (preg_match('/\d+\s+\w+/', $query)) {
+    // Looks like a street address, add some common Wellington streets
+    $commonStreets = ['Lambton Quay', 'Cuba Street', 'Courtenay Place', 'Willis Street', 'The Terrace'];
+    foreach ($commonStreets as $street) {
+        if (stripos($street, $query) !== false || strlen($query) >= 3) {
+            $suggestions[] = [
+                'id' => '',
+                'address' => $query . ' ' . $street . ', Wellington',
+                'full_address' => $query . ' ' . $street . ', Wellington, New Zealand'
+            ];
+        }
+    }
+}
+
+// Limit to 10 suggestions
+$suggestions = array_slice($suggestions, 0, 10);
+
+echo json_encode(['suggestions' => $suggestions]);
 ?>
 
