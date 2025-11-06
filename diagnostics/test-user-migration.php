@@ -7,10 +7,31 @@
  * IMPORTANT: This folder is protected - only use for debugging!
  */
 
+// Suppress error handler for diagnostics
 $rootDir = dirname(__DIR__);
-require_once $rootDir . '/includes/config.php';
-require_once $rootDir . '/includes/db.php';
-require_once $rootDir . '/includes/auth.php';
+
+// Load config first (but skip error handler for diagnostics)
+$configFile = $rootDir . '/includes/config.php';
+if (file_exists($configFile)) {
+    // Temporarily disable error handler
+    $originalErrorHandler = set_error_handler(null);
+    require_once $configFile;
+    if ($originalErrorHandler) {
+        set_error_handler($originalErrorHandler);
+    }
+}
+
+// Load db.php
+$dbFile = $rootDir . '/includes/db.php';
+if (file_exists($dbFile)) {
+    require_once $dbFile;
+}
+
+// Load auth.php
+$authFile = $rootDir . '/includes/auth.php';
+if (file_exists($authFile)) {
+    require_once $authFile;
+}
 
 header('Content-Type: text/html; charset=utf-8');
 ?>
@@ -43,45 +64,107 @@ header('Content-Type: text/html; charset=utf-8');
     // Check database connection
     echo '<div class="section">';
     echo '<h2>1. Database Connection</h2>';
-    if (testDBConnection()) {
-        echo '<div class="success">✅ Database connection successful!</div>';
+    
+    // Check if constants are defined
+    echo '<div class="info">Checking database configuration...</div>';
+    echo '<ul>';
+    echo '<li>DB_HOST: <code>' . (defined('DB_HOST') ? htmlspecialchars(DB_HOST) : 'NOT DEFINED') . '</code></li>';
+    echo '<li>DB_PORT: <code>' . (defined('DB_PORT') ? htmlspecialchars(DB_PORT) : 'NOT DEFINED') . '</code></li>';
+    echo '<li>DB_NAME: <code>' . (defined('DB_NAME') ? htmlspecialchars(DB_NAME) : 'NOT DEFINED') . '</code></li>';
+    echo '<li>DB_USER: <code>' . (defined('DB_USER') ? htmlspecialchars(DB_USER) : 'NOT DEFINED') . '</code></li>';
+    echo '<li>DB_PASS: <code>' . (defined('DB_PASS') ? (DB_PASS ? '***SET***' : 'NOT SET') : 'NOT DEFINED') . '</code></li>';
+    echo '</ul>';
+    
+    // Check PDO extensions
+    echo '<div class="info">Checking PDO extensions...</div>';
+    echo '<ul>';
+    echo '<li>PDO extension: ' . (extension_loaded('pdo') ? '✅ Loaded' : '❌ Not loaded') . '</li>';
+    echo '<li>PDO_MySQL extension: ' . (extension_loaded('pdo_mysql') ? '✅ Loaded' : '❌ Not loaded') . '</li>';
+    echo '</ul>';
+    
+    // Try to get database connection
+    if (function_exists('getDB')) {
+        $db = getDB();
+        if ($db !== null) {
+            echo '<div class="success">✅ getDB() returned a connection object</div>';
+            
+            // Test query
+            try {
+                $testQuery = $db->query("SELECT 1 as test");
+                if ($testQuery) {
+                    echo '<div class="success">✅ Database query test successful!</div>';
+                }
+            } catch (PDOException $e) {
+                echo '<div class="error">❌ Database query failed: ' . htmlspecialchars($e->getMessage()) . '</div>';
+            }
+        } else {
+            echo '<div class="error">❌ getDB() returned null - connection failed</div>';
+        }
     } else {
-        echo '<div class="error">❌ Database connection failed!</div>';
-        echo '</div></body></html>';
-        exit;
+        echo '<div class="error">❌ getDB() function not found</div>';
+    }
+    
+    // Test connection function
+    if (function_exists('testDBConnection')) {
+        $connectionTest = testDBConnection();
+        if ($connectionTest) {
+            echo '<div class="success">✅ testDBConnection() returned true - connection successful!</div>';
+        } else {
+            echo '<div class="error">❌ testDBConnection() returned false - connection failed</div>';
+            echo '<div class="info">Check error logs for detailed error messages.</div>';
+        }
+    } else {
+        echo '<div class="error">❌ testDBConnection() function not found</div>';
+    }
+    
+    // If connection failed, show more details but don't exit
+    $dbConnected = function_exists('testDBConnection') && testDBConnection();
+    if (!$dbConnected) {
+        echo '<div class="warning">⚠️ Database connection failed. Some features below may not work, but we\'ll continue with the test.</div>';
     }
     echo '</div>';
     
     // Check if users table exists
     echo '<div class="section">';
     echo '<h2>2. Users Table Check</h2>';
-    try {
-        $tables = dbQuery("SHOW TABLES LIKE 'users'");
-        if ($tables && count($tables) > 0) {
-            echo '<div class="success">✅ Users table exists</div>';
-            
-            // Get table structure
-            $structure = dbQuery("DESCRIBE users");
-            if ($structure) {
-                echo '<table>';
-                echo '<tr><th>Field</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th></tr>';
-                foreach ($structure as $field) {
-                    echo '<tr>';
-                    echo '<td>' . htmlspecialchars($field['Field']) . '</td>';
-                    echo '<td>' . htmlspecialchars($field['Type']) . '</td>';
-                    echo '<td>' . htmlspecialchars($field['Null']) . '</td>';
-                    echo '<td>' . htmlspecialchars($field['Key']) . '</td>';
-                    echo '<td>' . htmlspecialchars($field['Default'] ?? 'NULL') . '</td>';
-                    echo '</tr>';
+    
+    if (!$dbConnected) {
+        echo '<div class="warning">⚠️ Skipping table check - database connection failed</div>';
+    } else {
+        try {
+            if (function_exists('dbQuery')) {
+                $tables = dbQuery("SHOW TABLES LIKE 'users'");
+                if ($tables && count($tables) > 0) {
+                    echo '<div class="success">✅ Users table exists</div>';
+                    
+                    // Get table structure
+                    $structure = dbQuery("DESCRIBE users");
+                    if ($structure) {
+                        echo '<table>';
+                        echo '<tr><th>Field</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th></tr>';
+                        foreach ($structure as $field) {
+                            echo '<tr>';
+                            echo '<td>' . htmlspecialchars($field['Field']) . '</td>';
+                            echo '<td>' . htmlspecialchars($field['Type']) . '</td>';
+                            echo '<td>' . htmlspecialchars($field['Null']) . '</td>';
+                            echo '<td>' . htmlspecialchars($field['Key']) . '</td>';
+                            echo '<td>' . htmlspecialchars($field['Default'] ?? 'NULL') . '</td>';
+                            echo '</tr>';
+                        }
+                        echo '</table>';
+                    }
+                } else {
+                    echo '<div class="error">❌ Users table does not exist!</div>';
+                    echo '<div class="info">Please run <code>database/schema.sql</code> in phpMyAdmin to create the table.</div>';
                 }
-                echo '</table>';
+            } else {
+                echo '<div class="error">❌ dbQuery() function not found</div>';
             }
-        } else {
-            echo '<div class="error">❌ Users table does not exist!</div>';
-            echo '<div class="info">Please run <code>database/schema.sql</code> in phpMyAdmin to create the table.</div>';
+        } catch (Exception $e) {
+            echo '<div class="error">❌ Error checking table: ' . htmlspecialchars($e->getMessage()) . '</div>';
+        } catch (PDOException $e) {
+            echo '<div class="error">❌ PDO Error checking table: ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
-    } catch (Exception $e) {
-        echo '<div class="error">❌ Error checking table: ' . htmlspecialchars($e->getMessage()) . '</div>';
     }
     echo '</div>';
     

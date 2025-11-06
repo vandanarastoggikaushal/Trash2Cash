@@ -61,10 +61,14 @@ header('Content-Type: text/html; charset=utf-8');
     echo '</div>';
     
     // Check if credentials are filled in
-    // Note: Constants might already be loaded via config.php, so check if they exist
-    if (!defined('DB_NAME') || !defined('DB_USER')) {
-        // Try to load the config file
-        if (file_exists($configFile)) {
+    // Note: Constants should be loaded via db.php, but let's verify
+    // Force reload the config file to ensure constants are defined
+    if (file_exists($configFile)) {
+        // Suppress redefinition warnings
+        if (!defined('DB_HOST')) {
+            require_once $configFile;
+        } elseif (!defined('DB_NAME') || !defined('DB_USER')) {
+            // Config was loaded but constants missing - reload it
             require_once $configFile;
         }
     }
@@ -74,6 +78,46 @@ header('Content-Type: text/html; charset=utf-8');
     $dbUser = defined('DB_USER') ? DB_USER : '';
     $dbHost = defined('DB_HOST') ? DB_HOST : 'localhost';
     $dbPass = defined('DB_PASS') ? DB_PASS : '';
+    
+    // Debug: Show what's actually in the config file
+    if (empty($dbName) || empty($dbUser)) {
+        echo '<div class="warning">';
+        echo '<strong>⚠️ Debug Info:</strong><br>';
+        echo 'Config file path: <code>' . htmlspecialchars($configFile) . '</code><br>';
+        echo 'Config file exists: ' . (file_exists($configFile) ? 'Yes' : 'No') . '<br>';
+        echo 'Config file readable: ' . (is_readable($configFile) ? 'Yes' : 'No') . '<br>';
+        if (file_exists($configFile)) {
+            $configContent = file_get_contents($configFile);
+            // Check if file has content
+            echo 'Config file size: ' . strlen($configContent) . ' bytes<br>';
+            // Check if it contains the define statements
+            if (strpos($configContent, "define('DB_NAME'") !== false || strpos($configContent, 'define("DB_NAME"') !== false) {
+                echo 'Config file contains DB_NAME definition: Yes<br>';
+                // Try to extract the value
+                if (preg_match("/define\s*\(\s*['\"]DB_NAME['\"]\s*,\s*['\"]([^'\"]+)['\"]/", $configContent, $matches)) {
+                    echo 'DB_NAME value in file: <code>' . htmlspecialchars($matches[1]) . '</code><br>';
+                }
+            } else {
+                echo 'Config file contains DB_NAME definition: <strong>No - This is the problem!</strong><br>';
+                echo '<div class="error" style="margin-top: 10px;">';
+                echo '<strong>⚠️ The config file appears to be empty or has placeholder values!</strong><br>';
+                echo 'Please make sure <code>includes/db-config.php</code> on the server has the actual database credentials filled in.<br>';
+                echo 'The file should contain lines like:<br>';
+                echo '<code>define(\'DB_NAME\', \'your_database_name\');</code><br>';
+                echo '<code>define(\'DB_USER\', \'your_username\');</code><br>';
+                echo '<code>define(\'DB_PASS\', \'your_password\');</code>';
+                echo '</div>';
+            }
+            
+            // Show first few lines of file (sanitized)
+            echo '<div class="info" style="margin-top: 10px;">';
+            echo '<strong>First 500 characters of config file (password hidden):</strong><br>';
+            $safeContent = preg_replace('/define\s*\(\s*[\'"]DB_PASS[\'"]\s*,\s*[\'"][^\'"]*[\'"]/', 'define(\'DB_PASS\', \'***HIDDEN***\')', $configContent);
+            echo '<pre style="max-height: 200px; overflow: auto;">' . htmlspecialchars(substr($safeContent, 0, 500)) . '</pre>';
+            echo '</div>';
+        }
+        echo '</div>';
+    }
     
     if (empty($dbName) || empty($dbUser)) {
         echo '<div class="error">';

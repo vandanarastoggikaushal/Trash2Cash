@@ -4,9 +4,22 @@
  * Uses PDO for secure database access
  */
 
-// Database configuration
-// You can set these via environment variables or edit directly
-// Only define if not already defined (allows db-config.php to override)
+// Load database config file FIRST (if it exists)
+// This allows db-config.php to define the constants before we set defaults
+$dbConfigFile = __DIR__ . '/db-config.php';
+if (file_exists($dbConfigFile)) {
+    try {
+        require_once $dbConfigFile;
+    } catch (Exception $e) {
+        // Config file has syntax errors - log but don't break
+        error_log('Error loading db-config.php: ' . $e->getMessage());
+    } catch (ParseError $e) {
+        error_log('Parse error in db-config.php: ' . $e->getMessage());
+    }
+}
+
+// Database configuration defaults
+// Only define if not already defined (allows db-config.php or environment variables to override)
 if (!defined('DB_HOST')) {
     define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 }
@@ -24,17 +37,6 @@ if (!defined('DB_CHARSET')) {
 }
 if (!defined('DB_PORT')) {
     define('DB_PORT', '3306'); // Default MySQL port
-}
-
-// If credentials are in a separate config file, load them
-$dbConfigFile = __DIR__ . '/db-config.php';
-if (file_exists($dbConfigFile)) {
-    try {
-        require_once $dbConfigFile;
-    } catch (Exception $e) {
-        // Config file has syntax errors - log but don't break
-        error_log('Error loading db-config.php: ' . $e->getMessage());
-    }
 }
 
 /**
