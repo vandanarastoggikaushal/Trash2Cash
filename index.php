@@ -31,20 +31,6 @@ require_once __DIR__ . '/includes/header.php';
             💡 <span class="text-brand">$500/year</span> — That's the average recyclable value most households throw away. Let's change that.
           </p>
         </div>
-        <?php
-        // Read version file
-        $version = '1.0.0';
-        $versionFile = __DIR__ . '/VERSION';
-        if (file_exists($versionFile)) {
-          $version = trim(file_get_contents($versionFile));
-        }
-        ?>
-        <div class="mt-4 text-xs text-slate-600">
-          <span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-white/60 backdrop-blur-sm">
-            <span>📦</span>
-            <span>Version <?php echo htmlspecialchars($version); ?></span>
-          </span>
-        </div>
       </div>
       <div class="relative animate-float">
         <div class="relative h-80 rounded-2xl bg-gradient-to-br from-emerald-200 via-green-100 to-emerald-50 shadow-2xl overflow-hidden">
@@ -167,6 +153,17 @@ require_once __DIR__ . '/includes/header.php';
       </a>
     </div>
   </section>
+</div>
+
+<?php
+// Get version dynamically
+$version = getVersion();
+?>
+<div class="fixed bottom-4 right-4 z-50">
+  <span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-white/80 backdrop-blur-sm text-xs text-slate-600 shadow-md border border-slate-200">
+    <span>📦</span>
+    <span>Version <?php echo htmlspecialchars($version); ?></span>
+  </span>
 </div>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

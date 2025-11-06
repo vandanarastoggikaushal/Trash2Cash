@@ -27,6 +27,18 @@ define('SUPPORT_PHONE', '+64221758458');
 define('COMPANY_NAME', 'Trash2Cash NZ');
 define('CITY', 'Wellington');
 
+/**
+ * Get current version from VERSION file
+ * @return string Version number
+ */
+function getVersion() {
+    $versionFile = __DIR__ . '/../VERSION';
+    if (file_exists($versionFile)) {
+        return trim(file_get_contents($versionFile));
+    }
+    return '1.0.0';
+}
+
 if (!isset($SITE)) {
   $SITE = [
     'name' => COMPANY_NAME,
