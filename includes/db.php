@@ -15,7 +15,12 @@ define('DB_CHARSET', 'utf8mb4');
 // If credentials are in a separate config file, load them
 $dbConfigFile = __DIR__ . '/db-config.php';
 if (file_exists($dbConfigFile)) {
-    require_once $dbConfigFile;
+    try {
+        require_once $dbConfigFile;
+    } catch (Exception $e) {
+        // Config file has syntax errors - log but don't break
+        error_log('Error loading db-config.php: ' . $e->getMessage());
+    }
 }
 
 /**
@@ -36,17 +41,29 @@ function getDB() {
     }
     
     try {
+        // Check if PDO extension is available
+        if (!extension_loaded('pdo') || !extension_loaded('pdo_mysql')) {
+            error_log('PDO or PDO_MySQL extension not available');
+            return null;
+        }
+        
         $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
+            PDO::ATTR_TIMEOUT            => 5, // 5 second timeout
         ];
         
         $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         return $pdo;
     } catch (PDOException $e) {
+        // Log detailed error but don't expose to user
         error_log('Database connection failed: ' . $e->getMessage());
+        error_log('DSN: ' . $dsn . ' | User: ' . DB_USER);
+        return null;
+    } catch (Exception $e) {
+        error_log('Unexpected error in database connection: ' . $e->getMessage());
         return null;
     }
 }

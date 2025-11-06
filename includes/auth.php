@@ -7,13 +7,18 @@
 
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    @session_start();
 }
 
-// Load database helper if available
+// Load database helper if available (suppress errors if it fails)
 $dbFile = __DIR__ . '/db.php';
 if (file_exists($dbFile)) {
-    require_once $dbFile;
+    try {
+        require_once $dbFile;
+    } catch (Exception $e) {
+        // Database file exists but has errors - log but don't break the site
+        error_log('Error loading db.php: ' . $e->getMessage());
+    }
 }
 
 // User data file (fallback if database not available)

@@ -2,8 +2,18 @@
 require_once __DIR__ . '/config.php';
 
 // Load auth functions if available (for login/logout display)
+// Suppress errors to prevent 500 errors if auth.php has issues
 if (file_exists(__DIR__ . '/auth.php')) {
-    require_once __DIR__ . '/auth.php';
+    try {
+        require_once __DIR__ . '/auth.php';
+    } catch (Exception $e) {
+        // Auth file has errors - log but don't break the site
+        error_log('Error loading auth.php in header: ' . $e->getMessage());
+        // Define a fallback function to prevent errors
+        if (!function_exists('isLoggedIn')) {
+            function isLoggedIn() { return false; }
+        }
+    }
 }
 
 // Get current page URL
