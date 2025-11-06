@@ -35,17 +35,46 @@ header('Content-Type: text/html; charset=utf-8');
     <?php
     // Check if database config exists
     $configFile = __DIR__ . '/includes/db-config.php';
+    $configFileAbsolute = realpath($configFile);
+    
     if (!file_exists($configFile)) {
         echo '<div class="error">';
         echo '<strong>❌ Database configuration not found!</strong><br>';
-        echo 'Please copy <code>includes/db-config.php.example</code> to <code>includes/db-config.php</code> and fill in your credentials.';
+        echo 'Looking for: <code>' . htmlspecialchars($configFile) . '</code><br>';
+        if ($configFileAbsolute) {
+            echo 'Resolved to: <code>' . htmlspecialchars($configFileAbsolute) . '</code><br>';
+        }
+        echo '<br>Please copy <code>includes/db-config.php.example</code> to <code>includes/db-config.php</code> and fill in your credentials.<br>';
+        echo '<br><strong>If you already created the file:</strong><ul>';
+        echo '<li>Make sure it\'s uploaded to the server (if testing on Hostinger)</li>';
+        echo '<li>Check file permissions (should be readable)</li>';
+        echo '<li>Verify the file path is correct</li>';
+        echo '</ul>';
         echo '</div>';
         exit;
     }
     
-    echo '<div class="info">';
-    echo '<strong>ℹ️ Configuration file found:</strong> <code>includes/db-config.php</code>';
+    echo '<div class="success">';
+    echo '<strong>✅ Configuration file found!</strong><br>';
+    echo 'Path: <code>' . htmlspecialchars($configFileAbsolute ?: $configFile) . '</code>';
     echo '</div>';
+    
+    // Check if credentials are filled in
+    require_once $configFile;
+    if (empty(DB_NAME) || empty(DB_USER)) {
+        echo '<div class="error">';
+        echo '<strong>⚠️ Database credentials not configured!</strong><br>';
+        echo 'Please fill in DB_NAME, DB_USER, and DB_PASS in <code>includes/db-config.php</code>';
+        echo '</div>';
+    } else {
+        echo '<div class="info">';
+        echo '<strong>ℹ️ Database configured:</strong><br>';
+        echo 'Host: <code>' . htmlspecialchars(DB_HOST) . '</code><br>';
+        echo 'Database: <code>' . htmlspecialchars(DB_NAME) . '</code><br>';
+        echo 'User: <code>' . htmlspecialchars(DB_USER) . '</code><br>';
+        echo 'Password: <code>' . (empty(DB_PASS) ? '(not set)' : '••••••••') . '</code>';
+        echo '</div>';
+    }
     
     // Test connection
     if (testDBConnection()) {
