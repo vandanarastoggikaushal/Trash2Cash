@@ -1,6 +1,6 @@
 <?php
-$pageTitle = 'Rewards';
-$pageDescription = 'Earn $1 per 100 aluminium cans plus appliance pickup credits.';
+$pageTitle = 'Rewards & Pricing';
+$pageDescription = 'Earn $1 per 100 aluminium cans plus appliance credits. Washing machines $6, dishwashers $5, laptops $3, microwaves $2. Deposit to kids accounts or KiwiSaver.';
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/header.php';
 ?>

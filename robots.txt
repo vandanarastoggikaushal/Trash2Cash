@@ -1,4 +1,12 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /data/
+Disallow: /*.json$
+
+# Sitemap
 Sitemap: https://trash2cash.nz/sitemap.xml
+
+# Crawl-delay (optional, helps prevent server overload)
+Crawl-delay: 1
 

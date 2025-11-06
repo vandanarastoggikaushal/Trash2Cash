@@ -1,6 +1,6 @@
 <?php
-$pageTitle = 'Partners';
-$pageDescription = 'Schools, clubs, and businesses—fundraise by aggregating pickups with a group code.';
+$pageTitle = 'Partners & Fundraising';
+$pageDescription = 'Partner with Trash2Cash NZ for fundraising. Schools, clubs, and businesses can earn money by aggregating aluminium can and appliance pickups with a group code.';
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/header.php';
 ?>

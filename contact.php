@@ -1,6 +1,6 @@
 <?php
-$pageTitle = 'Contact';
-$pageDescription = 'Get in touch with our team in Wellington.';
+$pageTitle = 'Contact Us';
+$pageDescription = 'Contact Trash2Cash NZ for recycling services in Wellington. Call +64221758458 or email collect@trash2cash.co.nz for questions about aluminium can and appliance pickups.';
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/header.php';
 ?>

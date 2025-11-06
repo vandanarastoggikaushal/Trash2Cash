@@ -1,6 +1,6 @@
 <?php
 $pageTitle = 'Schedule Pickup';
-$pageDescription = 'Request a pickup for aluminium cans and appliances in Wellington.';
+$pageDescription = 'Schedule a free door-to-door pickup for your aluminium cans and old appliances in Wellington. Earn $1 per 100 cans and appliance credits.';
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/header.php';
 ?>

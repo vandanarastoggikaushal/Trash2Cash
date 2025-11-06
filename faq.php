@@ -1,6 +1,6 @@
 <?php
-$pageTitle = 'FAQ';
-$pageDescription = 'Common questions about what we accept, payments, KiwiSaver, hygiene, and more.';
+$pageTitle = 'Frequently Asked Questions';
+$pageDescription = 'FAQ about Trash2Cash NZ recycling service: what we collect, payment options, KiwiSaver deposits, service areas in Wellington, hygiene requirements, and more.';
 require_once __DIR__ . '/includes/config.php';
 
 $faqs = [
@@ -47,6 +47,30 @@ require_once __DIR__ . '/includes/header.php';
       </div>
     <?php endforeach; ?>
   </div>
+  
+  <!-- FAQ Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      <?php
+      $faqItems = [];
+      foreach ($faqs as $faq) {
+        $faqItems[] = '{
+          "@type": "Question",
+          "name": ' . json_encode($faq['q'], JSON_UNESCAPED_UNICODE) . ',
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": ' . json_encode($faq['a'], JSON_UNESCAPED_UNICODE) . '
+          }
+        }';
+      }
+      echo implode(",\n      ", $faqItems);
+      ?>
+    ]
+  }
+  </script>
 </div>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

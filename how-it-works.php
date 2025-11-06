@@ -1,6 +1,6 @@
 <?php
 $pageTitle = 'How It Works';
-$pageDescription = 'Register, prepare recyclables, schedule pickup, and get paid or deposit to KiwiSaver.';
+$pageDescription = 'Learn how Trash2Cash NZ works: simple 4-step process to turn your aluminium cans and appliances into cash or KiwiSaver deposits. Door-to-door pickup across Wellington.';
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/header.php';
 ?>

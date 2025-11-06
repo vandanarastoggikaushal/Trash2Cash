@@ -1,13 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://trash2cash.nz/</loc></url>
-  <url><loc>https://trash2cash.nz/how-it-works.php</loc></url>
-  <url><loc>https://trash2cash.nz/rewards.php</loc></url>
-  <url><loc>https://trash2cash.nz/schedule-pickup.php</loc></url>
-  <url><loc>https://trash2cash.nz/partners.php</loc></url>
-  <url><loc>https://trash2cash.nz/faq.php</loc></url>
-  <url><loc>https://trash2cash.nz/contact.php</loc></url>
-  <url><loc>https://trash2cash.nz/privacy.php</loc></url>
-  <url><loc>https://trash2cash.nz/terms.php</loc></url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+  <!-- Homepage - Highest priority -->
+  <url>
+    <loc>https://trash2cash.nz/</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <!-- Main service pages - High priority -->
+  <url>
+    <loc>https://trash2cash.nz/how-it-works.php</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://trash2cash.nz/rewards.php</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://trash2cash.nz/schedule-pickup.php</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Support pages - Medium priority -->
+  <url>
+    <loc>https://trash2cash.nz/faq.php</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://trash2cash.nz/contact.php</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://trash2cash.nz/partners.php</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <!-- Legal pages - Lower priority -->
+  <url>
+    <loc>https://trash2cash.nz/privacy.php</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://trash2cash.nz/terms.php</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
 </urlset>
 
