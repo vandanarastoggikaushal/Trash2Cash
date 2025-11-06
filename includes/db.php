@@ -47,7 +47,11 @@ function getDB() {
             return null;
         }
         
-        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+        // Build DSN with optional port
+        $host = defined('DB_HOST') ? DB_HOST : 'localhost';
+        $port = defined('DB_PORT') ? DB_PORT : '3306';
+        $dsn = "mysql:host=" . $host . ";port=" . $port . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+        
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

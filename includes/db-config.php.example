@@ -12,8 +12,10 @@
  * - Or check your database details in phpMyAdmin
  */
 
-// Database host (usually 'localhost' on Hostinger)
-define('DB_HOST', 'localhost');
+// Database host (use 127.0.0.1:3306 if shown in phpMyAdmin, or just 127.0.0.1)
+// On Hostinger, this is usually 'localhost' or '127.0.0.1'
+define('DB_HOST', '127.0.0.1');
+define('DB_PORT', '3306'); // Default MySQL port (usually 3306)
 
 // Database name (the database you created)
 define('DB_NAME', 'your_database_name');
