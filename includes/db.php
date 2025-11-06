@@ -8,14 +8,19 @@
 // This allows db-config.php to define the constants before we set defaults
 $dbConfigFile = __DIR__ . '/db-config.php';
 if (file_exists($dbConfigFile)) {
+    // Suppress errors during include to prevent fatal errors
+    $oldErrorReporting = error_reporting(0);
     try {
-        require_once $dbConfigFile;
+        @require_once $dbConfigFile;
     } catch (Exception $e) {
         // Config file has syntax errors - log but don't break
         error_log('Error loading db-config.php: ' . $e->getMessage());
     } catch (ParseError $e) {
-        error_log('Parse error in db-config.php: ' . $e->getMessage());
+        error_log('Parse error in db-config.php: ' . $e->getMessage() . ' on line ' . $e->getLine());
+    } catch (Throwable $e) {
+        error_log('Error loading db-config.php: ' . $e->getMessage() . ' on line ' . $e->getLine());
     }
+    error_reporting($oldErrorReporting);
 }
 
 // Database configuration defaults
@@ -51,7 +56,8 @@ function getDB() {
     }
     
     // Check if database is configured
-    if (empty(DB_NAME) || empty(DB_USER)) {
+    // Use defined() check first to avoid "undefined constant" warnings
+    if (!defined('DB_NAME') || !defined('DB_USER') || empty(DB_NAME) || empty(DB_USER)) {
         error_log('Database not configured. Please set DB_NAME, DB_USER, and DB_PASS.');
         return null;
     }

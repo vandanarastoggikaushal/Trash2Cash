@@ -24,7 +24,15 @@ set_error_handler(function($errno, $errstr, $errfile, $errline) {
     error_log("PHP Error [$errno]: $errstr in $errfile on line $errline");
     
     // For fatal errors, show 500 page
-    if ($errno === E_ERROR || $errno === E_PARSE || $errno === E_CORE_ERROR || $errno === E_COMPILE_ERROR) {
+    // BUT: Don't show error page if we're in a diagnostic script or API endpoint
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+    $isDiagnostic = strpos($requestUri, 'diagnostics/') !== false || 
+                    strpos($requestUri, 'test-') !== false ||
+                    strpos($requestUri, 'check-') !== false ||
+                    strpos($requestUri, 'debug-') !== false;
+    $isApi = strpos($requestUri, '/api/') !== false;
+    
+    if (($errno === E_ERROR || $errno === E_PARSE || $errno === E_CORE_ERROR || $errno === E_COMPILE_ERROR) && !$isDiagnostic && !$isApi) {
         http_response_code(500);
         $errorPage = __DIR__ . '/../500.php';
         if (file_exists($errorPage)) {
