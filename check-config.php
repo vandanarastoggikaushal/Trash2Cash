@@ -6,6 +6,27 @@
  * IMPORTANT: Delete this file after testing!
  */
 
+// Set error handler to catch all errors
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    echo '<div class="error">⚠️ PHP Error: ' . htmlspecialchars($errstr) . ' in ' . htmlspecialchars($errfile) . ' on line ' . $errline . '</div>';
+    return true; // Don't execute PHP internal error handler
+});
+
+// Set exception handler
+set_exception_handler(function($exception) {
+    echo '<div class="error">❌ Uncaught Exception: ' . htmlspecialchars($exception->getMessage()) . '</div>';
+    echo '<div class="info">File: ' . htmlspecialchars($exception->getFile()) . ' Line: ' . $exception->getLine() . '</div>';
+});
+
+// Handle fatal errors
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== NULL && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        echo '<div class="error">❌ Fatal Error: ' . htmlspecialchars($error['message']) . '</div>';
+        echo '<div class="info">File: ' . htmlspecialchars($error['file']) . ' Line: ' . $error['line'] . '</div>';
+    }
+});
+
 header('Content-Type: text/html; charset=utf-8');
 ?>
 <!DOCTYPE html>
@@ -54,23 +75,54 @@ header('Content-Type: text/html; charset=utf-8');
     
     echo '<div class="section">';
     echo '<h2>3. Syntax Check</h2>';
-    $output = [];
-    $return = 0;
-    exec("php -l " . escapeshellarg($configFile) . " 2>&1", $output, $return);
-    if ($return === 0) {
-        echo '<div class="success">✅ No syntax errors</div>';
-    } else {
-        echo '<div class="error">❌ Syntax error found:</div>';
-        echo '<pre>' . htmlspecialchars(implode("\n", $output)) . '</pre>';
+    
+    try {
+        // Check if exec is available
+        $disableFunctions = ini_get('disable_functions');
+        $execDisabled = $disableFunctions && in_array('exec', explode(',', $disableFunctions));
+        
+        if (function_exists('exec') && !$execDisabled) {
+            // Try syntax check, but don't let it hang
+            $output = [];
+            $return = 0;
+            $startTime = microtime(true);
+            @exec("php -l " . escapeshellarg($configFile) . " 2>&1", $output, $return);
+            $elapsed = microtime(true) - $startTime;
+            
+            if ($elapsed > 5) {
+                echo '<div class="info">⚠️ Syntax check took too long, skipping result</div>';
+            } elseif ($return === 0) {
+                echo '<div class="success">✅ No syntax errors</div>';
+            } else {
+                echo '<div class="error">❌ Syntax error found:</div>';
+                echo '<pre>' . htmlspecialchars(implode("\n", $output)) . '</pre>';
+            }
+        } else {
+            echo '<div class="info">⚠️ exec() function is disabled or unavailable - skipping syntax check</div>';
+            echo '<div class="info">ℹ️ Will verify syntax by attempting to load the file in next section</div>';
+        }
+    } catch (Exception $e) {
+        echo '<div class="error">❌ Error during syntax check: ' . htmlspecialchars($e->getMessage()) . '</div>';
+    } catch (Throwable $e) {
+        echo '<div class="error">❌ Error during syntax check: ' . htmlspecialchars($e->getMessage()) . '</div>';
     }
     echo '</div>';
+    
+    // Force output flush
+    if (ob_get_level()) {
+        ob_flush();
+    }
+    flush();
     
     echo '<div class="section">';
     echo '<h2>4. Constants After Loading</h2>';
     
     // Try to load the config file
     try {
-        require_once $configFile;
+        // Suppress warnings in case constants are already defined
+        if (!defined('DB_HOST')) {
+            @require_once $configFile;
+        }
         
         $constants = [
             'DB_HOST' => defined('DB_HOST') ? DB_HOST : 'NOT DEFINED',
@@ -127,7 +179,7 @@ header('Content-Type: text/html; charset=utf-8');
     $dbFile = __DIR__ . '/includes/db.php';
     if (file_exists($dbFile)) {
         try {
-            require_once $dbFile;
+            @require_once $dbFile;
             
             if (function_exists('testDBConnection')) {
                 echo '<div class="info">Testing database connection...</div>';
@@ -208,6 +260,11 @@ header('Content-Type: text/html; charset=utf-8');
             <strong>⚠️ Important:</strong> Delete this file (<code>check-config.php</code>) after testing for security reasons!
         </div>
     </div>
+    
+    <?php
+    // Flush any buffered output
+    ob_end_flush();
+    ?>
 </body>
 </html>
 
