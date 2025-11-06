@@ -119,6 +119,87 @@ header('Content-Type: text/html; charset=utf-8');
     echo '<div class="info">Permissions: <code>' . substr(sprintf('%o', $perms), -4) . '</code></div>';
     echo '<div class="info">Readable: ' . (is_readable($configFile) ? '✅ Yes' : '❌ No') . '</div>';
     echo '</div>';
+    
+    echo '<div class="section">';
+    echo '<h2>6. Database Connection Test</h2>';
+    
+    // Load db.php to test connection
+    $dbFile = __DIR__ . '/includes/db.php';
+    if (file_exists($dbFile)) {
+        try {
+            require_once $dbFile;
+            
+            if (function_exists('testDBConnection')) {
+                echo '<div class="info">Testing database connection...</div>';
+                
+                $db = getDB();
+                if ($db === null) {
+                    echo '<div class="error">❌ getDB() returned null - connection failed</div>';
+                    echo '<div class="info">Check error logs for details</div>';
+                } else {
+                    echo '<div class="success">✅ getDB() returned a connection object</div>';
+                    
+                    // Try a simple query
+                    try {
+                        $stmt = $db->query("SELECT 1 as test");
+                        $result = $stmt->fetch();
+                        if ($result) {
+                            echo '<div class="success">✅ Database query successful!</div>';
+                        }
+                    } catch (PDOException $e) {
+                        echo '<div class="error">❌ Query failed: ' . htmlspecialchars($e->getMessage()) . '</div>';
+                    }
+                }
+                
+                if (testDBConnection()) {
+                    echo '<div class="success">✅ testDBConnection() returned true - connection successful!</div>';
+                } else {
+                    echo '<div class="error">❌ testDBConnection() returned false - connection failed</div>';
+                }
+            } else {
+                echo '<div class="error">❌ testDBConnection() function not found</div>';
+            }
+        } catch (Exception $e) {
+            echo '<div class="error">❌ Error loading db.php: ' . htmlspecialchars($e->getMessage()) . '</div>';
+        }
+    } else {
+        echo '<div class="error">❌ db.php file not found</div>';
+    }
+    echo '</div>';
+    
+    echo '<div class="section">';
+    echo '<h2>7. PDO Extension Check</h2>';
+    echo '<div class="info">PDO extension loaded: ' . (extension_loaded('pdo') ? '✅ Yes' : '❌ No') . '</div>';
+    echo '<div class="info">PDO_MySQL extension loaded: ' . (extension_loaded('pdo_mysql') ? '✅ Yes' : '❌ No') . '</div>';
+    if (extension_loaded('pdo')) {
+        echo '<div class="info">Available PDO drivers: ' . implode(', ', PDO::getAvailableDrivers()) . '</div>';
+    }
+    echo '</div>';
+    
+    echo '<div class="section">';
+    echo '<h2>8. Connection String Test</h2>';
+    if (defined('DB_HOST') && defined('DB_PORT') && defined('DB_NAME')) {
+        $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+        echo '<div class="info">DSN: <code>' . htmlspecialchars($dsn) . '</code></div>';
+        echo '<div class="info">User: <code>' . (defined('DB_USER') ? htmlspecialchars(DB_USER) : 'NOT DEFINED') . '</code></div>';
+        echo '<div class="info">Password: <code>' . (defined('DB_PASS') && DB_PASS ? '***SET***' : 'NOT SET') . '</code></div>';
+        
+        // Try to create a PDO connection directly
+        if (extension_loaded('pdo') && extension_loaded('pdo_mysql')) {
+            try {
+                $testPdo = new PDO($dsn, DB_USER, DB_PASS, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_TIMEOUT => 5
+                ]);
+                echo '<div class="success">✅ Direct PDO connection successful!</div>';
+            } catch (PDOException $e) {
+                echo '<div class="error">❌ Direct PDO connection failed:</div>';
+                echo '<div class="error">' . htmlspecialchars($e->getMessage()) . '</div>';
+                echo '<div class="info">Error Code: ' . $e->getCode() . '</div>';
+            }
+        }
+    }
+    echo '</div>';
     ?>
     
     <div class="section">
