@@ -6,11 +6,25 @@
 
 // Database configuration
 // You can set these via environment variables or edit directly
-define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_NAME', getenv('DB_NAME') ?: '');
-define('DB_USER', getenv('DB_USER') ?: '');
-define('DB_PASS', getenv('DB_PASS') ?: '');
-define('DB_CHARSET', 'utf8mb4');
+// Only define if not already defined (allows db-config.php to override)
+if (!defined('DB_HOST')) {
+    define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+}
+if (!defined('DB_NAME')) {
+    define('DB_NAME', getenv('DB_NAME') ?: '');
+}
+if (!defined('DB_USER')) {
+    define('DB_USER', getenv('DB_USER') ?: '');
+}
+if (!defined('DB_PASS')) {
+    define('DB_PASS', getenv('DB_PASS') ?: '');
+}
+if (!defined('DB_CHARSET')) {
+    define('DB_CHARSET', 'utf8mb4');
+}
+if (!defined('DB_PORT')) {
+    define('DB_PORT', '3306'); // Default MySQL port
+}
 
 // If credentials are in a separate config file, load them
 $dbConfigFile = __DIR__ . '/db-config.php';

@@ -5,13 +5,15 @@
  * This script helps identify what's causing the 500 error.
  * Visit this file in your browser to see detailed error information.
  * 
- * IMPORTANT: Delete this file after fixing the issue!
+ * IMPORTANT: This folder is protected - only use for debugging!
  */
 
 // Enable error reporting
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
+
+$rootDir = dirname(__DIR__);
 
 ?>
 <!DOCTYPE html>
@@ -65,7 +67,7 @@ ini_set('display_startup_errors', 1);
         
         echo '<ul>';
         foreach ($filesToCheck as $file) {
-            $path = __DIR__ . '/' . $file;
+            $path = $rootDir . '/' . $file;
             $exists = file_exists($path);
             $readable = $exists ? is_readable($path) : false;
             $status = $exists && $readable ? '<span class="success">✅ OK</span>' : '<span class="error">❌ Missing/Not Readable</span>';
@@ -82,7 +84,7 @@ ini_set('display_startup_errors', 1);
     <div class="section">
         <h2>3. Database Configuration</h2>
         <?php
-        $configFile = __DIR__ . '/includes/db-config.php';
+        $configFile = $rootDir . '/includes/db-config.php';
         if (file_exists($configFile)) {
             echo '<div class="success">✅ Config file exists</div>';
             
@@ -112,8 +114,8 @@ ini_set('display_startup_errors', 1);
     <div class="section">
         <h2>4. Database Connection Test</h2>
         <?php
-        if (file_exists(__DIR__ . '/includes/db.php')) {
-            require_once __DIR__ . '/includes/db.php';
+        if (file_exists($rootDir . '/includes/db.php')) {
+            require_once $rootDir . '/includes/db.php';
             
             if (function_exists('testDBConnection')) {
                 if (testDBConnection()) {
@@ -144,12 +146,12 @@ ini_set('display_startup_errors', 1);
         
         echo '<ul>';
         foreach ($phpFiles as $file) {
-            $path = __DIR__ . '/' . $file;
+            $path = $rootDir . '/' . $file;
             if (file_exists($path)) {
                 // Check syntax
                 $output = [];
                 $return = 0;
-                exec("php -l " . escapeshellarg($path) . " 2>&1", $output, $return);
+                @exec("php -l " . escapeshellarg($path) . " 2>&1", $output, $return);
                 
                 if ($return === 0) {
                     echo '<li><span class="success">✅</span> ' . $file . ' - No syntax errors</li>';
@@ -169,15 +171,15 @@ ini_set('display_startup_errors', 1);
         echo '<p>Testing file includes...</p>';
         
         try {
-            require_once __DIR__ . '/includes/config.php';
+            require_once $rootDir . '/includes/config.php';
             echo '<div class="success">✅ config.php loaded</div>';
         } catch (Exception $e) {
             echo '<div class="error">❌ Error loading config.php: ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
         
         try {
-            if (file_exists(__DIR__ . '/includes/db.php')) {
-                require_once __DIR__ . '/includes/db.php';
+            if (file_exists($rootDir . '/includes/db.php')) {
+                require_once $rootDir . '/includes/db.php';
                 echo '<div class="success">✅ db.php loaded</div>';
             }
         } catch (Exception $e) {
@@ -185,10 +187,10 @@ ini_set('display_startup_errors', 1);
         }
         
         try {
-            if (file_exists(__DIR__ . '/includes/header.php')) {
+            if (file_exists($rootDir . '/includes/header.php')) {
                 // Don't actually include header.php as it outputs HTML
                 // Just check if it can be parsed
-                $content = file_get_contents(__DIR__ . '/includes/header.php');
+                $content = file_get_contents($rootDir . '/includes/header.php');
                 echo '<div class="success">✅ header.php can be read</div>';
             }
         } catch (Exception $e) {
@@ -228,8 +230,7 @@ ini_set('display_startup_errors', 1);
     <div class="section">
         <h2>🔒 Security Note</h2>
         <div class="warning">
-            <strong>⚠️ Important:</strong> Delete this file (<code>debug-500.php</code>) after fixing the issue!
-            This file exposes sensitive information about your server configuration.
+            <strong>⚠️ Important:</strong> This diagnostics folder is protected. These files should only be accessed by authorized personnel for debugging purposes.
         </div>
     </div>
 </body>

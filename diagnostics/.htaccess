@@ -1,0 +1,35 @@
+# Protect Diagnostics Folder
+# This folder contains sensitive debugging tools
+# Access should be restricted to authorized personnel only
+
+# Option 1: Password Protection (Recommended)
+# Uncomment the following lines and create .htpasswd file
+# AuthType Basic
+# AuthName "Diagnostics - Restricted Access"
+# AuthUserFile /full/path/to/.htpasswd
+# Require valid-user
+
+# Option 2: IP Restriction (Alternative)
+# Allow only specific IP addresses
+# Replace with your IP address
+# <RequireAll>
+#     Require ip 127.0.0.1
+#     Require ip YOUR_IP_ADDRESS
+# </RequireAll>
+
+# Option 3: Deny All Access (Most Secure)
+# Uncomment to completely block access (you'll need FTP/SSH to access files)
+# Order deny,allow
+# Deny from all
+
+# For now, we'll use a simple approach - require authentication
+# You can set this up in Hostinger hPanel → File Manager → Password Protect Directory
+
+# Prevent directory listing
+Options -Indexes
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Robots-Tag "noindex, nofollow"
+</IfModule>
+

@@ -3,7 +3,7 @@
  * Config File Diagnostic
  * Checks what's actually in db-config.php
  * 
- * IMPORTANT: Delete this file after testing!
+ * IMPORTANT: This folder is protected - only use for debugging!
  */
 
 // Set error handler to catch all errors
@@ -28,6 +28,10 @@ register_shutdown_function(function() {
 });
 
 header('Content-Type: text/html; charset=utf-8');
+
+// Update paths for subdirectory
+$rootDir = dirname(__DIR__);
+$configFile = $rootDir . '/includes/db-config.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,8 +55,6 @@ header('Content-Type: text/html; charset=utf-8');
     <h1>🔍 Config File Diagnostic</h1>
     
     <?php
-    $configFile = __DIR__ . '/includes/db-config.php';
-    
     echo '<div class="section">';
     echo '<h2>1. File Existence</h2>';
     if (file_exists($configFile)) {
@@ -162,8 +164,16 @@ header('Content-Type: text/html; charset=utf-8');
     } catch (ParseError $e) {
         echo '<div class="error">❌ Parse error: ' . htmlspecialchars($e->getMessage()) . '</div>';
         echo '<div class="info">Line: ' . $e->getLine() . '</div>';
+    } catch (Throwable $e) {
+        echo '<div class="error">❌ Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
     }
     echo '</div>';
+    
+    // Force output flush
+    if (ob_get_level()) {
+        ob_flush();
+    }
+    flush();
     
     echo '<div class="section">';
     echo '<h2>5. File Permissions</h2>';
@@ -176,7 +186,7 @@ header('Content-Type: text/html; charset=utf-8');
     echo '<h2>6. Database Connection Test</h2>';
     
     // Load db.php to test connection
-    $dbFile = __DIR__ . '/includes/db.php';
+    $dbFile = $rootDir . '/includes/db.php';
     if (file_exists($dbFile)) {
         try {
             @require_once $dbFile;
@@ -257,14 +267,9 @@ header('Content-Type: text/html; charset=utf-8');
     <div class="section">
         <h2>🔒 Security Note</h2>
         <div class="info">
-            <strong>⚠️ Important:</strong> Delete this file (<code>check-config.php</code>) after testing for security reasons!
+            <strong>⚠️ Important:</strong> This diagnostics folder is protected. These files should only be accessed by authorized personnel for debugging purposes.
         </div>
     </div>
-    
-    <?php
-    // Flush any buffered output
-    ob_end_flush();
-    ?>
 </body>
 </html>
 

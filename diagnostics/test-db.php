@@ -5,11 +5,12 @@
  * This file tests your database connection.
  * Visit it in your browser or run: php test-db.php
  * 
- * IMPORTANT: Delete this file after testing for security!
+ * IMPORTANT: This folder is protected - only use for debugging!
  */
 
-require_once __DIR__ . '/includes/config.php';
-require_once __DIR__ . '/includes/db.php';
+$rootDir = dirname(__DIR__);
+require_once $rootDir . '/includes/config.php';
+require_once $rootDir . '/includes/db.php';
 
 header('Content-Type: text/html; charset=utf-8');
 ?>
@@ -34,7 +35,7 @@ header('Content-Type: text/html; charset=utf-8');
     
     <?php
     // Check if database config exists
-    $configFile = __DIR__ . '/includes/db-config.php';
+    $configFile = $rootDir . '/includes/db-config.php';
     $configFileAbsolute = realpath($configFile);
     
     if (!file_exists($configFile)) {
@@ -165,7 +166,7 @@ header('Content-Type: text/html; charset=utf-8');
     
     <h2>🔒 Security Note</h2>
     <div class="info">
-        <strong>⚠️ Important:</strong> Delete this file (<code>test-db.php</code>) after testing for security reasons!
+        <strong>⚠️ Important:</strong> This diagnostics folder is protected. These files should only be accessed by authorized personnel for debugging purposes.
     </div>
 </body>
 </html>

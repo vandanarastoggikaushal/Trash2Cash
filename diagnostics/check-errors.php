@@ -2,20 +2,24 @@
 /**
  * Quick Error Check
  * Run this to see what's causing the 500 error
+ * 
+ * IMPORTANT: This folder is protected - only use for debugging!
  */
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+$rootDir = dirname(__DIR__);
+
 echo "Checking for errors...\n\n";
 
 // Check db-config.php syntax
 echo "1. Checking db-config.php syntax...\n";
-$configFile = __DIR__ . '/includes/db-config.php';
+$configFile = $rootDir . '/includes/db-config.php';
 if (file_exists($configFile)) {
     $output = [];
     $return = 0;
-    exec("php -l " . escapeshellarg($configFile) . " 2>&1", $output, $return);
+    @exec("php -l " . escapeshellarg($configFile) . " 2>&1", $output, $return);
     if ($return === 0) {
         echo "   ✅ No syntax errors\n";
     } else {
@@ -28,11 +32,11 @@ if (file_exists($configFile)) {
 
 // Check db.php syntax
 echo "\n2. Checking db.php syntax...\n";
-$dbFile = __DIR__ . '/includes/db.php';
+$dbFile = $rootDir . '/includes/db.php';
 if (file_exists($dbFile)) {
     $output = [];
     $return = 0;
-    exec("php -l " . escapeshellarg($dbFile) . " 2>&1", $output, $return);
+    @exec("php -l " . escapeshellarg($dbFile) . " 2>&1", $output, $return);
     if ($return === 0) {
         echo "   ✅ No syntax errors\n";
     } else {
@@ -43,11 +47,11 @@ if (file_exists($dbFile)) {
 
 // Check auth.php syntax
 echo "\n3. Checking auth.php syntax...\n";
-$authFile = __DIR__ . '/includes/auth.php';
+$authFile = $rootDir . '/includes/auth.php';
 if (file_exists($authFile)) {
     $output = [];
     $return = 0;
-    exec("php -l " . escapeshellarg($authFile) . " 2>&1", $output, $return);
+    @exec("php -l " . escapeshellarg($authFile) . " 2>&1", $output, $return);
     if ($return === 0) {
         echo "   ✅ No syntax errors\n";
     } else {
