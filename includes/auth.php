@@ -93,12 +93,15 @@ function migrateUsersToDatabase() {
                 ':last_login' => $lastLogin
             ];
             
-            if (dbExecute($sql, $params) !== false) {
+            $result = dbExecute($sql, $params);
+            if ($result !== false) {
                 $migrated++;
                 // Add to existing list to avoid duplicates in same run
                 $existingUsernames[$user['username']] = true;
+                error_log("Migrated user: {$user['username']} to database");
             } else {
                 $errors++;
+                error_log("Failed to migrate user: {$user['username']} - dbExecute returned false");
             }
         } catch (Exception $e) {
             $errors++;
@@ -131,12 +134,36 @@ function getUsers() {
         $users = dbQuery("SELECT id, username, password, email, role, created_at, last_login FROM users");
         if ($users !== false) {
             // Auto-migrate users from JSON if database is available
-            // Only run migration once per session to avoid performance issues
-            static $migrationRun = false;
-            if (!$migrationRun && file_exists(USERS_FILE)) {
-                $migrationRun = true;
-                // Run migration in background (don't block)
-                @migrateUsersToDatabase();
+            // Check if migration is needed (only if JSON file exists and has users)
+            if (file_exists(USERS_FILE)) {
+                $jsonUsers = json_decode(file_get_contents(USERS_FILE), true);
+                if (is_array($jsonUsers) && !empty($jsonUsers)) {
+                    // Check if any JSON users are missing from database
+                    $dbUsernames = [];
+                    foreach ($users as $dbUser) {
+                        $dbUsernames[$dbUser['username']] = true;
+                    }
+                    
+                    $needsMigration = false;
+                    foreach ($jsonUsers as $jsonUser) {
+                        if (!isset($dbUsernames[$jsonUser['username']])) {
+                            $needsMigration = true;
+                            break;
+                        }
+                    }
+                    
+                    if ($needsMigration) {
+                        $result = migrateUsersToDatabase();
+                        if ($result['migrated'] > 0) {
+                            error_log("Auto-migrated {$result['migrated']} users from JSON to database via getUsers()");
+                            // Re-fetch users after migration
+                            $users = dbQuery("SELECT id, username, password, email, role, created_at, last_login FROM users");
+                            if ($users === false) {
+                                $users = [];
+                            }
+                        }
+                    }
+                }
             }
             return $users;
         }
@@ -234,14 +261,7 @@ function createUser($username, $password, $email = '', $role = 'user') {
  */
 function verifyUser($username, $password) {
     if (isDatabaseAvailable()) {
-        // Auto-migrate users from JSON if database is available (one-time check)
-        static $migrationRun = false;
-        if (!$migrationRun && file_exists(USERS_FILE)) {
-            $migrationRun = true;
-            @migrateUsersToDatabase();
-        }
-        
-        // Use database
+        // Use database first
         $user = dbQueryOne(
             "SELECT id, username, password, email, role, created_at, last_login FROM users WHERE username = :username",
             [':username' => $username]
@@ -285,8 +305,7 @@ function verifyUser($username, $password) {
                             }
                             
                             $sql = "INSERT INTO users (id, username, password, email, role, created_at, last_login) 
-                                    VALUES (:id, :username, :password, :email, :role, :created_at, :last_login)
-                                    ON DUPLICATE KEY UPDATE last_login = :last_login";
+                                    VALUES (:id, :username, :password, :email, :role, :created_at, :last_login)";
                             
                             $params = [
                                 ':id' => $jsonUser['id'] ?? bin2hex(random_bytes(8)),
@@ -298,7 +317,53 @@ function verifyUser($username, $password) {
                                 ':last_login' => gmdate('Y-m-d H:i:s')
                             ];
                             
-                            dbExecute($sql, $params);
+                            // Check if user already exists (by ID or username) before inserting
+                            $existingUser = dbQueryOne(
+                                "SELECT id, username FROM users WHERE id = :id OR username = :username",
+                                [':id' => $params[':id'], ':username' => $params[':username']]
+                            );
+                            
+                            if ($existingUser) {
+                                error_log("User '{$username}' already exists in database (ID: {$existingUser['id']}), skipping migration");
+                            } else {
+                                // Use direct PDO to get better error information
+                                $db = getDB();
+                                if ($db) {
+                                    try {
+                                        $stmt = $db->prepare($sql);
+                                        $stmt->execute($params);
+                                        $rowsAffected = $stmt->rowCount();
+                                        
+                                        if ($rowsAffected > 0) {
+                                            error_log("Successfully migrated user '{$username}' to database during login (ID: {$params[':id']}, rows: $rowsAffected)");
+                                            
+                                            // Verify user was actually inserted
+                                            $verifyUser = dbQueryOne(
+                                                "SELECT id, username FROM users WHERE username = :username",
+                                                [':username' => $username]
+                                            );
+                                            if ($verifyUser) {
+                                                error_log("Verified: User '{$username}' is now in database (ID: {$verifyUser['id']})");
+                                            } else {
+                                                error_log("WARNING: User '{$username}' migration reported success but user not found in database!");
+                                            }
+                                        } else {
+                                            error_log("WARNING: User '{$username}' migration returned 0 rows affected - user may not have been inserted");
+                                            $errorInfo = $db->errorInfo();
+                                            if ($errorInfo[0] !== '00000') {
+                                                error_log("PDO Error: " . print_r($errorInfo, true));
+                                            }
+                                        }
+                                    } catch (PDOException $e) {
+                                        error_log("PDO Exception migrating user '{$username}': " . $e->getMessage());
+                                        error_log("SQL State: " . $e->getCode());
+                                        error_log("SQL: $sql");
+                                        error_log("Params: " . print_r($params, true));
+                                    }
+                                } else {
+                                    error_log("ERROR: Cannot get database connection to migrate user '{$username}'");
+                                }
+                            }
                             
                             // Return user data (formatted like database user)
                             return [
@@ -311,6 +376,28 @@ function verifyUser($username, $password) {
                             ];
                         } catch (Exception $e) {
                             error_log('Error migrating user during login: ' . $e->getMessage());
+                            error_log('Stack trace: ' . $e->getTraceAsString());
+                            // Still allow login even if migration fails
+                            return [
+                                'id' => $jsonUser['id'],
+                                'username' => $jsonUser['username'],
+                                'email' => $jsonUser['email'] ?? null,
+                                'role' => $jsonUser['role'] ?? 'user',
+                                'createdAt' => $createdAt ?? gmdate('c'),
+                                'lastLogin' => gmdate('c')
+                            ];
+                        } catch (PDOException $e) {
+                            error_log('PDO Error migrating user during login: ' . $e->getMessage());
+                            error_log('SQL State: ' . $e->getCode());
+                            // Still allow login even if migration fails
+                            return [
+                                'id' => $jsonUser['id'],
+                                'username' => $jsonUser['username'],
+                                'email' => $jsonUser['email'] ?? null,
+                                'role' => $jsonUser['role'] ?? 'user',
+                                'createdAt' => $createdAt ?? gmdate('c'),
+                                'lastLogin' => gmdate('c')
+                            ];
                         }
                     }
                 }
