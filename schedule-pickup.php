@@ -46,6 +46,7 @@ require_once __DIR__ . '/includes/header.php';
           <span>📍</span> Address
         </legend>
         <div class="grid gap-4 sm:grid-cols-2">
+          <?php if (defined('ENABLE_ADDRESS_SEARCH') && ENABLE_ADDRESS_SEARCH): ?>
           <div class="sm:col-span-2">
             <label class="block text-sm font-medium" for="address-search">🔍 Search Address</label>
             <div class="relative">
@@ -60,6 +61,7 @@ require_once __DIR__ . '/includes/header.php';
             </div>
             <p class="mt-1 text-xs text-slate-600">Search for your address and select from suggestions</p>
           </div>
+          <?php endif; ?>
           <div class="sm:col-span-2">
             <label class="block text-sm font-medium" for="street">Street</label>
             <input id="street" name="street" type="text" class="mt-1 w-full rounded-md border px-3 py-2" required />

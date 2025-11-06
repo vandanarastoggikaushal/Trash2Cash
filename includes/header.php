@@ -1,6 +1,11 @@
 <?php
 require_once __DIR__ . '/config.php';
 
+// Load auth functions if available (for login/logout display)
+if (file_exists(__DIR__ . '/auth.php')) {
+    require_once __DIR__ . '/auth.php';
+}
+
 // Get current page URL
 $currentUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 $baseUrl = isset($SITE) && isset($SITE['url']) ? $SITE['url'] : 'https://trash2cash.co.nz';
@@ -179,9 +184,23 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
         <a href="/partners.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'partners.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Partners and fundraising">🤝 Partners</a>
         <a href="/faq.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'faq.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Frequently asked questions">❓ FAQ</a>
         <a href="/contact.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'contact.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Contact us">📧 Contact</a>
+        <?php if (isLoggedIn()): ?>
+          <span class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600">
+            👤 <?php echo htmlspecialchars($_SESSION['username']); ?>
+          </span>
+          <a href="/api/logout.php" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-red-50 hover:text-red-600 transition-all" aria-label="Logout">🚪 Logout</a>
+        <?php else: ?>
+          <a href="/login.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'login.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Login">🔐 Login</a>
+        <?php endif; ?>
       </nav>
-      <div class="md:hidden">
-        <a href="/schedule-pickup.php" class="btn text-sm">Schedule Pickup</a>
+      <div class="md:hidden flex items-center gap-2">
+        <?php if (isLoggedIn()): ?>
+          <span class="text-sm text-slate-600">👤 <?php echo htmlspecialchars($_SESSION['username']); ?></span>
+          <a href="/api/logout.php" class="btn text-sm bg-red-600 hover:bg-red-700">Logout</a>
+        <?php else: ?>
+          <a href="/login.php" class="btn text-sm">Login</a>
+        <?php endif; ?>
+        <a href="/schedule-pickup.php" class="btn text-sm">Schedule</a>
       </div>
     </div>
   </header>

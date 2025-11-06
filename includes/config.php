@@ -27,6 +27,9 @@ define('SUPPORT_PHONE', '+64221758458');
 define('COMPANY_NAME', 'Trash2Cash NZ');
 define('CITY', 'Wellington');
 
+// Address search feature - Set to true when you have AddressFinder or NZ Post API key
+define('ENABLE_ADDRESS_SEARCH', false);
+
 /**
  * Get current version from VERSION file
  * @return string Version number

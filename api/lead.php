@@ -7,6 +7,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   exit;
 }
 
+// Load database helper if available
+require_once __DIR__ . '/../includes/config.php';
+$dbFile = __DIR__ . '/../includes/db.php';
+if (file_exists($dbFile)) {
+    require_once $dbFile;
+}
+
 // Handle form-encoded data (from mobile app) - check POST first
 $data = null;
 $rawInput = file_get_contents('php://input');
@@ -59,19 +66,93 @@ $id = bin2hex(random_bytes(6));
 $data['id'] = $id;
 $data['createdAt'] = gmdate('c');
 
-$dir = __DIR__ . '/../data';
-@mkdir($dir, 0755, true);
-$file = $dir . '/leads.json';
+// Check if database is available
+$useDatabase = function_exists('getDB') && getDB() !== null;
 
-$existing = [];
-if (file_exists($file)) {
-  $content = file_get_contents($file);
-  $json = json_decode($content, true);
-  if (is_array($json)) { $existing = $json; }
+if ($useDatabase) {
+  // Save to database
+  $person = $data['person'] ?? [];
+  $address = $data['address'] ?? [];
+  $pickup = $data['pickup'] ?? [];
+  $payout = $data['payout'] ?? [];
+  $confirm = $data['confirm'] ?? [];
+  
+  // Extract appliances
+  $appliances = [];
+  if (isset($pickup['appliances']) && is_array($pickup['appliances'])) {
+    $appliances = $pickup['appliances'];
+  }
+  
+  $sql = "INSERT INTO leads (
+    id, person_name, person_email, person_phone, person_marketing_optin,
+    address_street, address_suburb, address_city, address_postcode, address_access_notes,
+    pickup_type, pickup_cans_estimate, pickup_preferred_date, pickup_preferred_window,
+    payout_method, payout_bank_name, payout_bank_account,
+    payout_child_name, payout_child_bank_account,
+    payout_kiwisaver_provider, payout_kiwisaver_member_id,
+    items_are_clean, accepted_terms, appliances_json, created_at, status
+  ) VALUES (
+    :id, :person_name, :person_email, :person_phone, :person_marketing_optin,
+    :address_street, :address_suburb, :address_city, :address_postcode, :address_access_notes,
+    :pickup_type, :pickup_cans_estimate, :pickup_preferred_date, :pickup_preferred_window,
+    :payout_method, :payout_bank_name, :payout_bank_account,
+    :payout_child_name, :payout_child_bank_account,
+    :payout_kiwisaver_provider, :payout_kiwisaver_member_id,
+    :items_are_clean, :accepted_terms, :appliances_json, :created_at, :status
+  )";
+  
+  $params = [
+    ':id' => $id,
+    ':person_name' => $person['fullName'] ?? '',
+    ':person_email' => $person['email'] ?? '',
+    ':person_phone' => $person['phone'] ?? '',
+    ':person_marketing_optin' => ($person['marketingOptIn'] ?? false) ? 1 : 0,
+    ':address_street' => $address['street'] ?? '',
+    ':address_suburb' => $address['suburb'] ?? '',
+    ':address_city' => $address['city'] ?? '',
+    ':address_postcode' => $address['postcode'] ?? '',
+    ':address_access_notes' => $address['accessNotes'] ?? null,
+    ':pickup_type' => $pickup['type'] ?? 'cans',
+    ':pickup_cans_estimate' => $pickup['cansEstimate'] ?? null,
+    ':pickup_preferred_date' => $pickup['preferredDate'] ?? null,
+    ':pickup_preferred_window' => $pickup['preferredWindow'] ?? null,
+    ':payout_method' => $payout['method'] ?? 'bank',
+    ':payout_bank_name' => $payout['bank']['name'] ?? null,
+    ':payout_bank_account' => $payout['bank']['accountNumber'] ?? null,
+    ':payout_child_name' => $payout['child']['childName'] ?? null,
+    ':payout_child_bank_account' => $payout['child']['bankAccount'] ?? null,
+    ':payout_kiwisaver_provider' => $payout['kiwiSaver']['provider'] ?? null,
+    ':payout_kiwisaver_member_id' => $payout['kiwiSaver']['memberId'] ?? null,
+    ':items_are_clean' => ($confirm['itemsAreClean'] ?? false) ? 1 : 0,
+    ':accepted_terms' => ($confirm['acceptedTerms'] ?? false) ? 1 : 0,
+    ':appliances_json' => !empty($appliances) ? json_encode($appliances) : null,
+    ':created_at' => gmdate('Y-m-d H:i:s'),
+    ':status' => 'pending'
+  ];
+  
+  $saved = dbExecute($sql, $params) !== false;
+  if (!$saved) {
+    // Fallback to JSON if database save fails
+    $useDatabase = false;
+  }
 }
 
-$existing[] = $data;
-file_put_contents($file, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+if (!$useDatabase) {
+  // Fallback to JSON file storage
+  $dir = __DIR__ . '/../data';
+  @mkdir($dir, 0755, true);
+  $file = $dir . '/leads.json';
+  
+  $existing = [];
+  if (file_exists($file)) {
+    $content = file_get_contents($file);
+    $json = json_decode($content, true);
+    if (is_array($json)) { $existing = $json; }
+  }
+  
+  $existing[] = $data;
+  file_put_contents($file, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+}
 
 // Send email notification
 $to = 'collect@trash2cash.co.nz';
@@ -131,7 +212,6 @@ if (isset($data['pickup'])) {
     $emailMessage .= "APPLIANCES:\n";
     
     // Load appliance credits from config
-    require_once __DIR__ . '/../includes/config.php';
     $applianceMap = [];
     foreach ($APPLIANCE_CREDITS as $app) {
       $applianceMap[$app['slug']] = $app;
@@ -259,4 +339,3 @@ error_log('[email] New lead submitted: ' . json_encode($data));
 
 echo json_encode([ 'ok' => true, 'id' => $id ]);
 ?>
-

@@ -67,17 +67,26 @@ if (!empty($addressFinderApiKey)) {
 
 // Option 3: Fallback - Basic Wellington area suggestions
 // This provides basic suggestions when no API is configured
+// Only suggest known suburbs/areas, not street addresses (which require proper API)
+
 $wellingtonAreas = [
     'Wellington City', 'Churton Park', 'Johnsonville', 'Karori', 
     'Newlands', 'Tawa', 'Lower Hutt', 'Upper Hutt', 'Porirua',
-    'Petone', 'Eastbourne', 'Wainuiomata', 'Kapiti', 'Paraparaumu'
+    'Petone', 'Eastbourne', 'Wainuiomata', 'Kapiti', 'Paraparaumu',
+    'Miramar', 'Island Bay', 'Newtown', 'Mount Victoria', 'Kelburn',
+    'Thorndon', 'Aro Valley', 'Brooklyn', 'Wadestown', 'Khandallah',
+    'Ngaio', 'Crofton Downs', 'Broadmeadows', 'Grenada', 'Ohariu'
 ];
 
 $suggestions = [];
-$queryLower = strtolower($query);
+$queryLower = strtolower(trim($query));
 
+// Only suggest if query matches a known suburb/area name
+// Don't try to suggest street addresses without proper API
 foreach ($wellingtonAreas as $area) {
-    if (stripos($area, $query) !== false) {
+    $areaLower = strtolower($area);
+    // Match if query is contained in area name or vice versa (for partial matches)
+    if (stripos($areaLower, $queryLower) !== false || stripos($queryLower, $areaLower) !== false) {
         $suggestions[] = [
             'id' => '',
             'address' => $area . ', Wellington, New Zealand',
@@ -86,20 +95,9 @@ foreach ($wellingtonAreas as $area) {
     }
 }
 
-// Also add some common street patterns if query looks like a street
-if (preg_match('/\d+\s+\w+/', $query)) {
-    // Looks like a street address, add some common Wellington streets
-    $commonStreets = ['Lambton Quay', 'Cuba Street', 'Courtenay Place', 'Willis Street', 'The Terrace'];
-    foreach ($commonStreets as $street) {
-        if (stripos($street, $query) !== false || strlen($query) >= 3) {
-            $suggestions[] = [
-                'id' => '',
-                'address' => $query . ' ' . $street . ', Wellington',
-                'full_address' => $query . ' ' . $street . ', Wellington, New Zealand'
-            ];
-        }
-    }
-}
+// If query looks like a street address (has numbers), don't create fake suggestions
+// Instead, return empty and let user type manually
+// This prevents creating incorrect addresses like "25 rangatira road Lambton Quay"
 
 // Limit to 10 suggestions
 $suggestions = array_slice($suggestions, 0, 10);

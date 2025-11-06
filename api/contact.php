@@ -7,6 +7,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   exit;
 }
 
+// Load database helper if available
+require_once __DIR__ . '/../includes/config.php';
+$dbFile = __DIR__ . '/../includes/db.php';
+if (file_exists($dbFile)) {
+    require_once $dbFile;
+}
+
 // Handle form-encoded data (from mobile app)
 $data = null;
 $rawInput = file_get_contents('php://input');
@@ -69,20 +76,45 @@ $record = [
   'message' => $message
 ];
 
-// Save to JSON file
-$dir = __DIR__ . '/../data';
-@mkdir($dir, 0755, true);
-$file = $dir . '/messages.json';
+// Check if database is available
+$useDatabase = function_exists('getDB') && getDB() !== null;
 
-$existing = [];
-if (file_exists($file)) {
-  $content = file_get_contents($file);
-  $json = json_decode($content, true);
-  if (is_array($json)) { $existing = $json; }
+if ($useDatabase) {
+  // Save to database
+  $sql = "INSERT INTO messages (id, name, email, message, created_at, read) 
+          VALUES (:id, :name, :email, :message, :created_at, 0)";
+  
+  $params = [
+    ':id' => $id,
+    ':name' => $name,
+    ':email' => $email,
+    ':message' => $message,
+    ':created_at' => gmdate('Y-m-d H:i:s')
+  ];
+  
+  $saved = dbExecute($sql, $params) !== false;
+  if (!$saved) {
+    // Fallback to JSON if database save fails
+    $useDatabase = false;
+  }
 }
 
-$existing[] = $record;
-file_put_contents($file, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+if (!$useDatabase) {
+  // Fallback to JSON file storage
+  $dir = __DIR__ . '/../data';
+  @mkdir($dir, 0755, true);
+  $file = $dir . '/messages.json';
+  
+  $existing = [];
+  if (file_exists($file)) {
+    $content = file_get_contents($file);
+    $json = json_decode($content, true);
+    if (is_array($json)) { $existing = $json; }
+  }
+  
+  $existing[] = $record;
+  file_put_contents($file, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+}
 
 // Send email
 $to = 'collect@trash2cash.co.nz';
@@ -157,4 +189,3 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 echo json_encode([ 'ok' => true, 'id' => $id ]);
 ?>
-

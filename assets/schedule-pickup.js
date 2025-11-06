@@ -95,6 +95,7 @@ function initAddressAutocomplete() {
   const addressSearchInput = document.getElementById('address-search');
   const suggestionsDiv = document.getElementById('address-suggestions');
   
+  // Exit early if address search is disabled (element doesn't exist)
   if (!addressSearchInput || !suggestionsDiv) return;
   
   addressSearchInput.addEventListener('input', function(e) {

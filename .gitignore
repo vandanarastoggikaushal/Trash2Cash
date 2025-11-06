@@ -16,3 +16,6 @@ Thumbs.db
 # Data files (runtime user submissions)
 data/*.json
 !data/.gitkeep
+
+# Database configuration (contains credentials)
+includes/db-config.php

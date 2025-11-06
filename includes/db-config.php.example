@@ -1,0 +1,26 @@
+<?php
+/**
+ * Database Configuration
+ * 
+ * INSTRUCTIONS:
+ * 1. Copy this file to db-config.php
+ * 2. Fill in your database credentials from Hostinger
+ * 3. Never commit db-config.php to version control!
+ * 
+ * You can find your database credentials in Hostinger:
+ * - Go to hPanel → Databases → MySQL Databases
+ * - Or check your database details in phpMyAdmin
+ */
+
+// Database host (usually 'localhost' on Hostinger)
+define('DB_HOST', 'localhost');
+
+// Database name (the database you created)
+define('DB_NAME', 'your_database_name');
+
+// Database username
+define('DB_USER', 'your_database_user');
+
+// Database password
+define('DB_PASS', 'your_database_password');
+
