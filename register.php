@@ -25,6 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $error = 'Username is required';
     } elseif (strlen($username) < 3) {
         $error = 'Username must be at least 3 characters';
+    } elseif (empty($email)) {
+        $error = 'Email is required';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Please enter a valid email address';
     } elseif (empty($password)) {
         $error = 'Password is required';
     } elseif (strlen($password) < 6) {
@@ -88,12 +92,13 @@ require_once __DIR__ . '/includes/header.php';
 
         <div>
           <label for="email" class="block text-sm font-semibold text-slate-900 mb-2">
-            Email (optional)
+            Email <span class="text-red-500">*</span>
           </label>
           <input 
             id="email" 
             name="email" 
             type="email"
+            required
             class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all"
             placeholder="your.email@example.com"
             value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>"
