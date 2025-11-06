@@ -2,6 +2,26 @@
 // Configuration constants
 define('CAN_REWARD_PER_100', 1);
 
+// Load custom error handler (for branded error pages)
+// Only load if not already on an error page to prevent issues
+$requestUri = $_SERVER['REQUEST_URI'] ?? '';
+$isErrorPage = strpos($requestUri, '404.php') !== false ||
+               strpos($requestUri, '500.php') !== false ||
+               strpos($requestUri, '403.php') !== false ||
+               strpos($requestUri, '503.php') !== false;
+
+if (!$isErrorPage) {
+    $errorHandlerFile = __DIR__ . '/error-handler.php';
+    if (file_exists($errorHandlerFile)) {
+        try {
+            require_once $errorHandlerFile;
+        } catch (Exception $e) {
+            // Error handler itself has errors - log but don't break
+            error_log('Error loading error-handler.php: ' . $e->getMessage());
+        }
+    }
+}
+
 $APPLIANCE_CREDITS = [
   ['slug' => 'washing_machine', 'label' => 'Washing machine', 'credit' => 6],
   ['slug' => 'dishwasher', 'label' => 'Dishwasher', 'credit' => 5],

@@ -5,6 +5,12 @@ RewriteEngine On
 # Redirect to index.php for root
 DirectoryIndex index.php index.html
 
+# Custom Error Pages - Trash2Cash Branded
+ErrorDocument 404 /404.php
+ErrorDocument 403 /403.php
+ErrorDocument 500 /500.php
+ErrorDocument 503 /503.php
+
 # Clean URLs - remove .php extension
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
@@ -24,3 +30,9 @@ RewriteRule ^([^\.]+)$ $1.php [NC,L]
 # PHP settings (adjust as needed)
 php_value upload_max_filesize 10M
 php_value post_max_size 10M
+
+# Prevent direct access to sensitive files
+<FilesMatch "^(db-config\.php|\.htaccess|\.gitignore)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
