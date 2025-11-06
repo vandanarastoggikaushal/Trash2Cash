@@ -60,19 +60,40 @@ header('Content-Type: text/html; charset=utf-8');
     echo '</div>';
     
     // Check if credentials are filled in
-    require_once $configFile;
-    if (empty(DB_NAME) || empty(DB_USER)) {
+    // Note: Constants might already be loaded via config.php, so check if they exist
+    if (!defined('DB_NAME') || !defined('DB_USER')) {
+        // Try to load the config file
+        if (file_exists($configFile)) {
+            require_once $configFile;
+        }
+    }
+    
+    // Check if constants are defined and have values
+    $dbName = defined('DB_NAME') ? DB_NAME : '';
+    $dbUser = defined('DB_USER') ? DB_USER : '';
+    $dbHost = defined('DB_HOST') ? DB_HOST : 'localhost';
+    $dbPass = defined('DB_PASS') ? DB_PASS : '';
+    
+    if (empty($dbName) || empty($dbUser)) {
         echo '<div class="error">';
         echo '<strong>⚠️ Database credentials not configured!</strong><br>';
-        echo 'Please fill in DB_NAME, DB_USER, and DB_PASS in <code>includes/db-config.php</code>';
+        echo 'Please fill in DB_NAME, DB_USER, and DB_PASS in <code>includes/db-config.php</code><br><br>';
+        echo '<strong>Current values:</strong><br>';
+        echo 'DB_NAME: <code>' . ($dbName ? htmlspecialchars($dbName) : '(not set)') . '</code><br>';
+        echo 'DB_USER: <code>' . ($dbUser ? htmlspecialchars($dbUser) : '(not set)') . '</code><br>';
+        echo 'DB_HOST: <code>' . htmlspecialchars($dbHost) . '</code><br>';
+        echo 'DB_PASS: <code>' . ($dbPass ? '••••••••' : '(not set)') . '</code>';
         echo '</div>';
     } else {
         echo '<div class="info">';
         echo '<strong>ℹ️ Database configured:</strong><br>';
-        echo 'Host: <code>' . htmlspecialchars(DB_HOST) . '</code><br>';
-        echo 'Database: <code>' . htmlspecialchars(DB_NAME) . '</code><br>';
-        echo 'User: <code>' . htmlspecialchars(DB_USER) . '</code><br>';
-        echo 'Password: <code>' . (empty(DB_PASS) ? '(not set)' : '••••••••') . '</code>';
+        echo 'Host: <code>' . htmlspecialchars($dbHost) . '</code><br>';
+        if (defined('DB_PORT')) {
+            echo 'Port: <code>' . htmlspecialchars(DB_PORT) . '</code><br>';
+        }
+        echo 'Database: <code>' . htmlspecialchars($dbName) . '</code><br>';
+        echo 'User: <code>' . htmlspecialchars($dbUser) . '</code><br>';
+        echo 'Password: <code>' . ($dbPass ? '••••••••' : '(not set)') . '</code>';
         echo '</div>';
     }
     
