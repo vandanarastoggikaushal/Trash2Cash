@@ -5,7 +5,7 @@ Disallow: /data/
 Disallow: /*.json$
 
 # Sitemap
-Sitemap: https://trash2cash.nz/sitemap.xml
+Sitemap: https://trash2cash.co.nz/sitemap.xml
 
 # Crawl-delay (optional, helps prevent server overload)
 Crawl-delay: 1

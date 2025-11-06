@@ -3,7 +3,7 @@ require_once __DIR__ . '/config.php';
 
 // Get current page URL
 $currentUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-$baseUrl = isset($SITE) && isset($SITE['url']) ? $SITE['url'] : 'https://trash2cash.nz';
+$baseUrl = isset($SITE) && isset($SITE['url']) ? $SITE['url'] : 'https://trash2cash.co.nz';
 
 // Prepare page-specific data
 $pageTitleFull = isset($pageTitle) ? htmlspecialchars($pageTitle) . ' | ' . COMPANY_NAME : COMPANY_NAME;

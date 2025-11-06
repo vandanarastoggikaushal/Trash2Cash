@@ -30,7 +30,7 @@ define('CITY', 'Wellington');
 if (!isset($SITE)) {
   $SITE = [
     'name' => COMPANY_NAME,
-    'url' => 'https://trash2cash.nz',
+    'url' => 'https://trash2cash.co.nz',
     'description' => "We collect clean aluminium cans and old appliances from your home across Wellington. Earn \$1 per 100 cans—deposit to kids' accounts or KiwiSaver.",
     'ogImage' => '/og.svg'
   ];
