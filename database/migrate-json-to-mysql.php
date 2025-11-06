@@ -29,46 +29,21 @@ echo "✅ Database connection successful!\n\n";
 $migrated = 0;
 $errors = 0;
 
-// Migrate Users
+// Migrate Users (using the automatic migration function)
 echo "Migrating users...\n";
-$usersFile = __DIR__ . '/../data/users.json';
-if (file_exists($usersFile)) {
-    $users = json_decode(file_get_contents($usersFile), true);
-    if (is_array($users)) {
-        foreach ($users as $user) {
-            try {
-                $sql = "INSERT INTO users (id, username, password, email, role, created_at, last_login) 
-                        VALUES (:id, :username, :password, :email, :role, :created_at, :last_login)
-                        ON DUPLICATE KEY UPDATE 
-                        email = VALUES(email), 
-                        role = VALUES(role),
-                        last_login = VALUES(last_login)";
-                
-                $params = [
-                    ':id' => $user['id'] ?? bin2hex(random_bytes(8)),
-                    ':username' => $user['username'],
-                    ':password' => $user['password'],
-                    ':email' => $user['email'] ?? null,
-                    ':role' => $user['role'] ?? 'user',
-                    ':created_at' => $user['createdAt'] ?? gmdate('Y-m-d H:i:s'),
-                    ':last_login' => $user['lastLogin'] ?? null
-                ];
-                
-                if (dbExecute($sql, $params) !== false) {
-                    $migrated++;
-                    echo "  ✓ Migrated user: {$user['username']}\n";
-                } else {
-                    $errors++;
-                    echo "  ✗ Failed to migrate user: {$user['username']}\n";
-                }
-            } catch (Exception $e) {
-                $errors++;
-                echo "  ✗ Error migrating user {$user['username']}: " . $e->getMessage() . "\n";
-            }
-        }
+require_once __DIR__ . '/../includes/auth.php';
+$result = migrateUsersToDatabase();
+
+if ($result['migrated'] > 0 || $result['skipped'] > 0) {
+    $migrated += $result['migrated'];
+    $errors += $result['errors'];
+    echo "  ✓ Migrated: {$result['migrated']} users\n";
+    echo "  ⏭️  Skipped: {$result['skipped']} users (already exist)\n";
+    if ($result['errors'] > 0) {
+        echo "  ✗ Errors: {$result['errors']} users\n";
     }
 } else {
-    echo "  ℹ No users.json file found (skipping)\n";
+    echo "  ℹ {$result['message']}\n";
 }
 
 echo "\n";

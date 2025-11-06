@@ -25,6 +25,96 @@ if (file_exists($dbFile)) {
 define('USERS_FILE', __DIR__ . '/../data/users.json');
 
 /**
+ * Migrate users from JSON to database
+ * This function automatically migrates users created during backup mode
+ * @return array Statistics about migration (migrated, skipped, errors)
+ */
+function migrateUsersToDatabase() {
+    if (!isDatabaseAvailable()) {
+        return ['migrated' => 0, 'skipped' => 0, 'errors' => 0, 'message' => 'Database not available'];
+    }
+    
+    // Check if JSON file exists
+    if (!file_exists(USERS_FILE)) {
+        return ['migrated' => 0, 'skipped' => 0, 'errors' => 0, 'message' => 'No JSON users file found'];
+    }
+    
+    $jsonUsers = json_decode(file_get_contents(USERS_FILE), true);
+    if (!is_array($jsonUsers) || empty($jsonUsers)) {
+        return ['migrated' => 0, 'skipped' => 0, 'errors' => 0, 'message' => 'No users in JSON file'];
+    }
+    
+    // Get existing users from database
+    $dbUsers = dbQuery("SELECT username FROM users");
+    $existingUsernames = [];
+    if ($dbUsers !== false) {
+        foreach ($dbUsers as $dbUser) {
+            $existingUsernames[$dbUser['username']] = true;
+        }
+    }
+    
+    $migrated = 0;
+    $skipped = 0;
+    $errors = 0;
+    
+    foreach ($jsonUsers as $user) {
+        // Skip if user already exists in database
+        if (isset($existingUsernames[$user['username']])) {
+            $skipped++;
+            continue;
+        }
+        
+        try {
+            // Convert JSON date format to MySQL format
+            $createdAt = $user['createdAt'] ?? gmdate('Y-m-d H:i:s');
+            if (strpos($createdAt, 'T') !== false) {
+                // ISO 8601 format (from JSON)
+                $createdAt = date('Y-m-d H:i:s', strtotime($createdAt));
+            }
+            
+            $lastLogin = null;
+            if (!empty($user['lastLogin'])) {
+                $lastLogin = $user['lastLogin'];
+                if (strpos($lastLogin, 'T') !== false) {
+                    $lastLogin = date('Y-m-d H:i:s', strtotime($lastLogin));
+                }
+            }
+            
+            $sql = "INSERT INTO users (id, username, password, email, role, created_at, last_login) 
+                    VALUES (:id, :username, :password, :email, :role, :created_at, :last_login)";
+            
+            $params = [
+                ':id' => $user['id'] ?? bin2hex(random_bytes(8)),
+                ':username' => $user['username'],
+                ':password' => $user['password'], // Already hashed
+                ':email' => !empty($user['email']) ? $user['email'] : null,
+                ':role' => $user['role'] ?? 'user',
+                ':created_at' => $createdAt,
+                ':last_login' => $lastLogin
+            ];
+            
+            if (dbExecute($sql, $params) !== false) {
+                $migrated++;
+                // Add to existing list to avoid duplicates in same run
+                $existingUsernames[$user['username']] = true;
+            } else {
+                $errors++;
+            }
+        } catch (Exception $e) {
+            $errors++;
+            error_log('Error migrating user ' . ($user['username'] ?? 'unknown') . ': ' . $e->getMessage());
+        }
+    }
+    
+    return [
+        'migrated' => $migrated,
+        'skipped' => $skipped,
+        'errors' => $errors,
+        'message' => "Migration complete: $migrated migrated, $skipped skipped, $errors errors"
+    ];
+}
+
+/**
  * Check if database is available
  * @return bool
  */
@@ -40,6 +130,14 @@ function getUsers() {
     if (isDatabaseAvailable()) {
         $users = dbQuery("SELECT id, username, password, email, role, created_at, last_login FROM users");
         if ($users !== false) {
+            // Auto-migrate users from JSON if database is available
+            // Only run migration once per session to avoid performance issues
+            static $migrationRun = false;
+            if (!$migrationRun && file_exists(USERS_FILE)) {
+                $migrationRun = true;
+                // Run migration in background (don't block)
+                @migrateUsersToDatabase();
+            }
             return $users;
         }
     }
@@ -136,6 +234,13 @@ function createUser($username, $password, $email = '', $role = 'user') {
  */
 function verifyUser($username, $password) {
     if (isDatabaseAvailable()) {
+        // Auto-migrate users from JSON if database is available (one-time check)
+        static $migrationRun = false;
+        if (!$migrationRun && file_exists(USERS_FILE)) {
+            $migrationRun = true;
+            @migrateUsersToDatabase();
+        }
+        
         // Use database
         $user = dbQueryOne(
             "SELECT id, username, password, email, role, created_at, last_login FROM users WHERE username = :username",
@@ -162,6 +267,56 @@ function verifyUser($username, $password) {
                 'lastLogin' => gmdate('c')
             ];
         }
+        
+        // If user not found in database, check JSON file (might be a backup mode user)
+        // This allows login even if migration hasn't run yet, and migrates on-the-fly
+        if (file_exists(USERS_FILE)) {
+            $jsonUsers = json_decode(file_get_contents(USERS_FILE), true);
+            if (is_array($jsonUsers)) {
+                foreach ($jsonUsers as $jsonUser) {
+                    if ($jsonUser['username'] === $username && 
+                        isset($jsonUser['password']) && 
+                        password_verify($password, $jsonUser['password'])) {
+                        // User found in JSON - migrate them now
+                        try {
+                            $createdAt = $jsonUser['createdAt'] ?? gmdate('Y-m-d H:i:s');
+                            if (strpos($createdAt, 'T') !== false) {
+                                $createdAt = date('Y-m-d H:i:s', strtotime($createdAt));
+                            }
+                            
+                            $sql = "INSERT INTO users (id, username, password, email, role, created_at, last_login) 
+                                    VALUES (:id, :username, :password, :email, :role, :created_at, :last_login)
+                                    ON DUPLICATE KEY UPDATE last_login = :last_login";
+                            
+                            $params = [
+                                ':id' => $jsonUser['id'] ?? bin2hex(random_bytes(8)),
+                                ':username' => $jsonUser['username'],
+                                ':password' => $jsonUser['password'],
+                                ':email' => !empty($jsonUser['email']) ? $jsonUser['email'] : null,
+                                ':role' => $jsonUser['role'] ?? 'user',
+                                ':created_at' => $createdAt,
+                                ':last_login' => gmdate('Y-m-d H:i:s')
+                            ];
+                            
+                            dbExecute($sql, $params);
+                            
+                            // Return user data (formatted like database user)
+                            return [
+                                'id' => $jsonUser['id'],
+                                'username' => $jsonUser['username'],
+                                'email' => $jsonUser['email'] ?? null,
+                                'role' => $jsonUser['role'] ?? 'user',
+                                'createdAt' => $createdAt,
+                                'lastLogin' => gmdate('c')
+                            ];
+                        } catch (Exception $e) {
+                            error_log('Error migrating user during login: ' . $e->getMessage());
+                        }
+                    }
+                }
+            }
+        }
+        
         return false;
     }
     
