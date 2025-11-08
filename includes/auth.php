@@ -38,6 +38,166 @@ function refreshSessionUser() {
 }
 
 /**
+ * Generate a persistent API token for the given user ID.
+ * @param string $userId
+ * @return string|null
+ */
+function generateApiToken($userId) {
+    if (!isDatabaseAvailable() || empty($userId)) {
+        return null;
+    }
+
+    $token = bin2hex(random_bytes(32));
+    $result = dbExecute(
+        'UPDATE users SET api_token = :token WHERE id = :id',
+        [
+            ':token' => $token,
+            ':id' => $userId
+        ]
+    );
+
+    return $result === false ? null : $token;
+}
+
+/**
+ * Invalidate a user's API token.
+ * @param string $userId
+ */
+function invalidateApiToken($userId) {
+    if (!isDatabaseAvailable() || empty($userId)) {
+        return;
+    }
+
+    dbExecute('UPDATE users SET api_token = NULL WHERE id = :id', [':id' => $userId]);
+}
+
+/**
+ * Fetch a raw user row by ID.
+ * @param string $userId
+ * @return array|null
+ */
+function fetchUserRowById($userId) {
+    if (!isDatabaseAvailable() || empty($userId)) {
+        return null;
+    }
+
+    return dbQueryOne(
+        'SELECT id, username, email, role, first_name, last_name, address, phone, marketing_opt_in, payout_method, payout_bank_name, payout_bank_account, payout_child_name, payout_child_bank_account, payout_kiwisaver_provider, payout_kiwisaver_member_id, created_at, last_login, address_updated_at, payout_updated_at, api_token FROM users WHERE id = :id',
+        [':id' => $userId]
+    );
+}
+
+/**
+ * Fetch a raw user row using an API token.
+ * @param string $token
+ * @return array|null
+ */
+function fetchUserRowByApiToken($token) {
+    if (!isDatabaseAvailable() || empty($token)) {
+        return null;
+    }
+
+    return dbQueryOne(
+        'SELECT id, username, email, role, first_name, last_name, address, phone, marketing_opt_in, payout_method, payout_bank_name, payout_bank_account, payout_child_name, payout_child_bank_account, payout_kiwisaver_provider, payout_kiwisaver_member_id, created_at, last_login, address_updated_at, payout_updated_at, api_token FROM users WHERE api_token = :token',
+        [':token' => $token]
+    );
+}
+
+/**
+ * Parse the stored address string into components.
+ * @param string $address
+ * @return array
+ */
+function parseAddressString($address) {
+    $lines = preg_split('/\r\n|\r|\n/', (string)$address);
+    $street = trim($lines[0] ?? '');
+    $suburb = trim($lines[1] ?? '');
+    $cityLine = trim($lines[2] ?? '');
+    $city = $cityLine;
+    $postcode = '';
+
+    if ($cityLine !== '' && preg_match('/(.+)\s+(\d{4})$/', $cityLine, $matches)) {
+        $city = trim($matches[1]);
+        $postcode = trim($matches[2]);
+    } elseif (preg_match('/\b(\d{4})\b/', $address, $matches)) {
+        $postcode = trim($matches[1]);
+    }
+
+    return [
+        'street' => $street,
+        'suburb' => $suburb,
+        'city' => $city !== '' ? $city : CITY,
+        'postcode' => $postcode,
+        'full' => trim($address),
+    ];
+}
+
+/**
+ * Format a user record for API responses.
+ * @param array $user
+ * @return array
+ */
+function formatUserForApi(array $user) {
+    $addressParts = parseAddressString($user['address'] ?? '');
+    $marketingOptIn = !empty($user['marketingOptIn'] ?? $user['marketing_opt_in'] ?? false);
+    $payoutMethod = $user['payoutMethod'] ?? $user['payout_method'] ?? 'bank';
+
+    return [
+        'id' => $user['id'] ?? null,
+        'username' => $user['username'] ?? null,
+        'email' => $user['email'] ?? null,
+        'role' => $user['role'] ?? 'user',
+        'firstName' => $user['firstName'] ?? ($user['first_name'] ?? ''),
+        'lastName' => $user['lastName'] ?? ($user['last_name'] ?? ''),
+        'phone' => $user['phone'] ?? '',
+        'marketingOptIn' => $marketingOptIn,
+        'address' => $addressParts,
+        'payout' => [
+            'method' => $payoutMethod,
+            'bankName' => $user['payoutBankName'] ?? ($user['payout_bank_name'] ?? ''),
+            'bankAccount' => $user['payoutBankAccount'] ?? ($user['payout_bank_account'] ?? ''),
+            'childName' => $user['payoutChildName'] ?? ($user['payout_child_name'] ?? ''),
+            'childBankAccount' => $user['payoutChildBankAccount'] ?? ($user['payout_child_bank_account'] ?? ''),
+            'kiwisaverProvider' => $user['payoutKiwisaverProvider'] ?? ($user['payout_kiwisaver_provider'] ?? ''),
+            'kiwisaverMemberId' => $user['payoutKiwisaverMemberId'] ?? ($user['payout_kiwisaver_member_id'] ?? ''),
+        ],
+        'createdAt' => $user['createdAt'] ?? ($user['created_at'] ?? null),
+        'lastLogin' => $user['lastLogin'] ?? ($user['last_login'] ?? null),
+        'addressUpdatedAt' => $user['addressUpdatedAt'] ?? ($user['address_updated_at'] ?? null),
+        'payoutUpdatedAt' => $user['payoutUpdatedAt'] ?? ($user['payout_updated_at'] ?? null),
+    ];
+}
+
+/**
+ * Extract Bearer token from Authorization header.
+ * @return string|null
+ */
+function getBearerTokenFromHeaders() {
+    $headers = [];
+    if (function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+    } else {
+        foreach ($_SERVER as $key => $value) {
+            if (stripos($key, 'HTTP_') === 0) {
+                $headerName = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($key, 5)))));
+                $headers[$headerName] = $value;
+            }
+        }
+    }
+
+    $authHeader = $headers['Authorization'] ?? ($headers['authorization'] ?? null);
+    if (!$authHeader) {
+        return null;
+    }
+
+    if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+        return trim($matches[1]);
+    }
+
+    return null;
+}
+
+/**
  * Authentication Helper Functions
  * Handles user login, logout, session management, and user storage
  * Uses MySQL database (with JSON fallback if database not configured)
@@ -545,6 +705,7 @@ function deleteUserById($userId) {
     }
 
     if (isDatabaseAvailable()) {
+        invalidateApiToken($userId);
         $result = dbExecute('DELETE FROM user_payments WHERE user_id = :id', [':id' => $userId]);
         if ($result === false) {
             return false;

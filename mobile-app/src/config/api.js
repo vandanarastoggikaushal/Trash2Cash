@@ -8,6 +8,10 @@ export const API_ENDPOINTS = {
   HEALTH: `${API_BASE_URL}/api/health.php`,
   ADDRESS_SEARCH: `${API_BASE_URL}/api/address-search.php`,
   ADDRESS_DETAILS: `${API_BASE_URL}/api/address-details.php`,
+  AUTH_LOGIN: `${API_BASE_URL}/api/auth/login.php`,
+  AUTH_REGISTER: `${API_BASE_URL}/api/auth/register.php`,
+  AUTH_LOGOUT: `${API_BASE_URL}/api/auth/logout.php`,
+  PROFILE: `${API_BASE_URL}/api/profile.php`,
 };
 
 export const APP_CONFIG = {

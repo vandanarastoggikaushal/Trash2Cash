@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { theme } from './src/theme';
+import { AuthProvider } from './src/context/AuthContext';
 
 // Screens
 import HomeScreen from './src/screens/HomeScreen';
@@ -14,6 +15,9 @@ import SchedulePickupScreen from './src/screens/SchedulePickupScreen';
 import ContactScreen from './src/screens/ContactScreen';
 import HowItWorksScreen from './src/screens/HowItWorksScreen';
 import FAQScreen from './src/screens/FAQScreen';
+import AccountScreen from './src/screens/AccountScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -69,6 +73,15 @@ function MainTabs() {
           ),
         }}
       />
+      <Tab.Screen
+        name="Account"
+        component={AccountScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="account-circle" color={color} size={size} />
+          ),
+        }}
+      />
     </Tab.Navigator>
   );
 }
@@ -76,34 +89,54 @@ function MainTabs() {
 export default function App() {
   return (
     <PaperProvider theme={theme}>
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="Main"
-            component={MainTabs}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="HowItWorks"
-            component={HowItWorksScreen}
-            options={{
-              title: 'How It Works',
-              headerStyle: { backgroundColor: '#15803d' },
-              headerTintColor: '#fff',
-            }}
-          />
-          <Stack.Screen
-            name="FAQ"
-            component={FAQScreen}
-            options={{
-              title: 'FAQ',
-              headerStyle: { backgroundColor: '#15803d' },
-              headerTintColor: '#fff',
-            }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-      <StatusBar style="light" />
+      <AuthProvider>
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen
+              name="Main"
+              component={MainTabs}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="HowItWorks"
+              component={HowItWorksScreen}
+              options={{
+                title: 'How It Works',
+                headerStyle: { backgroundColor: '#15803d' },
+                headerTintColor: '#fff',
+              }}
+            />
+            <Stack.Screen
+              name="FAQ"
+              component={FAQScreen}
+              options={{
+                title: 'FAQ',
+                headerStyle: { backgroundColor: '#15803d' },
+                headerTintColor: '#fff',
+              }}
+            />
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{
+                title: 'Login',
+                headerStyle: { backgroundColor: '#15803d' },
+                headerTintColor: '#fff',
+              }}
+            />
+            <Stack.Screen
+              name="Register"
+              component={RegisterScreen}
+              options={{
+                title: 'Register',
+                headerStyle: { backgroundColor: '#15803d' },
+                headerTintColor: '#fff',
+              }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+        <StatusBar style="light" />
+      </AuthProvider>
     </PaperProvider>
   );
 }

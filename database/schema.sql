@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` VARCHAR(255) DEFAULT NULL,
   `address_updated_at` DATETIME NULL,
   `payout_updated_at` DATETIME NULL,
+  `api_token` VARCHAR(128) DEFAULT NULL,
   `role` VARCHAR(20) DEFAULT 'user',
   `created_at` DATETIME NOT NULL,
   `last_login` DATETIME DEFAULT NULL,
