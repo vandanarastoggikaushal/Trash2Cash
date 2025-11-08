@@ -172,6 +172,66 @@ if (file_exists($messagesFile)) {
 }
 
 echo "\n";
+
+// Migrate Payments
+echo "Migrating payments...\n";
+$paymentsFile = __DIR__ . '/../data/payments.json';
+if (file_exists($paymentsFile)) {
+    $payments = json_decode(file_get_contents($paymentsFile), true);
+    if (is_array($payments)) {
+        foreach ($payments as $payment) {
+            try {
+                $sql = "INSERT INTO user_payments (
+                            id, user_id, amount, currency, reference, notes, status, payment_date, created_at, updated_at
+                        ) VALUES (
+                            :id, :user_id, :amount, :currency, :reference, :notes, :status, :payment_date, :created_at, :updated_at
+                        ) ON DUPLICATE KEY UPDATE
+                            amount = VALUES(amount),
+                            currency = VALUES(currency),
+                            reference = VALUES(reference),
+                            notes = VALUES(notes),
+                            status = VALUES(status),
+                            payment_date = VALUES(payment_date),
+                            updated_at = VALUES(updated_at)";
+
+                $params = [
+                    ':id' => $payment['id'] ?? bin2hex(random_bytes(6)),
+                    ':user_id' => $payment['user_id'] ?? ($payment['userId'] ?? null),
+                    ':amount' => $payment['amount'] ?? 0,
+                    ':currency' => $payment['currency'] ?? 'NZD',
+                    ':reference' => $payment['reference'] ?? null,
+                    ':notes' => $payment['notes'] ?? null,
+                    ':status' => $payment['status'] ?? 'completed',
+                    ':payment_date' => $payment['payment_date'] ?? ($payment['paymentDate'] ?? gmdate('Y-m-d')),
+                    ':created_at' => $payment['created_at'] ?? ($payment['createdAt'] ?? gmdate('Y-m-d H:i:s')),
+                    ':updated_at' => $payment['updated_at'] ?? ($payment['updatedAt'] ?? null)
+                ];
+
+                if (empty($params[':user_id'])) {
+                    throw new Exception('Missing user_id for payment');
+                }
+
+                if (dbExecute($sql, $params) !== false) {
+                    $migrated++;
+                    echo "  ✓ Migrated payment: {$params[':id']} (User: {$params[':user_id']})\n";
+                } else {
+                    $errors++;
+                    echo "  ✗ Failed to migrate payment: {$params[':id']}\n";
+                }
+            } catch (Exception $e) {
+                $errors++;
+                $paymentIdForError = isset($payment['id']) ? $payment['id'] : 'unknown';
+                echo "  ✗ Error migrating payment {$paymentIdForError}: " . $e->getMessage() . "\n";
+            }
+        }
+    } else {
+        echo "  ⚠️ payments.json is empty or invalid (skipping)\n";
+    }
+} else {
+    echo "  ℹ No payments.json file found (skipping)\n";
+}
+
+echo "\n";
 echo "=== Migration Complete ===\n";
 echo "✅ Migrated: $migrated records\n";
 if ($errors > 0) {

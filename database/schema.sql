@@ -73,3 +73,21 @@ CREATE TABLE IF NOT EXISTS `sessions` (
   INDEX `idx_last_activity` (`last_activity`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- User Payments table (tracks payouts to registered users)
+CREATE TABLE IF NOT EXISTS `user_payments` (
+  `id` VARCHAR(16) NOT NULL PRIMARY KEY,
+  `user_id` VARCHAR(16) NOT NULL,
+  `amount` DECIMAL(10,2) NOT NULL,
+  `currency` CHAR(3) NOT NULL DEFAULT 'NZD',
+  `reference` VARCHAR(100) DEFAULT NULL,
+  `notes` TEXT DEFAULT NULL,
+  `status` VARCHAR(20) NOT NULL DEFAULT 'completed',
+  `payment_date` DATE NOT NULL,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME DEFAULT NULL,
+  INDEX `idx_user_id` (`user_id`),
+  INDEX `idx_payment_date` (`payment_date`),
+  INDEX `idx_status` (`status`),
+  CONSTRAINT `fk_user_payments_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
