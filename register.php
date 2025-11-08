@@ -63,8 +63,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $error = 'Please enter a valid NZ phone number';
     } elseif (!in_array($payoutMethod, ['bank', 'child_account', 'kiwisaver'], true)) {
         $error = 'Please choose a valid payout method';
-    } elseif ($payoutMethod === 'bank' && (empty($bankName) || empty($bankAccount))) {
-        $error = 'Please provide your bank name and account number';
+    } elseif ($payoutMethod === 'bank') {
+        if (empty($bankName)) {
+            $error = 'Please provide your bank name';
+        } elseif (empty($bankAccount)) {
+            $error = 'Please provide your bank account number';
+        } else {
+            $digitsOnly = preg_replace('/\D/', '', $bankAccount);
+            $digitCount = strlen($digitsOnly);
+            if ($digitCount < 12 || $digitCount > 16) {
+                $error = 'Please enter a valid NZ bank account number (e.g. 12-1234-1234567-00)';
+            } else {
+                $bankAccount = substr($digitsOnly, 0, 2) . '-' .
+                               substr($digitsOnly, 2, 4) . '-' .
+                               substr($digitsOnly, 6, max(0, $digitCount - 8)) . '-' .
+                               substr($digitsOnly, -2);
+            }
+        }
     } elseif ($payoutMethod === 'child_account' && empty($childName)) {
         $error = 'Please provide the child name for the child account payout method';
     } elseif ($payoutMethod === 'kiwisaver' && (empty($kiwisaverProvider) || empty($kiwisaverMemberId))) {
@@ -347,7 +362,9 @@ require_once __DIR__ . '/includes/header.php';
             </label>
             <div id="register-payout-bank" class="ml-6 grid gap-3 sm:grid-cols-2 <?php echo $selectedPayoutMethod === 'bank' ? '' : 'hidden'; ?>">
               <input name="bankName" placeholder="Bank name" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($bankNameValue); ?>" />
-              <input name="bankAccount" placeholder="Account number" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($bankAccountValue); ?>" />
+              <input name="bankAccount" placeholder="Account number (e.g. 12-1234-1234567-00)" class="rounded-md border-2 border-emerald-200 px-3 py-2"
+                value="<?php echo htmlspecialchars($bankAccountValue); ?>"
+                autocomplete="off" />
             </div>
 
             <label class="flex items-center gap-2">
