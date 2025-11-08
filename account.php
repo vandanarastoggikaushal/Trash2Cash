@@ -118,6 +118,25 @@ require_once __DIR__ . '/includes/header.php';
         <p>We recommend exporting data at the end of each month to send updates to your registered users. Automated reports are coming soon.</p>
       </div>
     </div>
+
+    <?php if (function_exists('hasRole') && hasRole('admin')): ?>
+    <div class="rounded-3xl border-2 border-slate-200 bg-gradient-to-r from-slate-50 via-white to-emerald-50/50 p-8 shadow-xl">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <span class="text-slate-700 text-3xl">🧾</span>
+            <span>Admin Payments</span>
+          </h2>
+          <p class="text-slate-600 mt-2 max-w-2xl">
+            You have administrator access. Use the payments console to record payouts, view balances for all users, and manage monthly reports.
+          </p>
+        </div>
+        <a href="/admin/payments.php" class="btn text-base px-6 py-3 bg-slate-800 hover:bg-slate-900">
+          Go to Payments Admin
+        </a>
+      </div>
+    </div>
+    <?php endif; ?>
   </div>
 </div>
 
