@@ -48,6 +48,11 @@ export default function RegisterScreen({ navigation }) {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handlePostcodeChange = (value) => {
+    const digitsOnly = value.replace(/\D/g, '').slice(0, 4);
+    updateField('postcode', digitsOnly);
+  };
+
   const validate = () => {
     if (!form.username || form.username.length < 3) {
       return 'Username must be at least 3 characters.';
@@ -188,7 +193,8 @@ export default function RegisterScreen({ navigation }) {
             keyboardType="number-pad"
             maxLength={4}
             value={form.postcode}
-            onChangeText={(text) => updateField('postcode', text)}
+            onChangeText={handlePostcodeChange}
+            selectTextOnFocus
           />
           <View style={styles.switchRow}>
             <Text>Receive Trash2Cash updates</Text>

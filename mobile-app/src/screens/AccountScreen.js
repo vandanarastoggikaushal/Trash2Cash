@@ -200,15 +200,26 @@ export default function AccountScreen({ navigation }) {
             style={[styles.input, styles.half]}
             placeholder="City"
             value={addressForm.city}
-            onChangeText={(text) => setAddressForm((prev) => ({ ...prev, city: text }))}
+            onChangeText={(text) =>
+              setAddressForm((prev) => ({
+                ...prev,
+                city: text,
+              }))
+            }
           />
           <TextInput
             style={[styles.input, styles.half]}
             placeholder="Postcode"
             keyboardType="number-pad"
             maxLength={4}
+            selectTextOnFocus
             value={addressForm.postcode}
-            onChangeText={(text) => setAddressForm((prev) => ({ ...prev, postcode: text }))}
+            onChangeText={(text) =>
+              setAddressForm((prev) => ({
+                ...prev,
+                postcode: text.replace(/\D/g, '').slice(0, 4),
+              }))
+            }
           />
         </View>
         <TouchableOpacity
