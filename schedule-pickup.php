@@ -250,38 +250,6 @@ require_once __DIR__ . '/includes/header.php';
         </div>
       </fieldset>
 
-      <fieldset class="rounded-xl border-2 border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 p-6 shadow-md">
-        <legend class="px-3 text-base font-bold text-slate-900 flex items-center gap-2">
-          <span>💰</span> Payout preference
-        </legend>
-        <div class="space-y-3 text-sm">
-          <label class="flex items-center gap-2">
-            <input type="radio" name="payoutMethod" value="bank" checked />
-            Bank
-          </label>
-          <div id="payout-bank" class="ml-6 grid gap-3 sm:grid-cols-2">
-            <input name="bankName" placeholder="Bank name" class="rounded-md border px-3 py-2" />
-            <input name="bankAccount" placeholder="Account number" class="rounded-md border px-3 py-2" />
-          </div>
-          <label class="flex items-center gap-2">
-            <input type="radio" name="payoutMethod" value="child_account" />
-            Child account
-          </label>
-          <div id="payout-child" class="ml-6 hidden grid gap-3 sm:grid-cols-2">
-            <input name="childName" placeholder="Child name" class="rounded-md border px-3 py-2" />
-            <input name="childBankAccount" placeholder="Optional bank account" class="rounded-md border px-3 py-2" />
-          </div>
-          <label class="flex items-center gap-2">
-            <input type="radio" name="payoutMethod" value="kiwisaver" />
-            KiwiSaver
-          </label>
-          <div id="payout-kiwisaver" class="ml-6 hidden grid gap-3 sm:grid-cols-2">
-            <input name="kiwisaverProvider" placeholder="Provider" class="rounded-md border px-3 py-2" />
-            <input name="kiwisaverMemberId" placeholder="Member ID" class="rounded-md border px-3 py-2" />
-          </div>
-        </div>
-      </fieldset>
-
       <div class="space-y-2 text-sm">
         <label class="flex items-center gap-2">
           <input type="checkbox" name="itemsAreClean" id="itemsAreClean" required />
