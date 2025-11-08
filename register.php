@@ -134,6 +134,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         ];
         $user = createUser($username, $password, $email, 'user', $firstName, $lastName, $address, $extra);
         if ($user) {
+            // Ensure profile details persist (covers DB + JSON fallback cases)
+            updateUserProfile($user['id'], [
+                'street' => $street,
+                'suburb' => $suburb,
+                'city' => $city,
+                'postcode' => $postcode,
+                'phone' => $phone,
+                'marketingOptIn' => $marketingOptIn,
+                'payoutMethod' => $payoutMethod,
+                'bankName' => $bankName,
+                'bankAccount' => $bankAccount,
+                'childName' => $childName,
+                'childBankAccount' => $childBankAccount,
+                'kiwisaverProvider' => $kiwisaverProvider,
+                'kiwisaverMemberId' => $kiwisaverMemberId
+            ]);
+
             // Record promotional welcome credit (pending until first collection)
             if (defined('PROMO_BONUS_AMOUNT') && PROMO_BONUS_AMOUNT > 0) {
                 $bonusReference = 'Welcome bonus';

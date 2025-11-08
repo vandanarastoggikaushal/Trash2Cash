@@ -531,6 +531,57 @@ function updateUserProfile($userId, array $data) {
 }
 
 /**
+ * Delete a user by ID (and optionally to cascade other data)
+ * @param string $userId
+ * @return bool
+ */
+function deleteUserById($userId) {
+    if (empty($userId)) {
+        return false;
+    }
+
+    if (isLoggedIn() && ($_SESSION['user_id'] ?? null) === $userId) {
+        logout();
+    }
+
+    if (isDatabaseAvailable()) {
+        $result = dbExecute('DELETE FROM user_payments WHERE user_id = :id', [':id' => $userId]);
+        if ($result === false) {
+            return false;
+        }
+        $result = dbExecute('DELETE FROM users WHERE id = :id', [':id' => $userId]);
+        return $result !== false;
+    }
+
+    $users = getUsers();
+    $updatedUsers = array_filter($users, function ($user) use ($userId) {
+        return ($user['id'] ?? null) !== $userId;
+    });
+
+    if (count($updatedUsers) === count($users)) {
+        return false;
+    }
+
+    file_put_contents(USERS_FILE, json_encode(array_values($updatedUsers), JSON_PRETTY_PRINT));
+
+    if (file_exists(__DIR__ . '/../data/payments.json')) {
+        $payments = json_decode(file_get_contents(__DIR__ . '/../data/payments.json'), true);
+        if (is_array($payments)) {
+            $filtered = array_filter($payments, function ($payment) use ($userId) {
+                return ($payment['user_id'] ?? ($payment['userId'] ?? null)) !== $userId;
+            });
+            file_put_contents(__DIR__ . '/../data/payments.json', json_encode(array_values($filtered), JSON_PRETTY_PRINT));
+        }
+    }
+
+    if (isLoggedIn() && ($_SESSION['user_id'] ?? null) === $userId) {
+        logout();
+    }
+
+    return true;
+}
+
+/**
  * Verify user credentials
  * @param string $username Username
  * @param string $password Plain text password

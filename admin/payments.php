@@ -13,80 +13,130 @@ if (!function_exists('hasRole') || !hasRole('admin')) {
     exit;
 }
 
-$users = getUsers();
-$userOptions = [];
-foreach ($users as $user) {
-    $userOptions[$user['id']] = [
-        'username' => $user['username'] ?? '',
-        'firstName' => $user['firstName'] ?? ($user['first_name'] ?? ''),
-        'lastName' => $user['lastName'] ?? ($user['last_name'] ?? ''),
-        'email' => $user['email'] ?? ''
-    ];
+if (!function_exists('buildAdminUserData')) {
+    /**
+     * Load active users and option data for admin screens.
+     *
+     * @return array{active: array<string, array>, options: array<string, array>}
+     */
+    function buildAdminUserData() {
+        $rawUsers = getUsers();
+        $active = [];
+        $options = [];
+        foreach ($rawUsers as $user) {
+            if (($user['role'] ?? 'user') === 'deleted') {
+                continue;
+            }
+            if (empty($user['id'])) {
+                continue;
+            }
+            $active[$user['id']] = $user;
+            $options[$user['id']] = [
+                'username' => $user['username'] ?? '',
+                'firstName' => $user['firstName'] ?? ($user['first_name'] ?? ''),
+                'lastName' => $user['lastName'] ?? ($user['last_name'] ?? ''),
+                'email' => $user['email'] ?? ''
+            ];
+        }
+        return ['active' => $active, 'options' => $options];
+    }
 }
+
+$currentAdminId = $_SESSION['user_id'] ?? null;
+$userData = buildAdminUserData();
+$activeUsers = $userData['active'];
+$userOptions = $userData['options'];
 
 $successMessage = '';
 $errorMessage = '';
+$deleteSuccessMessage = '';
+$deleteErrorMessage = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'record_payment') {
-    $selectedUserId = $_POST['user_id'] ?? '';
-    $amountInput = $_POST['amount'] ?? '';
-    $reference = trim($_POST['reference'] ?? '');
-    $notes = trim($_POST['notes'] ?? '');
-    $paymentDate = trim($_POST['payment_date'] ?? '');
-    $status = $_POST['status'] ?? 'completed';
-    $currency = strtoupper(trim($_POST['currency'] ?? 'NZD'));
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
 
-    if (!isset($userOptions[$selectedUserId])) {
-        $errorMessage = 'Please select a valid user.';
-    } else {
-        $amount = filter_var($amountInput, FILTER_VALIDATE_FLOAT);
-        if ($amount === false) {
-            $errorMessage = 'Please enter a valid payment amount.';
-        } elseif ($amount <= 0) {
-            $errorMessage = 'Payment amount must be greater than zero.';
+    if ($action === 'delete_user') {
+        $userIdToDelete = $_POST['delete_user_id'] ?? '';
+        if (empty($userIdToDelete) || !isset($userOptions[$userIdToDelete])) {
+            $deleteErrorMessage = 'Please select a valid user to delete.';
+        } elseif ($userIdToDelete === $currentAdminId) {
+            $deleteErrorMessage = 'You cannot delete your own administrator account.';
+        } elseif (getUserBalance($userIdToDelete, ['pending', 'processing']) > 0) {
+            $deleteErrorMessage = 'Cannot delete a user with pending or processing payouts.';
         } else {
-            if (empty($paymentDate)) {
-                $paymentDate = gmdate('Y-m-d');
-            }
-
-            $isRecorded = recordUserPayment(
-                $selectedUserId,
-                $amount,
-                $reference ?: null,
-                $notes ?: null,
-                $paymentDate,
-                $status,
-                $currency
-            );
-
-            if ($isRecorded) {
-                $successMessage = 'Payment recorded successfully.';
-                // Reset form values
-                $_POST = [
-                    'currency' => $currency,
-                    'status' => $status,
-                    'payment_date' => $paymentDate
-                ];
+            if (deleteUserById($userIdToDelete)) {
+                $deleteSuccessMessage = 'User account deleted successfully.';
+                $_POST = [];
             } else {
-                $errorMessage = 'Failed to record payment. Please try again.';
+                $deleteErrorMessage = 'Failed to delete user. Please try again.';
+            }
+        }
+        $userData = buildAdminUserData();
+        $activeUsers = $userData['active'];
+        $userOptions = $userData['options'];
+    } elseif ($action === 'record_payment') {
+        $selectedUserId = $_POST['user_id'] ?? '';
+        $amountInput = $_POST['amount'] ?? '';
+        $reference = trim($_POST['reference'] ?? '');
+        $notes = trim($_POST['notes'] ?? '');
+        $paymentDate = trim($_POST['payment_date'] ?? '');
+        $status = $_POST['status'] ?? 'completed';
+        $currency = strtoupper(trim($_POST['currency'] ?? 'NZD'));
+
+        if (!isset($userOptions[$selectedUserId])) {
+            $errorMessage = 'Please select a valid user.';
+        } else {
+            $amount = filter_var($amountInput, FILTER_VALIDATE_FLOAT);
+            if ($amount === false) {
+                $errorMessage = 'Please enter a valid payment amount.';
+            } elseif ($amount <= 0) {
+                $errorMessage = 'Payment amount must be greater than zero.';
+            } else {
+                if (empty($paymentDate)) {
+                    $paymentDate = gmdate('Y-m-d');
+                }
+
+                $isRecorded = recordUserPayment(
+                    $selectedUserId,
+                    $amount,
+                    $reference ?: null,
+                    $notes ?: null,
+                    $paymentDate,
+                    $status,
+                    $currency
+                );
+
+                if ($isRecorded) {
+                    $successMessage = 'Payment recorded successfully.';
+                    $_POST = [
+                        'currency' => $currency,
+                        'status' => $status,
+                        'payment_date' => $paymentDate
+                    ];
+                } else {
+                    $errorMessage = 'Failed to record payment. Please try again.';
+                }
             }
         }
     }
 }
 
 $balancesMap = getAllUserBalances();
+$pendingBalancesMap = getAllUserBalances(['pending', 'processing']);
 $recentPayments = getRecentPayments(50);
 
 // Prepare balances list combining users and totals
 $userBalances = [];
-foreach ($userOptions as $id => $details) {
+foreach ($activeUsers as $id => $details) {
+    $firstName = $details['firstName'] ?? ($details['first_name'] ?? '');
+    $lastName = $details['lastName'] ?? ($details['last_name'] ?? '');
     $balance = $balancesMap[$id] ?? 0.0;
     $userBalances[] = [
         'id' => $id,
-        'username' => $details['username'],
-        'firstName' => $details['firstName'],
-        'lastName' => $details['lastName'],
-        'email' => $details['email'],
+        'username' => $details['username'] ?? '',
+        'firstName' => $firstName,
+        'lastName' => $lastName,
+        'email' => $details['email'] ?? '',
         'balance' => $balance
     ];
 }
@@ -121,6 +171,16 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
       </div>
     </div>
+
+    <?php if (!empty($deleteErrorMessage)): ?>
+    <div class="rounded-2xl border-2 border-red-200 bg-red-50/80 px-4 py-3 text-sm text-red-700">
+      <?php echo htmlspecialchars($deleteErrorMessage); ?>
+    </div>
+    <?php elseif (!empty($deleteSuccessMessage)): ?>
+    <div class="rounded-2xl border-2 border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-700">
+      <?php echo htmlspecialchars($deleteSuccessMessage); ?>
+    </div>
+    <?php endif; ?>
 
     <div class="grid gap-10 lg:grid-cols-2">
       <div class="rounded-3xl border-2 border-emerald-100 bg-white p-8 shadow-xl">
@@ -271,6 +331,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-emerald-700">User</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-emerald-700">Contact</th>
                 <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-emerald-700">Balance (NZD)</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-emerald-700">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-emerald-100">
@@ -280,6 +341,8 @@ require_once __DIR__ . '/../includes/header.php';
                   if ($displayName === '') {
                       $displayName = $user['username'];
                   }
+                  $pendingAmount = $pendingBalancesMap[$user['id']] ?? 0.0;
+                  $canDelete = ($user['id'] !== $currentAdminId) && ($pendingAmount <= 0);
                 ?>
                 <tr class="hover:bg-emerald-50/50 transition-colors">
                   <td class="px-4 py-4 text-sm font-semibold text-slate-700">
@@ -291,6 +354,21 @@ require_once __DIR__ . '/../includes/header.php';
                   </td>
                   <td class="px-4 py-4 text-right text-sm font-bold text-slate-900">
                     <?php echo 'NZ$' . number_format($user['balance'], 2); ?>
+                  </td>
+                  <td class="px-4 py-4 text-right text-sm">
+                    <?php if (!$canDelete && $user['id'] === $currentAdminId): ?>
+                      <span class="text-xs text-slate-400">This is you</span>
+                    <?php elseif (!$canDelete && $pendingAmount > 0): ?>
+                      <span class="text-xs text-amber-600">Pending payouts</span>
+                    <?php else: ?>
+                      <form method="POST" onsubmit="return confirm('Delete user <?php echo htmlspecialchars($displayName); ?>? This action cannot be undone.');">
+                        <input type="hidden" name="action" value="delete_user">
+                        <input type="hidden" name="delete_user_id" value="<?php echo htmlspecialchars($user['id']); ?>">
+                        <button type="submit" class="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-200">
+                          <span>🗑️</span> Delete
+                        </button>
+                      </form>
+                    <?php endif; ?>
                   </td>
                 </tr>
               <?php endforeach; ?>
