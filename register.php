@@ -21,7 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $email = trim($_POST['email'] ?? '');
     $firstName = trim($_POST['first_name'] ?? '');
     $lastName = trim($_POST['last_name'] ?? '');
-    $address = trim($_POST['address'] ?? '');
+    $street = trim($_POST['address_street'] ?? '');
+    $suburb = trim($_POST['address_suburb'] ?? '');
+    $city = trim($_POST['address_city'] ?? '');
+    $postcode = trim($_POST['address_postcode'] ?? '');
+    $address = '';
     
     // Validation
     if (empty($username)) {
@@ -32,8 +36,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $error = 'First name is required';
     } elseif (empty($lastName)) {
         $error = 'Last name is required';
-    } elseif (empty($address)) {
-        $error = 'Address is required';
+    } elseif (empty($street)) {
+        $error = 'Street is required';
+    } elseif (empty($suburb)) {
+        $error = 'Suburb is required';
+    } elseif (empty($city)) {
+        $error = 'City is required';
+    } elseif (empty($postcode)) {
+        $error = 'Postcode is required';
+    } elseif (!preg_match('/^\d{4}$/', $postcode)) {
+        $error = 'Please enter a valid 4-digit postcode';
     } elseif (empty($email)) {
         $error = 'Email is required';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -45,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } elseif ($password !== $passwordConfirm) {
         $error = 'Passwords do not match';
     } else {
+        $address = $street . "\n" . $suburb . "\n" . $city . ' ' . $postcode;
         $user = createUser($username, $password, $email, 'user', $firstName, $lastName, $address);
         if ($user) {
             // Auto-login after registration
@@ -146,17 +159,74 @@ require_once __DIR__ . '/includes/header.php';
           />
         </div>
 
-        <div>
-          <label for="address" class="block text-sm font-semibold text-slate-900 mb-2">
-            Address <span class="text-red-500">*</span>
-          </label>
-          <textarea
-            id="address"
-            name="address"
-            required
-            rows="3"
-            class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all"
-            placeholder="Street, suburb, city"><?php echo htmlspecialchars($_POST['address'] ?? ''); ?></textarea>
+        <div class="rounded-2xl border-2 border-emerald-100 bg-white/70 p-4 shadow-inner space-y-4">
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <span>📍</span> Address Details
+          </h2>
+          <div class="grid gap-4">
+            <div>
+              <label for="address_street" class="block text-sm font-semibold text-slate-900 mb-2">
+                Street <span class="text-red-500">*</span>
+              </label>
+              <input
+                id="address_street"
+                name="address_street"
+                type="text"
+                required
+                class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all"
+                placeholder="e.g. 123 Example Street"
+                value="<?php echo htmlspecialchars($_POST['address_street'] ?? ''); ?>"
+              />
+            </div>
+            <div class="grid gap-4 md:grid-cols-2">
+              <div>
+                <label for="address_suburb" class="block text-sm font-semibold text-slate-900 mb-2">
+                  Suburb <span class="text-red-500">*</span>
+                </label>
+                <input
+                  id="address_suburb"
+                  name="address_suburb"
+                  type="text"
+                  required
+                  class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all"
+                  placeholder="e.g. Johnsonville"
+                  value="<?php echo htmlspecialchars($_POST['address_suburb'] ?? ''); ?>"
+                />
+              </div>
+              <div>
+                <label for="address_city" class="block text-sm font-semibold text-slate-900 mb-2">
+                  City <span class="text-red-500">*</span>
+                </label>
+                <input
+                  id="address_city"
+                  name="address_city"
+                  type="text"
+                  required
+                  class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all"
+                  placeholder="e.g. Wellington"
+                  value="<?php echo htmlspecialchars($_POST['address_city'] ?? CITY); ?>"
+                />
+              </div>
+            </div>
+            <div>
+              <label for="address_postcode" class="block text-sm font-semibold text-slate-900 mb-2">
+                Postcode <span class="text-red-500">*</span>
+              </label>
+              <input
+                id="address_postcode"
+                name="address_postcode"
+                type="text"
+                required
+                pattern="\d{4}"
+                maxlength="4"
+                inputmode="numeric"
+                class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all"
+                placeholder="e.g. 6011"
+                value="<?php echo htmlspecialchars($_POST['address_postcode'] ?? ''); ?>"
+              />
+              <p class="text-xs text-slate-500 mt-1">Enter the 4-digit New Zealand postcode.</p>
+            </div>
+          </div>
         </div>
 
         <div>
