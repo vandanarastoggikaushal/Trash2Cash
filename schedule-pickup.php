@@ -152,20 +152,20 @@ require_once __DIR__ . '/includes/header.php';
           </div>
           <?php endif; ?>
           <div class="sm:col-span-2">
-            <label class="block text-sm font-medium" for="street">Street</label>
-            <input id="street" name="street" type="text" class="mt-1 w-full rounded-md border px-3 py-2" required value="<?php echo htmlspecialchars($streetDefault); ?>" />
+            <label class="block text-sm font-medium" for="street">Street <span class="text-xs font-normal text-slate-500">(read-only)</span></label>
+            <input id="street" name="street" type="text" class="mt-1 w-full rounded-md border px-3 py-2 bg-slate-100 cursor-not-allowed" required value="<?php echo htmlspecialchars($streetDefault); ?>" readonly />
           </div>
           <div>
-            <label class="block text-sm font-medium" for="suburb">Suburb</label>
-            <input id="suburb" name="suburb" type="text" class="mt-1 w-full rounded-md border px-3 py-2" required value="<?php echo htmlspecialchars($suburbDefault); ?>" />
+            <label class="block text-sm font-medium" for="suburb">Suburb <span class="text-xs font-normal text-slate-500">(read-only)</span></label>
+            <input id="suburb" name="suburb" type="text" class="mt-1 w-full rounded-md border px-3 py-2 bg-slate-100 cursor-not-allowed" required value="<?php echo htmlspecialchars($suburbDefault); ?>" readonly />
           </div>
           <div>
-            <label class="block text-sm font-medium" for="city">City</label>
-            <input id="city" name="city" type="text" class="mt-1 w-full rounded-md border px-3 py-2" required value="<?php echo htmlspecialchars($cityDefault); ?>" />
+            <label class="block text-sm font-medium" for="city">City <span class="text-xs font-normal text-slate-500">(read-only)</span></label>
+            <input id="city" name="city" type="text" class="mt-1 w-full rounded-md border px-3 py-2 bg-slate-100 cursor-not-allowed" required value="<?php echo htmlspecialchars($cityDefault); ?>" readonly />
           </div>
           <div>
-            <label class="block text-sm font-medium" for="postcode">Postcode</label>
-            <input id="postcode" name="postcode" type="text" pattern="\d{4}" maxlength="4" class="mt-1 w-full rounded-md border px-3 py-2" required value="<?php echo htmlspecialchars($postcodeDefault); ?>" />
+            <label class="block text-sm font-medium" for="postcode">Postcode <span class="text-xs font-normal text-slate-500">(read-only)</span></label>
+            <input id="postcode" name="postcode" type="text" pattern="\d{4}" maxlength="4" class="mt-1 w-full rounded-md border px-3 py-2 bg-slate-100 cursor-not-allowed" required value="<?php echo htmlspecialchars($postcodeDefault); ?>" readonly />
           </div>
           <div class="sm:col-span-2">
             <label class="block text-sm font-medium" for="accessNotes">Access notes</label>

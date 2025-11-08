@@ -9,6 +9,109 @@ require_once __DIR__ . '/includes/payments.php';
 requireLogin('/account.php');
 
 $user = getCurrentUser();
+$addressSuccess = '';
+$addressError = '';
+$payoutSuccess = '';
+$payoutError = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $currentUserId = $user['id'] ?? null;
+    if (!$currentUserId) {
+        requireLogin('/account.php');
+    }
+
+    if ($_POST['action'] === 'update_address') {
+        $street = trim($_POST['address_street'] ?? '');
+        $suburb = trim($_POST['address_suburb'] ?? '');
+        $cityInput = trim($_POST['address_city'] ?? '');
+        $postcode = trim($_POST['address_postcode'] ?? '');
+        $phoneInput = trim($_POST['phone'] ?? '');
+        $marketingOptInInput = isset($_POST['marketingOptIn']) && $_POST['marketingOptIn'] === 'on';
+
+        if ($street === '' || $suburb === '' || $cityInput === '' || $postcode === '') {
+            $addressError = 'Please fill in street, suburb, city, and postcode.';
+        } elseif (!preg_match('/^\d{4}$/', $postcode)) {
+            $addressError = 'Postcode must be a 4-digit NZ postcode.';
+        } elseif ($phoneInput === '' || !preg_match('/^(\+64|0)[2-9]\d{7,8}$/', $phoneInput)) {
+            $addressError = 'Please enter a valid NZ phone number.';
+        } else {
+            $updated = updateUserProfile($currentUserId, [
+                'street' => $street,
+                'suburb' => $suburb,
+                'city' => $cityInput,
+                'postcode' => $postcode,
+                'phone' => $phoneInput,
+                'marketingOptIn' => $marketingOptInInput
+            ]);
+            if ($updated) {
+                $addressSuccess = 'Profile updated successfully.';
+                $user = getCurrentUser();
+            } else {
+                $addressError = 'No changes were detected.';
+            }
+        }
+    } elseif ($_POST['action'] === 'update_payout') {
+        $payoutMethodInput = $_POST['payoutMethod'] ?? 'bank';
+        $bankNameInput = trim($_POST['bankName'] ?? '');
+        $bankAccountInput = trim($_POST['bankAccount'] ?? '');
+        $childNameInput = trim($_POST['childName'] ?? '');
+        $childBankAccountInput = trim($_POST['childBankAccount'] ?? '');
+        $kiwiProviderInput = trim($_POST['kiwisaverProvider'] ?? '');
+        $kiwiMemberInput = trim($_POST['kiwisaverMemberId'] ?? '');
+
+        $sanitizedBankAccount = $bankAccountInput;
+        if (!in_array($payoutMethodInput, ['bank', 'child_account', 'kiwisaver'], true)) {
+            $payoutError = 'Please choose a valid payout method.';
+        } elseif ($payoutMethodInput === 'bank') {
+            if ($bankNameInput === '') {
+                $payoutError = 'Bank name is required.';
+            } elseif ($bankAccountInput === '') {
+                $payoutError = 'Bank account number is required.';
+            } else {
+                $digitsOnly = preg_replace('/\D/', '', $bankAccountInput);
+                $digitCount = strlen($digitsOnly);
+                if ($digitCount < 12 || $digitCount > 17) {
+                    $payoutError = 'Please enter a valid NZ bank account number (e.g. 12-1234-1234567-00).';
+                } else {
+                    $parts = [
+                        substr($digitsOnly, 0, 2),
+                        substr($digitsOnly, 2, 4),
+                        substr($digitsOnly, 6, max(0, $digitCount - 8)),
+                        substr($digitsOnly, -2)
+                    ];
+                    $parts[2] = ltrim($parts[2], '0');
+                    if ($parts[2] === '') {
+                        $parts[2] = '0';
+                    }
+                    $sanitizedBankAccount = $parts[0] . '-' . $parts[1] . '-' . $parts[2] . '-' . $parts[3];
+                }
+            }
+        } elseif ($payoutMethodInput === 'child_account' && $childNameInput === '') {
+            $payoutError = 'Child name is required for child account payouts.';
+        } elseif ($payoutMethodInput === 'kiwisaver' && ($kiwiProviderInput === '' || $kiwiMemberInput === '')) {
+            $payoutError = 'KiwiSaver provider and member ID are required.';
+        }
+
+        if ($payoutError === '') {
+            $updated = updateUserProfile($currentUserId, [
+                'payoutMethod' => $payoutMethodInput,
+                'bankName' => $bankNameInput,
+                'bankAccount' => $sanitizedBankAccount,
+                'childName' => $childNameInput,
+                'childBankAccount' => $childBankAccountInput,
+                'kiwisaverProvider' => $kiwiProviderInput,
+                'kiwisaverMemberId' => $kiwiMemberInput
+            ]);
+            if ($updated) {
+                $payoutSuccess = 'Payout settings updated successfully.';
+                $user = getCurrentUser();
+            } else {
+                $payoutError = 'No changes were detected.';
+            }
+        }
+    }
+}
+
 $displayName = function_exists('getUserDisplayName') ? getUserDisplayName(true) : strtoupper($user['username'] ?? '');
 $balance = getUserBalance($user['id']);
 $pendingBalance = getUserBalance($user['id'], ['pending', 'processing']);
@@ -26,6 +129,41 @@ $payoutChildName = $user['payoutChildName'] ?? '';
 $payoutChildBankAccount = $user['payoutChildBankAccount'] ?? '';
 $payoutKiwisaverProvider = $user['payoutKiwisaverProvider'] ?? '';
 $payoutKiwisaverMemberId = $user['payoutKiwisaverMemberId'] ?? '';
+
+$addressLines = preg_split('/\r\n|\r|\n/', $user['address'] ?? '');
+$addressStreetValue = $addressLines[0] ?? '';
+$addressSuburbValue = $addressLines[1] ?? '';
+$addressCityLine = $addressLines[2] ?? '';
+$addressCityValue = $addressCityLine ?: CITY;
+$addressPostcodeValue = '';
+if ($addressCityLine && preg_match('/(.+)\s+(\d{4})$/', $addressCityLine, $matches)) {
+    $addressCityValue = trim($matches[1]);
+    $addressPostcodeValue = trim($matches[2]);
+}
+if ($addressPostcodeValue === '' && preg_match('/\b(\d{4})\b/', $user['address'] ?? '', $matchPost)) {
+    $addressPostcodeValue = $matchPost[1];
+}
+
+if ($addressError !== '' && ($_POST['action'] ?? '') === 'update_address') {
+    $addressStreetValue = $_POST['address_street'] ?? $addressStreetValue;
+    $addressSuburbValue = $_POST['address_suburb'] ?? $addressSuburbValue;
+    $addressCityValue = $_POST['address_city'] ?? $addressCityValue;
+    $addressPostcodeValue = $_POST['address_postcode'] ?? $addressPostcodeValue;
+}
+$phoneValue = ($addressError !== '' && ($_POST['action'] ?? '') === 'update_address')
+    ? ($_POST['phone'] ?? $phone)
+    : $phone;
+$marketingChecked = ($addressError !== '' && ($_POST['action'] ?? '') === 'update_address')
+    ? !empty($_POST['marketingOptIn'])
+    : $marketingOptIn;
+
+$payoutMethodValue = ($payoutError !== '' && ($_POST['action'] ?? '') === 'update_payout') ? ($_POST['payoutMethod'] ?? $payoutMethod) : $payoutMethod;
+$bankNameValue = ($payoutError !== '' && ($_POST['action'] ?? '') === 'update_payout') ? ($_POST['bankName'] ?? $payoutBankName) : $payoutBankName;
+$bankAccountValue = ($payoutError !== '' && ($_POST['action'] ?? '') === 'update_payout') ? ($_POST['bankAccount'] ?? $payoutBankAccount) : $payoutBankAccount;
+$childNameValue = ($payoutError !== '' && ($_POST['action'] ?? '') === 'update_payout') ? ($_POST['childName'] ?? $payoutChildName) : $payoutChildName;
+$childBankAccountValue = ($payoutError !== '' && ($_POST['action'] ?? '') === 'update_payout') ? ($_POST['childBankAccount'] ?? $payoutChildBankAccount) : $payoutChildBankAccount;
+$kiwiProviderValue = ($payoutError !== '' && ($_POST['action'] ?? '') === 'update_payout') ? ($_POST['kiwisaverProvider'] ?? $payoutKiwisaverProvider) : $payoutKiwisaverProvider;
+$kiwiMemberValue = ($payoutError !== '' && ($_POST['action'] ?? '') === 'update_payout') ? ($_POST['kiwisaverMemberId'] ?? $payoutKiwisaverMemberId) : $payoutKiwisaverMemberId;
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -57,6 +195,100 @@ require_once __DIR__ . '/includes/header.php';
           <span>Data source: <?php echo htmlspecialchars($dataSource); ?></span>
         </span>
         <span>Balances include completed payouts only.</span>
+      </div>
+    </div>
+
+    <div class="grid gap-8 lg:grid-cols-2">
+      <div class="rounded-3xl border-2 border-emerald-100 bg-white p-8 shadow-xl">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-emerald-600 text-2xl">🏠</span>
+          <h2 class="text-xl font-bold text-slate-900">Update Address & Contact</h2>
+        </div>
+        <?php if ($addressError): ?>
+          <div class="mb-4 rounded-xl border-2 border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <?php echo htmlspecialchars($addressError); ?>
+          </div>
+        <?php elseif ($addressSuccess): ?>
+          <div class="mb-4 rounded-xl border-2 border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <?php echo htmlspecialchars($addressSuccess); ?>
+          </div>
+        <?php endif; ?>
+        <form method="POST" class="space-y-4">
+          <input type="hidden" name="action" value="update_address">
+          <div>
+            <label class="block text-sm font-semibold text-slate-900 mb-2" for="account-address-street">Street</label>
+            <input id="account-address-street" name="address_street" type="text" required class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all" value="<?php echo htmlspecialchars($addressStreetValue); ?>">
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="block text-sm font-semibold text-slate-900 mb-2" for="account-address-suburb">Suburb</label>
+              <input id="account-address-suburb" name="address_suburb" type="text" required class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all" value="<?php echo htmlspecialchars($addressSuburbValue); ?>">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-900 mb-2" for="account-address-city">City</label>
+              <input id="account-address-city" name="address_city" type="text" required class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all" value="<?php echo htmlspecialchars($addressCityValue); ?>">
+            </div>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="block text-sm font-semibold text-slate-900 mb-2" for="account-address-postcode">Postcode</label>
+              <input id="account-address-postcode" name="address_postcode" type="text" required pattern="\d{4}" maxlength="4" class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all" value="<?php echo htmlspecialchars($addressPostcodeValue); ?>">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-900 mb-2" for="account-phone">Phone</label>
+              <input id="account-phone" name="phone" type="tel" required class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all" value="<?php echo htmlspecialchars($phoneValue); ?>">
+              <p class="mt-1 text-xs text-slate-500">Format: 0212345678 or +64212345678</p>
+            </div>
+          </div>
+          <label class="inline-flex items-center gap-2 text-sm text-slate-700 font-semibold">
+            <input type="checkbox" name="marketingOptIn" <?php echo $marketingChecked ? 'checked' : ''; ?>>
+            I'd like to receive Trash2Cash updates and offers
+          </label>
+          <button type="submit" class="w-full btn text-sm px-4 py-3">Save address details</button>
+        </form>
+      </div>
+
+      <div class="rounded-3xl border-2 border-emerald-100 bg-white p-8 shadow-xl">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-emerald-600 text-2xl">💰</span>
+          <h2 class="text-xl font-bold text-slate-900">Update Payout Preferences</h2>
+        </div>
+        <?php if ($payoutError): ?>
+          <div class="mb-4 rounded-xl border-2 border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <?php echo htmlspecialchars($payoutError); ?>
+          </div>
+        <?php elseif ($payoutSuccess): ?>
+          <div class="mb-4 rounded-xl border-2 border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <?php echo htmlspecialchars($payoutSuccess); ?>
+          </div>
+        <?php endif; ?>
+        <form method="POST" class="space-y-4">
+          <input type="hidden" name="action" value="update_payout">
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+              <input type="radio" name="payoutMethod" value="bank" <?php echo $payoutMethodValue === 'bank' ? 'checked' : ''; ?>> Bank account
+            </label>
+            <div class="grid gap-3 sm:grid-cols-2 <?php echo $payoutMethodValue === 'bank' ? '' : 'hidden'; ?>" id="account-bank-fields">
+              <input name="bankName" placeholder="Bank name" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($bankNameValue); ?>">
+              <input name="bankAccount" placeholder="Account number (e.g. 12-1234-1234567-00)" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($bankAccountValue); ?>">
+            </div>
+            <label class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+              <input type="radio" name="payoutMethod" value="child_account" <?php echo $payoutMethodValue === 'child_account' ? 'checked' : ''; ?>> Child account
+            </label>
+            <div class="grid gap-3 sm:grid-cols-2 <?php echo $payoutMethodValue === 'child_account' ? '' : 'hidden'; ?>" id="account-child-fields">
+              <input name="childName" placeholder="Child name" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($childNameValue); ?>">
+              <input name="childBankAccount" placeholder="Optional bank account" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($childBankAccountValue); ?>">
+            </div>
+            <label class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+              <input type="radio" name="payoutMethod" value="kiwisaver" <?php echo $payoutMethodValue === 'kiwisaver' ? 'checked' : ''; ?>> KiwiSaver
+            </label>
+            <div class="grid gap-3 sm:grid-cols-2 <?php echo $payoutMethodValue === 'kiwisaver' ? '' : 'hidden'; ?>" id="account-kiwi-fields">
+              <input name="kiwisaverProvider" placeholder="Provider" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($kiwiProviderValue); ?>">
+              <input name="kiwisaverMemberId" placeholder="Member ID" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($kiwiMemberValue); ?>">
+            </div>
+          </div>
+          <button type="submit" class="w-full btn text-sm px-4 py-3">Save payout settings</button>
+        </form>
       </div>
     </div>
 
@@ -227,6 +459,32 @@ require_once __DIR__ . '/includes/header.php';
     <?php endif; ?>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const methodRadios = document.querySelectorAll('input[name="payoutMethod"]');
+    const bankFields = document.getElementById('account-bank-fields');
+    const childFields = document.getElementById('account-child-fields');
+    const kiwiFields = document.getElementById('account-kiwi-fields');
+
+    function togglePayoutSections(selected) {
+      if (bankFields) bankFields.classList.toggle('hidden', selected !== 'bank');
+      if (childFields) childFields.classList.toggle('hidden', selected !== 'child_account');
+      if (kiwiFields) kiwiFields.classList.toggle('hidden', selected !== 'kiwisaver');
+    }
+
+    methodRadios.forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        togglePayoutSections(this.value);
+      });
+    });
+
+    const checked = document.querySelector('input[name="payoutMethod"]:checked');
+    if (checked) {
+      togglePayoutSections(checked.value);
+    }
+  });
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
 

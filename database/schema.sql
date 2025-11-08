@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `payout_kiwisaver_provider` VARCHAR(255) DEFAULT NULL,
   `payout_kiwisaver_member_id` VARCHAR(50) DEFAULT NULL,
   `email` VARCHAR(255) DEFAULT NULL,
+  `address_updated_at` DATETIME NULL,
+  `payout_updated_at` DATETIME NULL,
   `role` VARCHAR(20) DEFAULT 'user',
   `created_at` DATETIME NOT NULL,
   `last_login` DATETIME DEFAULT NULL,
