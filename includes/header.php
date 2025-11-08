@@ -205,33 +205,112 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
         <a href="/partners.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'partners.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Partners and fundraising">🤝 Partners</a>
         <a href="/faq.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'faq.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Frequently asked questions">❓ FAQ</a>
         <a href="/contact.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'contact.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Contact us">📧 Contact</a>
-        <?php if (isLoggedIn()): ?>
-        <a href="/account.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'account.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Account overview">💼 Account</a>
-        <?php if (function_exists('hasRole') && hasRole('admin')): ?>
-        <a href="/admin/payments.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'payments.php' && strpos($_SERVER['PHP_SELF'], '/admin/') !== false) ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Admin payments">🧾 Admin</a>
-        <?php endif; ?>
-          <span class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600">
-            👤 <?php echo htmlspecialchars($userDisplayName); ?>
-          </span>
-          <a href="/api/logout.php" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-red-50 hover:text-red-600 transition-all" aria-label="Logout">🚪 Logout</a>
-        <?php else: ?>
-          <a href="/login.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'login.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Login">🔐 Login</a>
-        <?php endif; ?>
       </nav>
-      <div class="md:hidden flex items-center gap-2">
-        <?php if (isLoggedIn()): ?>
-          <span class="text-sm text-slate-600">👤 <?php echo htmlspecialchars($userDisplayName); ?></span>
-          <a href="/account.php" class="btn text-sm bg-emerald-600 hover:bg-emerald-700">Account</a>
-          <?php if (function_exists('hasRole') && hasRole('admin')): ?>
-          <a href="/admin/payments.php" class="btn text-sm bg-slate-800 hover:bg-slate-900">Admin</a>
-          <?php endif; ?>
-          <a href="/api/logout.php" class="btn text-sm bg-red-600 hover:bg-red-700">Logout</a>
-        <?php else: ?>
-          <a href="/login.php" class="btn text-sm">Login</a>
-        <?php endif; ?>
-        <a href="/schedule-pickup.php" class="btn text-sm">Schedule</a>
+      <div class="flex items-center gap-2">
+        <a href="/schedule-pickup.php" class="btn text-sm hidden md:inline-flex">Schedule</a>
+        <a href="/schedule-pickup.php" class="btn text-sm md:hidden">Schedule</a>
+        <div class="relative">
+          <button
+            id="user-menu-toggle"
+            type="button"
+            class="inline-flex h-11 w-11 items-center justify-center rounded-full border-2 border-emerald-200 bg-white text-slate-700 shadow-sm transition-all hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-brand"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            <span class="sr-only">Toggle user menu</span>
+            <span class="flex flex-col items-center justify-center gap-1">
+              <span class="block h-0.5 w-6 rounded-full bg-slate-700"></span>
+              <span class="block h-0.5 w-6 rounded-full bg-slate-700"></span>
+              <span class="block h-0.5 w-6 rounded-full bg-slate-700"></span>
+            </span>
+          </button>
+          <div
+            id="user-menu-panel"
+            class="hidden absolute right-0 z-50 mt-3 w-60 rounded-2xl border-2 border-emerald-100 bg-white shadow-2xl"
+            role="menu"
+            aria-labelledby="user-menu-toggle"
+          >
+            <?php if (isLoggedIn()): ?>
+              <div class="px-4 py-3 border-b border-emerald-100">
+                <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Signed in as</p>
+                <p class="mt-1 text-sm font-bold text-slate-800"><?php echo htmlspecialchars($userDisplayName); ?></p>
+                <?php if (!empty($_SESSION['user_email'])): ?>
+                <p class="text-xs text-slate-500 truncate"><?php echo htmlspecialchars($_SESSION['user_email']); ?></p>
+                <?php endif; ?>
+              </div>
+              <a href="/account.php" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
+                <span>💼</span>
+                <span>Account</span>
+              </a>
+              <?php if (function_exists('hasRole') && hasRole('admin')): ?>
+              <a href="/admin/payments.php" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
+                <span>🧾</span>
+                <span>Payments Admin</span>
+              </a>
+              <?php endif; ?>
+              <div class="border-t border-emerald-100"></div>
+              <a href="/api/logout.php" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50" role="menuitem">
+                <span>🚪</span>
+                <span>Logout</span>
+              </a>
+            <?php else: ?>
+              <a href="/login.php" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
+                <span>🔐</span>
+                <span>Login</span>
+              </a>
+              <a href="/register.php" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
+                <span>✨</span>
+                <span>Register</span>
+              </a>
+            <?php endif; ?>
+          </div>
+        </div>
       </div>
     </div>
   </header>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var toggle = document.getElementById('user-menu-toggle');
+      var panel = document.getElementById('user-menu-panel');
+
+      if (!toggle || !panel) {
+        return;
+      }
+
+      function openMenu() {
+        panel.classList.remove('hidden');
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+
+      function closeMenu() {
+        if (!panel.classList.contains('hidden')) {
+          panel.classList.add('hidden');
+          toggle.setAttribute('aria-expanded', 'false');
+        }
+      }
+
+      toggle.addEventListener('click', function (event) {
+        event.stopPropagation();
+        if (panel.classList.contains('hidden')) {
+          openMenu();
+        } else {
+          closeMenu();
+        }
+      });
+
+      document.addEventListener('click', function (event) {
+        if (!panel.contains(event.target) && !toggle.contains(event.target)) {
+          closeMenu();
+        }
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+          closeMenu();
+          toggle.focus();
+        }
+      });
+    });
+  </script>
   <main>
 
