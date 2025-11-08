@@ -199,7 +199,7 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
       gap: 3rem;
       padding-left: 100%;
       white-space: nowrap;
-      animation: promo-marquee 18s linear infinite;
+      animation: promo-marquee 36s linear infinite;
     }
     .promo-banner__track span {
       font-weight: 600;
