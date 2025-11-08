@@ -234,8 +234,7 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
         <a href="/contact.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'contact.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Contact us">📧 Contact</a>
       </nav>
       <div class="flex items-center gap-2">
-        <a href="/schedule-pickup.php" class="btn text-sm hidden md:inline-flex">Schedule</a>
-        <a href="/schedule-pickup.php" class="btn text-sm md:hidden">Schedule</a>
+        <a href="/schedule-pickup.php" class="btn text-sm">Schedule</a>
         <div class="relative">
           <button
             id="user-menu-toggle"

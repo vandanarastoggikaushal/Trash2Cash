@@ -1,3 +1,4 @@
+<?php
 /**
  * Sync session variables from user data array
  * @param array $user
@@ -35,7 +36,7 @@ function refreshSessionUser() {
         setUserSessionData($user);
     }
 }
-<?php
+
 /**
  * Authentication Helper Functions
  * Handles user login, logout, session management, and user storage
