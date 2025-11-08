@@ -11,9 +11,11 @@ requireLogin('/account.php');
 $user = getCurrentUser();
 $displayName = function_exists('getUserDisplayName') ? getUserDisplayName(true) : strtoupper($user['username'] ?? '');
 $balance = getUserBalance($user['id']);
+$pendingBalance = getUserBalance($user['id'], ['pending', 'processing']);
 $payments = getUserPayments($user['id']);
 $currencySymbol = 'NZ$';
 $formattedBalance = $currencySymbol . number_format($balance, 2);
+$formattedPending = $pendingBalance > 0 ? $currencySymbol . number_format($pendingBalance, 2) : null;
 $dataSource = isPaymentsDatabaseAvailable() ? 'database' : 'backup storage';
 
 require_once __DIR__ . '/includes/header.php';
@@ -33,6 +35,11 @@ require_once __DIR__ . '/includes/header.php';
         <div class="rounded-2xl border-2 border-emerald-200 bg-white px-8 py-5 text-center shadow-md">
           <p class="text-sm font-semibold text-slate-500 uppercase tracking-[0.2em]">Current Balance</p>
           <p class="mt-2 text-4xl font-black text-brand"><?php echo htmlspecialchars($formattedBalance); ?></p>
+          <?php if (!empty($formattedPending)): ?>
+          <div class="mt-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-2 text-sm font-semibold text-amber-700">
+            Pending credits: <?php echo htmlspecialchars($formattedPending); ?> (includes welcome bonus)
+          </div>
+          <?php endif; ?>
         </div>
       </div>
       <div class="mt-6 flex flex-wrap items-center gap-4 text-sm text-slate-500">

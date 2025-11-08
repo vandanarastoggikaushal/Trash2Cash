@@ -187,6 +187,34 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
     }
   </script>
   <link rel="stylesheet" href="/assets/styles.css" />
+  <?php if (defined('PROMO_BANNER_ENABLED') && PROMO_BANNER_ENABLED && defined('PROMO_BANNER_MESSAGE') && PROMO_BANNER_MESSAGE): ?>
+  <style>
+    .promo-banner {
+      position: relative;
+      overflow: hidden;
+    }
+    .promo-banner__track {
+      display: inline-flex;
+      align-items: center;
+      gap: 3rem;
+      padding-left: 100%;
+      white-space: nowrap;
+      animation: promo-marquee 18s linear infinite;
+    }
+    .promo-banner__track span {
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    @keyframes promo-marquee {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-100%);
+      }
+    }
+  </style>
+  <?php endif; ?>
 </head>
 <body class="min-h-screen bg-white text-slate-800">
   <header class="sticky top-0 z-50 w-full border-b-2 border-emerald-200 bg-white/95 backdrop-blur-lg shadow-sm">
@@ -267,6 +295,15 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
       </div>
     </div>
   </header>
+  <?php if (defined('PROMO_BANNER_ENABLED') && PROMO_BANNER_ENABLED && defined('PROMO_BANNER_MESSAGE') && PROMO_BANNER_MESSAGE): ?>
+  <div class="promo-banner bg-emerald-700 text-emerald-50">
+    <div class="promo-banner__track px-6 py-3 text-sm md:text-base">
+      <span><?php echo htmlspecialchars(PROMO_BANNER_MESSAGE); ?></span>
+      <span aria-hidden="true"><?php echo htmlspecialchars(PROMO_BANNER_MESSAGE); ?></span>
+      <span aria-hidden="true"><?php echo htmlspecialchars(PROMO_BANNER_MESSAGE); ?></span>
+    </div>
+  </div>
+  <?php endif; ?>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       var toggle = document.getElementById('user-menu-toggle');

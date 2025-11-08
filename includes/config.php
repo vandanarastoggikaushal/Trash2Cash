@@ -50,6 +50,16 @@ define('CITY', 'Wellington');
 // Address search feature - Set to true when you have AddressFinder or NZ Post API key
 define('ENABLE_ADDRESS_SEARCH', false);
 
+// Promotions
+define('PROMO_BANNER_ENABLED', true);
+define('PROMO_BONUS_AMOUNT', 2.00);
+define('PROMO_BONUS_CURRENCY', 'NZD');
+define('PROMO_BONUS_STATUS', 'pending');
+define(
+    'PROMO_BANNER_MESSAGE',
+    '🌟 Register today and get $2 added to your Trash2Cash account! Paid on your first collection. Limited to one registration per household.'
+);
+
 /**
  * Get current version from VERSION file
  * @return string Version number

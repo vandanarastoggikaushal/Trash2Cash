@@ -3,6 +3,7 @@ $pageTitle = 'Register';
 $pageDescription = 'Create a new Trash2Cash account';
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/payments.php';
 
 // Redirect if already logged in
 if (isLoggedIn()) {
@@ -26,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $city = trim($_POST['address_city'] ?? '');
     $postcode = trim($_POST['address_postcode'] ?? '');
     $address = '';
+    $normalizedAddressKey = '';
     
     // Validation
     if (empty($username)) {
@@ -58,8 +60,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $error = 'Passwords do not match';
     } else {
         $address = $street . "\n" . $suburb . "\n" . $city . ' ' . $postcode;
+        $normalizedAddressKey = strtolower(preg_replace('/\s+/', ' ', str_replace(["\r", "\n"], ' ', $address)));
+
+        // Enforce unique address (one registration per household)
+        if (isDatabaseAvailable()) {
+            $existingUser = dbQueryOne(
+                "SELECT id FROM users WHERE LOWER(REPLACE(REPLACE(address, '\r', ' '), '\n', ' ')) = :address",
+                [':address' => $normalizedAddressKey]
+            );
+            if ($existingUser) {
+                $error = 'An account already exists for this address. Please contact support if you need assistance.';
+            }
+        } else {
+            $existingUsers = getUsers();
+            foreach ($existingUsers as $existing) {
+                $existingAddress = $existing['address'] ?? '';
+                $existingKey = strtolower(preg_replace('/\s+/', ' ', str_replace(["\r", "\n"], ' ', $existingAddress)));
+                if ($existingKey === $normalizedAddressKey) {
+                    $error = 'An account already exists for this address. Please contact support if you need assistance.';
+                    break;
+                }
+            }
+        }
+    }
+
+    if (empty($error)) {
         $user = createUser($username, $password, $email, 'user', $firstName, $lastName, $address);
         if ($user) {
+            // Record promotional welcome credit (pending until first collection)
+            if (defined('PROMO_BONUS_AMOUNT') && PROMO_BONUS_AMOUNT > 0) {
+                $bonusReference = 'Welcome bonus';
+                $bonusNotes = 'Registration bonus payable on first collection';
+                recordUserPayment(
+                    $user['id'],
+                    PROMO_BONUS_AMOUNT,
+                    $bonusReference,
+                    $bonusNotes,
+                    gmdate('Y-m-d'),
+                    defined('PROMO_BONUS_STATUS') ? PROMO_BONUS_STATUS : 'pending',
+                    defined('PROMO_BONUS_CURRENCY') ? PROMO_BONUS_CURRENCY : 'NZD'
+                );
+            }
+
             // Auto-login after registration
             login($username, $password);
             header('Location: /');
