@@ -336,9 +336,18 @@ if (document.readyState === 'loading') {
 // Handle payout method visibility
 document.querySelectorAll('input[name="payoutMethod"]').forEach(radio => {
   radio.addEventListener('change', function() {
-    document.getElementById('payout-bank').style.display = this.value === 'bank' ? 'grid' : 'none';
-    document.getElementById('payout-child').classList.toggle('hidden', this.value !== 'child_account');
-    document.getElementById('payout-kiwisaver').classList.toggle('hidden', this.value !== 'kiwisaver');
+    const bankSection = document.getElementById('payout-bank');
+    const childSection = document.getElementById('payout-child');
+    const kiwiSection = document.getElementById('payout-kiwisaver');
+    if (bankSection) {
+      bankSection.style.display = this.value === 'bank' ? 'grid' : 'none';
+    }
+    if (childSection) {
+      childSection.classList.toggle('hidden', this.value !== 'child_account');
+    }
+    if (kiwiSection) {
+      kiwiSection.classList.toggle('hidden', this.value !== 'kiwisaver');
+    }
   });
 });
 

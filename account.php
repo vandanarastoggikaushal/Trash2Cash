@@ -17,6 +17,15 @@ $currencySymbol = 'NZ$';
 $formattedBalance = $currencySymbol . number_format($balance, 2);
 $formattedPending = $pendingBalance > 0 ? $currencySymbol . number_format($pendingBalance, 2) : null;
 $dataSource = isPaymentsDatabaseAvailable() ? 'database' : 'backup storage';
+$phone = $user['phone'] ?? '';
+$marketingOptIn = !empty($user['marketingOptIn']);
+$payoutMethod = $user['payoutMethod'] ?? 'bank';
+$payoutBankName = $user['payoutBankName'] ?? '';
+$payoutBankAccount = $user['payoutBankAccount'] ?? '';
+$payoutChildName = $user['payoutChildName'] ?? '';
+$payoutChildBankAccount = $user['payoutChildBankAccount'] ?? '';
+$payoutKiwisaverProvider = $user['payoutKiwisaverProvider'] ?? '';
+$payoutKiwisaverMemberId = $user['payoutKiwisaverMemberId'] ?? '';
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -48,6 +57,72 @@ require_once __DIR__ . '/includes/header.php';
           <span>Data source: <?php echo htmlspecialchars($dataSource); ?></span>
         </span>
         <span>Balances include completed payouts only.</span>
+      </div>
+    </div>
+
+    <div class="rounded-3xl border-2 border-emerald-100 bg-white p-8 shadow-xl">
+      <div class="mb-6 flex items-center gap-3">
+        <span class="text-emerald-600 text-3xl">👤</span>
+        <h2 class="text-2xl font-bold text-slate-900">Account Details</h2>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Full name</p>
+          <p class="text-sm font-semibold text-slate-900 mt-1"><?php echo htmlspecialchars($displayName); ?></p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Email</p>
+          <p class="text-sm font-semibold text-slate-900 mt-1"><?php echo htmlspecialchars($user['email'] ?? ''); ?></p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Phone</p>
+          <p class="text-sm font-semibold text-slate-900 mt-1"><?php echo htmlspecialchars($phone); ?></p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Marketing updates</p>
+          <p class="text-sm font-semibold text-slate-900 mt-1"><?php echo $marketingOptIn ? 'Subscribed' : 'Not subscribed'; ?></p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Address</p>
+          <p class="text-sm font-semibold text-slate-900 mt-1 whitespace-pre-line"><?php echo htmlspecialchars($user['address'] ?? ''); ?></p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Payout method</p>
+          <p class="text-sm font-semibold text-slate-900 mt-1">
+            <?php
+              $payoutLabels = [
+                'bank' => 'Bank account',
+                'child_account' => 'Child account',
+                'kiwisaver' => 'KiwiSaver'
+              ];
+              echo htmlspecialchars($payoutLabels[$payoutMethod] ?? ucfirst($payoutMethod));
+            ?>
+          </p>
+        </div>
+        <?php if ($payoutMethod === 'bank' && ($payoutBankName || $payoutBankAccount)): ?>
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Bank details</p>
+          <p class="text-sm font-semibold text-slate-900 mt-1">
+            <?php echo htmlspecialchars(trim($payoutBankName . ' ' . $payoutBankAccount)); ?>
+          </p>
+        </div>
+        <?php endif; ?>
+        <?php if ($payoutMethod === 'child_account' && $payoutChildName): ?>
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Child account</p>
+          <p class="text-sm font-semibold text-slate-900 mt-1">
+            <?php echo htmlspecialchars(trim($payoutChildName . ' ' . $payoutChildBankAccount)); ?>
+          </p>
+        </div>
+        <?php endif; ?>
+        <?php if ($payoutMethod === 'kiwisaver' && $payoutKiwisaverProvider): ?>
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500">KiwiSaver details</p>
+          <p class="text-sm font-semibold text-slate-900 mt-1">
+            <?php echo htmlspecialchars(trim($payoutKiwisaverProvider . ' ' . $payoutKiwisaverMemberId)); ?>
+          </p>
+        </div>
+        <?php endif; ?>
       </div>
     </div>
 

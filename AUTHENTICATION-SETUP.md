@@ -97,8 +97,16 @@ require_once __DIR__ . '/includes/auth.php';
 $username = 'admin';
 $password = 'your-secure-password';
 $email = 'admin@trash2cash.co.nz';
+$address = "123 Example Street\nExample Suburb\nWellington 6011";
+$profile = [
+    'phone' => '0212345678',
+    'marketingOptIn' => true,
+    'payoutMethod' => 'bank',
+    'payoutBankName' => 'Example Bank',
+    'payoutBankAccount' => '12-3456-7890123-00'
+];
 
-$user = createUser($username, $password, $email, 'admin');
+$user = createUser($username, $password, $email, 'admin', 'Admin', 'User', $address, $profile);
 if ($user) {
     echo "Admin user created successfully!";
 } else {
@@ -138,6 +146,14 @@ Users are stored in `data/users.json`:
     "id": "unique-id",
     "username": "username",
     "password": "$2y$10$hashed...",
+    "firstName": "Alex",
+    "lastName": "Example",
+    "address": "123 Example Street\nExample Suburb\nWellington 6011",
+    "phone": "0212345678",
+    "marketingOptIn": true,
+    "payoutMethod": "bank",
+    "payoutBankName": "Example Bank",
+    "payoutBankAccount": "12-3456-7890123-00",
     "email": "user@example.com",
     "role": "user",
     "createdAt": "2024-01-15T10:30:00+00:00",

@@ -22,6 +22,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $email = trim($_POST['email'] ?? '');
     $firstName = trim($_POST['first_name'] ?? '');
     $lastName = trim($_POST['last_name'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $marketingOptIn = isset($_POST['marketingOptIn']) && $_POST['marketingOptIn'] === 'on';
+    $payoutMethod = $_POST['payoutMethod'] ?? 'bank';
+    $bankName = trim($_POST['bankName'] ?? '');
+    $bankAccount = trim($_POST['bankAccount'] ?? '');
+    $childName = trim($_POST['childName'] ?? '');
+    $childBankAccount = trim($_POST['childBankAccount'] ?? '');
+    $kiwisaverProvider = trim($_POST['kiwisaverProvider'] ?? '');
+    $kiwisaverMemberId = trim($_POST['kiwisaverMemberId'] ?? '');
     $street = trim($_POST['address_street'] ?? '');
     $suburb = trim($_POST['address_suburb'] ?? '');
     $city = trim($_POST['address_city'] ?? '');
@@ -48,6 +57,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $error = 'Postcode is required';
     } elseif (!preg_match('/^\d{4}$/', $postcode)) {
         $error = 'Please enter a valid 4-digit postcode';
+    } elseif (empty($phone)) {
+        $error = 'Phone number is required';
+    } elseif (!preg_match('/^(\+64|0)[2-9]\d{7,8}$/', $phone)) {
+        $error = 'Please enter a valid NZ phone number';
+    } elseif (!in_array($payoutMethod, ['bank', 'child_account', 'kiwisaver'], true)) {
+        $error = 'Please choose a valid payout method';
+    } elseif ($payoutMethod === 'bank' && (empty($bankName) || empty($bankAccount))) {
+        $error = 'Please provide your bank name and account number';
+    } elseif ($payoutMethod === 'child_account' && empty($childName)) {
+        $error = 'Please provide the child name for the child account payout method';
+    } elseif ($payoutMethod === 'kiwisaver' && (empty($kiwisaverProvider) || empty($kiwisaverMemberId))) {
+        $error = 'Please provide your KiwiSaver provider and member ID';
     } elseif (empty($email)) {
         $error = 'Email is required';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -85,7 +106,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 
     if (empty($error)) {
-        $user = createUser($username, $password, $email, 'user', $firstName, $lastName, $address);
+        $extra = [
+            'phone' => $phone,
+            'marketingOptIn' => $marketingOptIn,
+            'payoutMethod' => $payoutMethod,
+            'payoutBankName' => $bankName,
+            'payoutBankAccount' => $bankAccount,
+            'payoutChildName' => $childName,
+            'payoutChildBankAccount' => $childBankAccount,
+            'payoutKiwisaverProvider' => $kiwisaverProvider,
+            'payoutKiwisaverMemberId' => $kiwisaverMemberId
+        ];
+        $user = createUser($username, $password, $email, 'user', $firstName, $lastName, $address, $extra);
         if ($user) {
             // Record promotional welcome credit (pending until first collection)
             if (defined('PROMO_BONUS_AMOUNT') && PROMO_BONUS_AMOUNT > 0) {
@@ -111,6 +143,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
     }
 }
+
+$selectedPayoutMethod = $_POST['payoutMethod'] ?? 'bank';
+$bankNameValue = $_POST['bankName'] ?? '';
+$bankAccountValue = $_POST['bankAccount'] ?? '';
+$childNameValue = $_POST['childName'] ?? '';
+$childBankAccountValue = $_POST['childBankAccount'] ?? '';
+$kiwiProviderValue = $_POST['kiwisaverProvider'] ?? '';
+$kiwiMemberValue = $_POST['kiwisaverMemberId'] ?? '';
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -201,6 +241,30 @@ require_once __DIR__ . '/includes/header.php';
           />
         </div>
 
+        <div>
+          <label for="phone" class="block text-sm font-semibold text-slate-900 mb-2">
+            Phone <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            required
+            pattern="^(\+64|0)[2-9]\d{7,8}$"
+            class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all"
+            placeholder="e.g. 0212345678"
+            value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>"
+          />
+          <p class="mt-1 text-xs text-slate-500">We use your phone number to coordinate pickups.</p>
+        </div>
+
+        <div>
+          <label class="inline-flex items-center gap-2 text-sm text-slate-700 font-semibold">
+            <input type="checkbox" name="marketingOptIn" value="on" <?php echo !empty($_POST['marketingOptIn']) ? 'checked' : ''; ?> />
+            I'd like to receive Trash2Cash updates and offers
+          </label>
+        </div>
+
         <div class="rounded-2xl border-2 border-emerald-100 bg-white/70 p-4 shadow-inner space-y-4">
           <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
             <span>📍</span> Address Details
@@ -271,6 +335,41 @@ require_once __DIR__ . '/includes/header.php';
           </div>
         </div>
 
+        <fieldset class="rounded-2xl border-2 border-emerald-100 bg-white/70 p-4 shadow-inner space-y-4">
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <span>💰</span> Payout Preference
+          </h2>
+          <p class="text-sm text-slate-600">Choose how you'd like to receive your rewards. You can update this later by contacting us.</p>
+          <div class="space-y-3 text-sm font-semibold text-slate-700">
+            <label class="flex items-center gap-2">
+              <input type="radio" name="payoutMethod" value="bank" <?php echo $selectedPayoutMethod === 'bank' ? 'checked' : ''; ?> />
+              Bank account
+            </label>
+            <div id="register-payout-bank" class="ml-6 grid gap-3 sm:grid-cols-2 <?php echo $selectedPayoutMethod === 'bank' ? '' : 'hidden'; ?>">
+              <input name="bankName" placeholder="Bank name" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($bankNameValue); ?>" />
+              <input name="bankAccount" placeholder="Account number" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($bankAccountValue); ?>" />
+            </div>
+
+            <label class="flex items-center gap-2">
+              <input type="radio" name="payoutMethod" value="child_account" <?php echo $selectedPayoutMethod === 'child_account' ? 'checked' : ''; ?> />
+              Child account
+            </label>
+            <div id="register-payout-child" class="ml-6 grid gap-3 sm:grid-cols-2 <?php echo $selectedPayoutMethod === 'child_account' ? '' : 'hidden'; ?>">
+              <input name="childName" placeholder="Child name" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($childNameValue); ?>" />
+              <input name="childBankAccount" placeholder="Optional bank account" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($childBankAccountValue); ?>" />
+            </div>
+
+            <label class="flex items-center gap-2">
+              <input type="radio" name="payoutMethod" value="kiwisaver" <?php echo $selectedPayoutMethod === 'kiwisaver' ? 'checked' : ''; ?> />
+              KiwiSaver
+            </label>
+            <div id="register-payout-kiwi" class="ml-6 grid gap-3 sm:grid-cols-2 <?php echo $selectedPayoutMethod === 'kiwisaver' ? '' : 'hidden'; ?>">
+              <input name="kiwisaverProvider" placeholder="Provider" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($kiwiProviderValue); ?>" />
+              <input name="kiwisaverMemberId" placeholder="Member ID" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($kiwiMemberValue); ?>" />
+            </div>
+          </div>
+        </fieldset>
+
         <div>
           <label for="password" class="block text-sm font-semibold text-slate-900 mb-2">
             Password <span class="text-red-500">*</span>
@@ -318,6 +417,38 @@ require_once __DIR__ . '/includes/header.php';
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const payoutRadios = document.querySelectorAll('input[name="payoutMethod"]');
+    const bankSection = document.getElementById('register-payout-bank');
+    const childSection = document.getElementById('register-payout-child');
+    const kiwiSection = document.getElementById('register-payout-kiwi');
+
+    function togglePayoutSections(method) {
+      if (bankSection) {
+        bankSection.classList.toggle('hidden', method !== 'bank');
+      }
+      if (childSection) {
+        childSection.classList.toggle('hidden', method !== 'child_account');
+      }
+      if (kiwiSection) {
+        kiwiSection.classList.toggle('hidden', method !== 'kiwisaver');
+      }
+    }
+
+    payoutRadios.forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        togglePayoutSections(this.value);
+      });
+    });
+
+    const checked = document.querySelector('input[name="payoutMethod"]:checked');
+    if (checked) {
+      togglePayoutSections(checked.value);
+    }
+  });
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
 

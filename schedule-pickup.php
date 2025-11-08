@@ -2,6 +2,64 @@
 $pageTitle = 'Schedule Pickup';
 $pageDescription = 'Schedule a free door-to-door pickup for your aluminium cans and old appliances in Wellington. Earn $1 per 100 cans and appliance credits.';
 require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/auth.php';
+requireLogin('/schedule-pickup.php');
+$user = getCurrentUser();
+if (!$user) {
+    header('Location: /login.php');
+    exit;
+}
+
+$firstName = trim($user['firstName'] ?? '');
+$lastName = trim($user['lastName'] ?? '');
+$fullName = trim(($firstName . ' ' . $lastName)) ?: ($user['username'] ?? '');
+$userEmail = $user['email'] ?? '';
+$userPhone = $user['phone'] ?? '';
+$marketingOptIn = !empty($user['marketingOptIn']);
+$payoutMethod = $user['payoutMethod'] ?? 'bank';
+$payoutBankName = $user['payoutBankName'] ?? '';
+$payoutBankAccount = $user['payoutBankAccount'] ?? '';
+$payoutChildName = $user['payoutChildName'] ?? '';
+$payoutChildBankAccount = $user['payoutChildBankAccount'] ?? '';
+$payoutKiwisaverProvider = $user['payoutKiwisaverProvider'] ?? '';
+$payoutKiwisaverMemberId = $user['payoutKiwisaverMemberId'] ?? '';
+$profileIssues = [];
+if ($userPhone === '') {
+    $profileIssues[] = 'phone number';
+}
+if ($payoutMethod === 'bank' && ($payoutBankName === '' || $payoutBankAccount === '')) {
+    $profileIssues[] = 'bank payout details';
+}
+if ($payoutMethod === 'child_account' && $payoutChildName === '') {
+    $profileIssues[] = 'child account details';
+}
+if ($payoutMethod === 'kiwisaver' && ($payoutKiwisaverProvider === '' || $payoutKiwisaverMemberId === '')) {
+    $profileIssues[] = 'KiwiSaver payout details';
+}
+$profileIncomplete = !empty($profileIssues);
+
+$streetDefault = '';
+$suburbDefault = '';
+$cityDefault = CITY;
+$postcodeDefault = '';
+if (!empty($user['address'])) {
+    $addressLines = preg_split('/\r\n|\r|\n/', $user['address']);
+    $streetDefault = trim($addressLines[0] ?? '');
+    $suburbDefault = trim($addressLines[1] ?? '');
+    $cityLine = trim($addressLines[2] ?? '');
+    if ($cityLine !== '') {
+        if (preg_match('/(.+)\s+(\d{4})$/', $cityLine, $matches)) {
+            $cityDefault = trim($matches[1]);
+            $postcodeDefault = trim($matches[2]);
+        } else {
+            $cityDefault = $cityLine;
+        }
+    }
+}
+if ($postcodeDefault === '' && preg_match('/\b(\d{4})\b/', $user['address'] ?? '', $firstPostcodeMatch)) {
+    $postcodeDefault = trim($firstPostcodeMatch[1]);
+}
+
 require_once __DIR__ . '/includes/header.php';
 ?>
 
@@ -14,32 +72,63 @@ require_once __DIR__ . '/includes/header.php';
   </div>
   
   <form id="pickup-form" class="grid gap-8 lg:grid-cols-2">
+    <input type="hidden" id="fullName" name="fullName" value="<?php echo htmlspecialchars($fullName); ?>">
+    <input type="hidden" id="email" name="email" value="<?php echo htmlspecialchars($userEmail); ?>">
+    <input type="hidden" id="phone" name="phone" value="<?php echo htmlspecialchars($userPhone); ?>">
+    <?php if ($marketingOptIn): ?>
+    <input type="hidden" name="marketingOptIn" value="on">
+    <?php endif; ?>
+    <input type="hidden" name="payoutMethod" value="<?php echo htmlspecialchars($payoutMethod); ?>">
+    <input type="hidden" name="bankName" value="<?php echo htmlspecialchars($payoutBankName); ?>">
+    <input type="hidden" name="bankAccount" value="<?php echo htmlspecialchars($payoutBankAccount); ?>">
+    <input type="hidden" name="childName" value="<?php echo htmlspecialchars($payoutChildName); ?>">
+    <input type="hidden" name="childBankAccount" value="<?php echo htmlspecialchars($payoutChildBankAccount); ?>">
+    <input type="hidden" name="kiwisaverProvider" value="<?php echo htmlspecialchars($payoutKiwisaverProvider); ?>">
+    <input type="hidden" name="kiwisaverMemberId" value="<?php echo htmlspecialchars($payoutKiwisaverMemberId); ?>">
     <div class="space-y-6">
-      <fieldset class="rounded-xl border-2 border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 p-6 shadow-md">
-        <legend class="px-3 text-base font-bold text-slate-900 flex items-center gap-2">
-          <span>👤</span> Person
-        </legend>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label class="block text-sm font-semibold text-slate-900 mb-2" for="fullName">Full name</label>
-            <input id="fullName" name="fullName" type="text" class="mt-1 w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all" required />
+      <div class="rounded-xl border-2 border-emerald-100 bg-gradient-to-br from-white to-emerald-50/40 p-6 shadow-md">
+        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <span>👤</span> Your Details
+        </h2>
+        <dl class="mt-4 space-y-2 text-sm text-slate-700">
+          <div class="flex items-start justify-between gap-4">
+            <dt class="font-semibold text-slate-600">Name</dt>
+            <dd class="text-right font-semibold text-slate-900"><?php echo htmlspecialchars(strtoupper($fullName)); ?></dd>
           </div>
-          <div>
-            <label class="block text-sm font-semibold text-slate-900 mb-2" for="email">Email</label>
-            <input id="email" name="email" type="email" class="mt-1 w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all" required />
+          <div class="flex items-start justify-between gap-4">
+            <dt class="font-semibold text-slate-600">Email</dt>
+            <dd class="text-right"><?php echo htmlspecialchars($userEmail); ?></dd>
           </div>
-          <div>
-            <label class="block text-sm font-semibold text-slate-900 mb-2" for="phone">Phone</label>
-            <input id="phone" name="phone" type="tel" class="mt-1 w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all" required placeholder="e.g. 0212345678" />
+          <div class="flex items-start justify-between gap-4">
+            <dt class="font-semibold text-slate-600">Phone</dt>
+            <dd class="text-right"><?php echo htmlspecialchars($userPhone); ?></dd>
           </div>
-          <div class="sm:col-span-2">
-            <label class="inline-flex items-center gap-2 text-sm">
-              <input type="checkbox" name="marketingOptIn" id="marketingOptIn" />
-              I'd like to receive updates
-            </label>
+          <div class="flex items-start justify-between gap-4">
+            <dt class="font-semibold text-slate-600">Payout</dt>
+            <dd class="text-right">
+              <?php
+                $payoutLabelMap = [
+                  'bank' => 'Bank account',
+                  'child_account' => 'Child account',
+                  'kiwisaver' => 'KiwiSaver'
+                ];
+                echo htmlspecialchars($payoutLabelMap[$payoutMethod] ?? ucfirst($payoutMethod));
+              ?>
+            </dd>
           </div>
+        </dl>
+        <?php if ($profileIncomplete): ?>
+        <div class="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+          Some account details are missing (<?php echo htmlspecialchars(implode(', ', $profileIssues)); ?>). Please contact us at
+          <a class="text-amber-900 font-semibold" href="mailto:<?php echo SUPPORT_EMAIL; ?>"><?php echo SUPPORT_EMAIL; ?></a>
+          before scheduling a pickup.
         </div>
-      </fieldset>
+        <?php else: ?>
+        <div class="mt-4 text-xs text-slate-500">
+          Need to update these details? Contact us at <a class="text-brand font-semibold" href="mailto:<?php echo SUPPORT_EMAIL; ?>"><?php echo SUPPORT_EMAIL; ?></a>.
+        </div>
+        <?php endif; ?>
+      </div>
 
       <fieldset class="rounded-xl border-2 border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 p-6 shadow-md">
         <legend class="px-3 text-base font-bold text-slate-900 flex items-center gap-2">
@@ -64,19 +153,19 @@ require_once __DIR__ . '/includes/header.php';
           <?php endif; ?>
           <div class="sm:col-span-2">
             <label class="block text-sm font-medium" for="street">Street</label>
-            <input id="street" name="street" type="text" class="mt-1 w-full rounded-md border px-3 py-2" required />
+            <input id="street" name="street" type="text" class="mt-1 w-full rounded-md border px-3 py-2" required value="<?php echo htmlspecialchars($streetDefault); ?>" />
           </div>
           <div>
             <label class="block text-sm font-medium" for="suburb">Suburb</label>
-            <input id="suburb" name="suburb" type="text" class="mt-1 w-full rounded-md border px-3 py-2" required />
+            <input id="suburb" name="suburb" type="text" class="mt-1 w-full rounded-md border px-3 py-2" required value="<?php echo htmlspecialchars($suburbDefault); ?>" />
           </div>
           <div>
             <label class="block text-sm font-medium" for="city">City</label>
-            <input id="city" name="city" type="text" class="mt-1 w-full rounded-md border px-3 py-2" required value="<?php echo CITY; ?>" />
+            <input id="city" name="city" type="text" class="mt-1 w-full rounded-md border px-3 py-2" required value="<?php echo htmlspecialchars($cityDefault); ?>" />
           </div>
           <div>
             <label class="block text-sm font-medium" for="postcode">Postcode</label>
-            <input id="postcode" name="postcode" type="text" pattern="\d{4}" maxlength="4" class="mt-1 w-full rounded-md border px-3 py-2" required />
+            <input id="postcode" name="postcode" type="text" pattern="\d{4}" maxlength="4" class="mt-1 w-full rounded-md border px-3 py-2" required value="<?php echo htmlspecialchars($postcodeDefault); ?>" />
           </div>
           <div class="sm:col-span-2">
             <label class="block text-sm font-medium" for="accessNotes">Access notes</label>

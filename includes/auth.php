@@ -80,8 +80,15 @@ function migrateUsersToDatabase() {
                 }
             }
             
-            $sql = "INSERT INTO users (id, username, password, email, role, created_at, last_login, first_name, last_name, address) 
-                    VALUES (:id, :username, :password, :email, :role, :created_at, :last_login, :first_name, :last_name, :address)";
+            $sql = "INSERT INTO users (
+                        id, username, password, email, role, created_at, last_login, first_name, last_name, address,
+                        phone, marketing_opt_in, payout_method, payout_bank_name, payout_bank_account,
+                        payout_child_name, payout_child_bank_account, payout_kiwisaver_provider, payout_kiwisaver_member_id
+                    ) VALUES (
+                        :id, :username, :password, :email, :role, :created_at, :last_login, :first_name, :last_name, :address,
+                        :phone, :marketing_opt_in, :payout_method, :payout_bank_name, :payout_bank_account,
+                        :payout_child_name, :payout_child_bank_account, :payout_kiwisaver_provider, :payout_kiwisaver_member_id
+                    )";
             
             $params = [
                 ':id' => $user['id'] ?? bin2hex(random_bytes(8)),
@@ -93,7 +100,16 @@ function migrateUsersToDatabase() {
                 ':last_login' => $lastLogin,
                 ':first_name' => $user['firstName'] ?? ($user['first_name'] ?? null),
                 ':last_name' => $user['lastName'] ?? ($user['last_name'] ?? null),
-                ':address' => $user['address'] ?? null
+                ':address' => $user['address'] ?? null,
+                ':phone' => $user['phone'] ?? null,
+                ':marketing_opt_in' => !empty($user['marketingOptIn'] ?? $user['marketing_opt_in']) ? 1 : 0,
+                ':payout_method' => $user['payoutMethod'] ?? ($user['payout_method'] ?? 'bank'),
+                ':payout_bank_name' => $user['payoutBankName'] ?? ($user['payout_bank_name'] ?? null),
+                ':payout_bank_account' => $user['payoutBankAccount'] ?? ($user['payout_bank_account'] ?? null),
+                ':payout_child_name' => $user['payoutChildName'] ?? ($user['payout_child_name'] ?? null),
+                ':payout_child_bank_account' => $user['payoutChildBankAccount'] ?? ($user['payout_child_bank_account'] ?? null),
+                ':payout_kiwisaver_provider' => $user['payoutKiwisaverProvider'] ?? ($user['payout_kiwisaver_provider'] ?? null),
+                ':payout_kiwisaver_member_id' => $user['payoutKiwisaverMemberId'] ?? ($user['payout_kiwisaver_member_id'] ?? null)
             ];
             
             $result = dbExecute($sql, $params);
@@ -134,7 +150,7 @@ function isDatabaseAvailable() {
  */
 function getUsers() {
     if (isDatabaseAvailable()) {
-        $users = dbQuery("SELECT id, username, password, email, role, created_at, last_login, first_name, last_name, address FROM users");
+        $users = dbQuery("SELECT id, username, password, email, role, created_at, last_login, first_name, last_name, address, phone, marketing_opt_in, payout_method, payout_bank_name, payout_bank_account, payout_child_name, payout_child_bank_account, payout_kiwisaver_provider, payout_kiwisaver_member_id FROM users");
         if ($users !== false) {
             // Auto-migrate users from JSON if database is available
             // Check if migration is needed (only if JSON file exists and has users)
@@ -160,7 +176,7 @@ function getUsers() {
                         if ($result['migrated'] > 0) {
                             error_log("Auto-migrated {$result['migrated']} users from JSON to database via getUsers()");
                             // Re-fetch users after migration
-                            $users = dbQuery("SELECT id, username, password, email, role, created_at, last_login, first_name, last_name, address FROM users");
+                            $users = dbQuery("SELECT id, username, password, email, role, created_at, last_login, first_name, last_name, address, phone, marketing_opt_in, payout_method, payout_bank_name, payout_bank_account, payout_child_name, payout_child_bank_account, payout_kiwisaver_provider, payout_kiwisaver_member_id FROM users");
                             if ($users === false) {
                                 $users = [];
                             }
@@ -172,7 +188,27 @@ function getUsers() {
                 $user['firstName'] = $user['first_name'] ?? null;
                 $user['lastName'] = $user['last_name'] ?? null;
                 $user['address'] = $user['address'] ?? null;
-                unset($user['first_name'], $user['last_name']);
+                $user['phone'] = $user['phone'] ?? null;
+                $user['marketingOptIn'] = isset($user['marketing_opt_in']) ? (bool)$user['marketing_opt_in'] : false;
+                $user['payoutMethod'] = $user['payout_method'] ?? null;
+                $user['payoutBankName'] = $user['payout_bank_name'] ?? null;
+                $user['payoutBankAccount'] = $user['payout_bank_account'] ?? null;
+                $user['payoutChildName'] = $user['payout_child_name'] ?? null;
+                $user['payoutChildBankAccount'] = $user['payout_child_bank_account'] ?? null;
+                $user['payoutKiwisaverProvider'] = $user['payout_kiwisaver_provider'] ?? null;
+                $user['payoutKiwisaverMemberId'] = $user['payout_kiwisaver_member_id'] ?? null;
+                unset(
+                    $user['first_name'],
+                    $user['last_name'],
+                    $user['marketing_opt_in'],
+                    $user['payout_method'],
+                    $user['payout_bank_name'],
+                    $user['payout_bank_account'],
+                    $user['payout_child_name'],
+                    $user['payout_child_bank_account'],
+                    $user['payout_kiwisaver_provider'],
+                    $user['payout_kiwisaver_member_id']
+                );
                 return $user;
             }, $users);
         }
@@ -195,15 +231,31 @@ function getUsers() {
  * @param string $role User role (default: 'user')
  * @return array|false User data on success, false on failure
  */
-function createUser($username, $password, $email = '', $role = 'user', $firstName = '', $lastName = '', $address = '') {
+function createUser($username, $password, $email = '', $role = 'user', $firstName = '', $lastName = '', $address = '', array $extra = []) {
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     $userId = bin2hex(random_bytes(8));
     $createdAt = gmdate('Y-m-d H:i:s');
+    $phone = $extra['phone'] ?? '';
+    $marketingOptIn = !empty($extra['marketingOptIn'] ?? $extra['marketing_opt_in']);
+    $payoutMethod = $extra['payoutMethod'] ?? $extra['payout_method'] ?? 'bank';
+    $payoutBankName = $extra['payoutBankName'] ?? $extra['payout_bank_name'] ?? null;
+    $payoutBankAccount = $extra['payoutBankAccount'] ?? $extra['payout_bank_account'] ?? null;
+    $payoutChildName = $extra['payoutChildName'] ?? $extra['payout_child_name'] ?? null;
+    $payoutChildBankAccount = $extra['payoutChildBankAccount'] ?? $extra['payout_child_bank_account'] ?? null;
+    $payoutKiwisaverProvider = $extra['payoutKiwisaverProvider'] ?? $extra['payout_kiwisaver_provider'] ?? null;
+    $payoutKiwisaverMemberId = $extra['payoutKiwisaverMemberId'] ?? $extra['payout_kiwisaver_member_id'] ?? null;
     
     if (isDatabaseAvailable()) {
         // Use database
-        $sql = "INSERT INTO users (id, username, password, email, role, created_at, first_name, last_name, address) 
-                VALUES (:id, :username, :password, :email, :role, :created_at, :first_name, :last_name, :address)";
+        $sql = "INSERT INTO users (
+                    id, username, password, email, role, created_at, first_name, last_name, address, phone, marketing_opt_in,
+                    payout_method, payout_bank_name, payout_bank_account, payout_child_name, payout_child_bank_account,
+                    payout_kiwisaver_provider, payout_kiwisaver_member_id
+                ) VALUES (
+                    :id, :username, :password, :email, :role, :created_at, :first_name, :last_name, :address, :phone, :marketing_opt_in,
+                    :payout_method, :payout_bank_name, :payout_bank_account, :payout_child_name, :payout_child_bank_account,
+                    :payout_kiwisaver_provider, :payout_kiwisaver_member_id
+                )";
         $params = [
             ':id' => $userId,
             ':username' => $username,
@@ -213,7 +265,16 @@ function createUser($username, $password, $email = '', $role = 'user', $firstNam
             ':created_at' => $createdAt,
             ':first_name' => $firstName ?: null,
             ':last_name' => $lastName ?: null,
-            ':address' => $address ?: null
+            ':address' => $address ?: null,
+            ':phone' => $phone ?: null,
+            ':marketing_opt_in' => $marketingOptIn ? 1 : 0,
+            ':payout_method' => $payoutMethod ?: 'bank',
+            ':payout_bank_name' => $payoutBankName ?: null,
+            ':payout_bank_account' => $payoutBankAccount ?: null,
+            ':payout_child_name' => $payoutChildName ?: null,
+            ':payout_child_bank_account' => $payoutChildBankAccount ?: null,
+            ':payout_kiwisaver_provider' => $payoutKiwisaverProvider ?: null,
+            ':payout_kiwisaver_member_id' => $payoutKiwisaverMemberId ?: null
         ];
         
         if (dbExecute($sql, $params) !== false) {
@@ -225,6 +286,15 @@ function createUser($username, $password, $email = '', $role = 'user', $firstNam
                 'firstName' => $firstName,
                 'lastName' => $lastName,
                 'address' => $address,
+                'phone' => $phone,
+                'marketingOptIn' => $marketingOptIn,
+                'payoutMethod' => $payoutMethod,
+                'payoutBankName' => $payoutBankName,
+                'payoutBankAccount' => $payoutBankAccount,
+                'payoutChildName' => $payoutChildName,
+                'payoutChildBankAccount' => $payoutChildBankAccount,
+                'payoutKiwisaverProvider' => $payoutKiwisaverProvider,
+                'payoutKiwisaverMemberId' => $payoutKiwisaverMemberId,
                 'createdAt' => $createdAt,
                 'lastLogin' => null
             ];
@@ -252,6 +322,15 @@ function createUser($username, $password, $email = '', $role = 'user', $firstNam
         'firstName' => $firstName,
         'lastName' => $lastName,
         'address' => $address,
+        'phone' => $phone,
+        'marketingOptIn' => $marketingOptIn,
+        'payoutMethod' => $payoutMethod,
+        'payoutBankName' => $payoutBankName,
+        'payoutBankAccount' => $payoutBankAccount,
+        'payoutChildName' => $payoutChildName,
+        'payoutChildBankAccount' => $payoutChildBankAccount,
+        'payoutKiwisaverProvider' => $payoutKiwisaverProvider,
+        'payoutKiwisaverMemberId' => $payoutKiwisaverMemberId,
         'createdAt' => gmdate('c'),
         'lastLogin' => null
     ];
@@ -281,7 +360,7 @@ function verifyUser($username, $password) {
     if (isDatabaseAvailable()) {
         // Use database first
         $user = dbQueryOne(
-            "SELECT id, username, password, email, role, created_at, last_login, first_name, last_name, address FROM users WHERE username = :username",
+            "SELECT id, username, password, email, role, created_at, last_login, first_name, last_name, address, phone, marketing_opt_in, payout_method, payout_bank_name, payout_bank_account, payout_child_name, payout_child_bank_account, payout_kiwisaver_provider, payout_kiwisaver_member_id FROM users WHERE username = :username",
             [':username' => $username]
         );
         
@@ -304,6 +383,15 @@ function verifyUser($username, $password) {
                 'firstName' => $user['first_name'] ?? '',
                 'lastName' => $user['last_name'] ?? '',
                 'address' => $user['address'] ?? '',
+                'phone' => $user['phone'] ?? '',
+                'marketingOptIn' => isset($user['marketing_opt_in']) ? (bool)$user['marketing_opt_in'] : false,
+                'payoutMethod' => $user['payout_method'] ?? null,
+                'payoutBankName' => $user['payout_bank_name'] ?? null,
+                'payoutBankAccount' => $user['payout_bank_account'] ?? null,
+                'payoutChildName' => $user['payout_child_name'] ?? null,
+                'payoutChildBankAccount' => $user['payout_child_bank_account'] ?? null,
+                'payoutKiwisaverProvider' => $user['payout_kiwisaver_provider'] ?? null,
+                'payoutKiwisaverMemberId' => $user['payout_kiwisaver_member_id'] ?? null,
                 'createdAt' => $user['created_at'],
                 'lastLogin' => gmdate('c')
             ];
@@ -325,8 +413,8 @@ function verifyUser($username, $password) {
                                 $createdAt = date('Y-m-d H:i:s', strtotime($createdAt));
                             }
                             
-                            $sql = "INSERT INTO users (id, username, password, email, role, created_at, last_login, first_name, last_name, address) 
-                                    VALUES (:id, :username, :password, :email, :role, :created_at, :last_login, :first_name, :last_name, :address)";
+                            $sql = "INSERT INTO users (id, username, password, email, role, created_at, last_login, first_name, last_name, address, phone, marketing_opt_in, payout_method, payout_bank_name, payout_bank_account, payout_child_name, payout_child_bank_account, payout_kiwisaver_provider, payout_kiwisaver_member_id) 
+                                    VALUES (:id, :username, :password, :email, :role, :created_at, :last_login, :first_name, :last_name, :address, :phone, :marketing_opt_in, :payout_method, :payout_bank_name, :payout_bank_account, :payout_child_name, :payout_child_bank_account, :payout_kiwisaver_provider, :payout_kiwisaver_member_id)";
                             
                             $params = [
                                 ':id' => $jsonUser['id'] ?? bin2hex(random_bytes(8)),
@@ -338,7 +426,16 @@ function verifyUser($username, $password) {
                                 ':last_login' => gmdate('Y-m-d H:i:s'),
                                 ':first_name' => $jsonUser['firstName'] ?? ($jsonUser['first_name'] ?? null),
                                 ':last_name' => $jsonUser['lastName'] ?? ($jsonUser['last_name'] ?? null),
-                                ':address' => $jsonUser['address'] ?? null
+                                ':address' => $jsonUser['address'] ?? null,
+                                ':phone' => $jsonUser['phone'] ?? null,
+                                ':marketing_opt_in' => !empty($jsonUser['marketingOptIn'] ?? $jsonUser['marketing_opt_in']) ? 1 : 0,
+                                ':payout_method' => $jsonUser['payoutMethod'] ?? ($jsonUser['payout_method'] ?? 'bank'),
+                                ':payout_bank_name' => $jsonUser['payoutBankName'] ?? ($jsonUser['payout_bank_name'] ?? null),
+                                ':payout_bank_account' => $jsonUser['payoutBankAccount'] ?? ($jsonUser['payout_bank_account'] ?? null),
+                                ':payout_child_name' => $jsonUser['payoutChildName'] ?? ($jsonUser['payout_child_name'] ?? null),
+                                ':payout_child_bank_account' => $jsonUser['payoutChildBankAccount'] ?? ($jsonUser['payout_child_bank_account'] ?? null),
+                                ':payout_kiwisaver_provider' => $jsonUser['payoutKiwisaverProvider'] ?? ($jsonUser['payout_kiwisaver_provider'] ?? null),
+                                ':payout_kiwisaver_member_id' => $jsonUser['payoutKiwisaverMemberId'] ?? ($jsonUser['payout_kiwisaver_member_id'] ?? null)
                             ];
                             
                             // Check if user already exists (by ID or username) before inserting
@@ -395,6 +492,18 @@ function verifyUser($username, $password) {
                                 'username' => $jsonUser['username'],
                                 'email' => $jsonUser['email'] ?? null,
                                 'role' => $jsonUser['role'] ?? 'user',
+                                'firstName' => $jsonUser['firstName'] ?? '',
+                                'lastName' => $jsonUser['lastName'] ?? '',
+                                'address' => $jsonUser['address'] ?? '',
+                                'phone' => $jsonUser['phone'] ?? '',
+                                'marketingOptIn' => !empty($jsonUser['marketingOptIn']),
+                                'payoutMethod' => $jsonUser['payoutMethod'] ?? 'bank',
+                                'payoutBankName' => $jsonUser['payoutBankName'] ?? null,
+                                'payoutBankAccount' => $jsonUser['payoutBankAccount'] ?? null,
+                                'payoutChildName' => $jsonUser['payoutChildName'] ?? null,
+                                'payoutChildBankAccount' => $jsonUser['payoutChildBankAccount'] ?? null,
+                                'payoutKiwisaverProvider' => $jsonUser['payoutKiwisaverProvider'] ?? null,
+                                'payoutKiwisaverMemberId' => $jsonUser['payoutKiwisaverMemberId'] ?? null,
                                 'createdAt' => $createdAt,
                                 'lastLogin' => gmdate('c')
                             ];
@@ -407,6 +516,18 @@ function verifyUser($username, $password) {
                                 'username' => $jsonUser['username'],
                                 'email' => $jsonUser['email'] ?? null,
                                 'role' => $jsonUser['role'] ?? 'user',
+                                'firstName' => $jsonUser['firstName'] ?? '',
+                                'lastName' => $jsonUser['lastName'] ?? '',
+                                'address' => $jsonUser['address'] ?? '',
+                                'phone' => $jsonUser['phone'] ?? '',
+                                'marketingOptIn' => !empty($jsonUser['marketingOptIn']),
+                                'payoutMethod' => $jsonUser['payoutMethod'] ?? 'bank',
+                                'payoutBankName' => $jsonUser['payoutBankName'] ?? null,
+                                'payoutBankAccount' => $jsonUser['payoutBankAccount'] ?? null,
+                                'payoutChildName' => $jsonUser['payoutChildName'] ?? null,
+                                'payoutChildBankAccount' => $jsonUser['payoutChildBankAccount'] ?? null,
+                                'payoutKiwisaverProvider' => $jsonUser['payoutKiwisaverProvider'] ?? null,
+                                'payoutKiwisaverMemberId' => $jsonUser['payoutKiwisaverMemberId'] ?? null,
                                 'createdAt' => $createdAt ?? gmdate('c'),
                                 'lastLogin' => gmdate('c')
                             ];
@@ -478,6 +599,15 @@ function login($username, $password) {
         $_SESSION['first_name'] = $user['firstName'] ?? '';
         $_SESSION['last_name'] = $user['lastName'] ?? '';
         $_SESSION['user_address'] = $user['address'] ?? '';
+        $_SESSION['user_phone'] = $user['phone'] ?? '';
+        $_SESSION['marketing_opt_in'] = !empty($user['marketingOptIn']);
+        $_SESSION['payout_method'] = $user['payoutMethod'] ?? 'bank';
+        $_SESSION['payout_bank_name'] = $user['payoutBankName'] ?? '';
+        $_SESSION['payout_bank_account'] = $user['payoutBankAccount'] ?? '';
+        $_SESSION['payout_child_name'] = $user['payoutChildName'] ?? '';
+        $_SESSION['payout_child_bank_account'] = $user['payoutChildBankAccount'] ?? '';
+        $_SESSION['payout_kiwisaver_provider'] = $user['payoutKiwisaverProvider'] ?? '';
+        $_SESSION['payout_kiwisaver_member_id'] = $user['payoutKiwisaverMemberId'] ?? '';
         return $user;
     }
     return false;
@@ -513,7 +643,7 @@ function getCurrentUser() {
     
     if (isDatabaseAvailable()) {
         $user = dbQueryOne(
-            "SELECT id, username, email, role, created_at, last_login, first_name, last_name, address FROM users WHERE id = :id",
+            "SELECT id, username, email, role, created_at, last_login, first_name, last_name, address, phone, marketing_opt_in, payout_method, payout_bank_name, payout_bank_account, payout_child_name, payout_child_bank_account, payout_kiwisaver_provider, payout_kiwisaver_member_id FROM users WHERE id = :id",
             [':id' => $_SESSION['user_id']]
         );
         
@@ -526,6 +656,15 @@ function getCurrentUser() {
                 'firstName' => $user['first_name'] ?? '',
                 'lastName' => $user['last_name'] ?? '',
                 'address' => $user['address'] ?? '',
+                'phone' => $user['phone'] ?? '',
+                'marketingOptIn' => isset($user['marketing_opt_in']) ? (bool)$user['marketing_opt_in'] : false,
+                'payoutMethod' => $user['payout_method'] ?? null,
+                'payoutBankName' => $user['payout_bank_name'] ?? null,
+                'payoutBankAccount' => $user['payout_bank_account'] ?? null,
+                'payoutChildName' => $user['payout_child_name'] ?? null,
+                'payoutChildBankAccount' => $user['payout_child_bank_account'] ?? null,
+                'payoutKiwisaverProvider' => $user['payout_kiwisaver_provider'] ?? null,
+                'payoutKiwisaverMemberId' => $user['payout_kiwisaver_member_id'] ?? null,
                 'createdAt' => $user['created_at'],
                 'lastLogin' => $user['last_login']
             ];
@@ -538,6 +677,7 @@ function getCurrentUser() {
     foreach ($users as $user) {
         if ($user['id'] === $_SESSION['user_id']) {
             unset($user['password']);
+            $user['marketingOptIn'] = !empty($user['marketingOptIn'] ?? $user['marketing_opt_in']);
             return $user;
         }
     }
