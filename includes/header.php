@@ -207,8 +207,9 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
         <a href="/contact.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'contact.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Contact us">📧 Contact</a>
         <?php if (isLoggedIn()): ?>
         <a href="/account.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'account.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Account overview">💼 Account</a>
+        <?php if (function_exists('hasRole') && hasRole('admin')): ?>
+        <a href="/admin/payments.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'payments.php' && strpos($_SERVER['PHP_SELF'], '/admin/') !== false) ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Admin payments">🧾 Admin</a>
         <?php endif; ?>
-        <?php if (isLoggedIn()): ?>
           <span class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600">
             👤 <?php echo htmlspecialchars($userDisplayName); ?>
           </span>
@@ -221,6 +222,9 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
         <?php if (isLoggedIn()): ?>
           <span class="text-sm text-slate-600">👤 <?php echo htmlspecialchars($userDisplayName); ?></span>
           <a href="/account.php" class="btn text-sm bg-emerald-600 hover:bg-emerald-700">Account</a>
+          <?php if (function_exists('hasRole') && hasRole('admin')): ?>
+          <a href="/admin/payments.php" class="btn text-sm bg-slate-800 hover:bg-slate-900">Admin</a>
+          <?php endif; ?>
           <a href="/api/logout.php" class="btn text-sm bg-red-600 hover:bg-red-700">Logout</a>
         <?php else: ?>
           <a href="/login.php" class="btn text-sm">Login</a>

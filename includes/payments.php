@@ -34,18 +34,61 @@ function isPaymentsDatabaseAvailable() {
  * @return array
  */
 function normalizePaymentRecord(array $payment) {
-    return [
+    $paymentDate = $payment['payment_date'] ?? ($payment['paymentDate'] ?? null);
+    if (empty($paymentDate) && !empty($payment['created_at'])) {
+        $paymentDate = substr($payment['created_at'], 0, 10);
+    }
+    if (empty($paymentDate)) {
+        $paymentDate = gmdate('Y-m-d');
+    }
+
+    $createdAt = $payment['created_at'] ?? ($payment['createdAt'] ?? null);
+    if (empty($createdAt)) {
+        $createdAt = $paymentDate . ' 00:00:00';
+    }
+
+    $normalized = [
         'id' => $payment['id'] ?? '',
         'userId' => $payment['user_id'] ?? ($payment['userId'] ?? ''),
         'amount' => isset($payment['amount']) ? (float) $payment['amount'] : 0.0,
         'currency' => $payment['currency'] ?? 'NZD',
         'reference' => $payment['reference'] ?? '',
-        'notes' => $payment['notes'] ?? '',
+        'notes' => (string) ($payment['notes'] ?? ''),
         'status' => $payment['status'] ?? 'completed',
-        'paymentDate' => $payment['payment_date'] ?? ($payment['paymentDate'] ?? null),
-        'createdAt' => $payment['created_at'] ?? ($payment['createdAt'] ?? null),
+        'paymentDate' => $paymentDate,
+        'createdAt' => $createdAt,
         'updatedAt' => $payment['updated_at'] ?? ($payment['updatedAt'] ?? null)
     ];
+
+    if (isset($payment['user_username'])) {
+        $normalized['username'] = $payment['user_username'];
+    } elseif (isset($payment['username'])) {
+        $normalized['username'] = $payment['username'];
+    }
+
+    if (isset($payment['user_first_name'])) {
+        $normalized['firstName'] = $payment['user_first_name'];
+    } elseif (isset($payment['firstName'])) {
+        $normalized['firstName'] = $payment['firstName'];
+    } elseif (isset($payment['first_name'])) {
+        $normalized['firstName'] = $payment['first_name'];
+    }
+
+    if (isset($payment['user_last_name'])) {
+        $normalized['lastName'] = $payment['user_last_name'];
+    } elseif (isset($payment['lastName'])) {
+        $normalized['lastName'] = $payment['lastName'];
+    } elseif (isset($payment['last_name'])) {
+        $normalized['lastName'] = $payment['last_name'];
+    }
+
+    if (isset($payment['user_email'])) {
+        $normalized['email'] = $payment['user_email'];
+    } elseif (isset($payment['email'])) {
+        $normalized['email'] = $payment['email'];
+    }
+
+    return $normalized;
 }
 
 /**
@@ -298,6 +341,123 @@ function getAllUserBalances(array $statuses = ['completed']) {
     }
 
     return $balances;
+}
+
+/**
+ * Fetch recent payments, optionally filtered by user or status.
+ *
+ * @param int $limit
+ * @param string|null $userId
+ * @param array $statuses
+ * @return array
+ */
+function getRecentPayments($limit = 50, $userId = null, array $statuses = []) {
+    $limit = (int) $limit;
+    if ($limit <= 0) {
+        $limit = 50;
+    }
+
+    if (isPaymentsDatabaseAvailable() && function_exists('dbQuery')) {
+        $params = [];
+        $conditions = [];
+
+        if (!empty($userId)) {
+            $conditions[] = 'p.user_id = :user_id';
+            $params[':user_id'] = $userId;
+        }
+
+        if (!empty($statuses)) {
+            $statusPlaceholders = [];
+            foreach ($statuses as $idx => $status) {
+                $placeholder = ':status' . $idx;
+                $statusPlaceholders[] = $placeholder;
+                $params[$placeholder] = $status;
+            }
+            $conditions[] = 'p.status IN (' . implode(', ', $statusPlaceholders) . ')';
+        }
+
+        $sql = "SELECT 
+                    p.id,
+                    p.user_id,
+                    p.amount,
+                    p.currency,
+                    p.reference,
+                    p.notes,
+                    p.status,
+                    p.payment_date,
+                    p.created_at,
+                    p.updated_at,
+                    u.username AS user_username,
+                    u.email AS user_email,
+                    u.first_name AS user_first_name,
+                    u.last_name AS user_last_name
+                FROM user_payments p
+                LEFT JOIN users u ON u.id = p.user_id";
+
+        if (!empty($conditions)) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
+        }
+
+        $sql .= ' ORDER BY p.payment_date DESC, p.created_at DESC';
+        $sql .= ' LIMIT ' . $limit;
+
+        $rows = dbQuery($sql, $params);
+        if ($rows === false) {
+            return [];
+        }
+
+        return array_map('normalizePaymentRecord', $rows);
+    }
+
+    // JSON fallback
+    $payments = loadPaymentsFromJson();
+    if (empty($payments)) {
+        return [];
+    }
+
+    if (function_exists('getUsers')) {
+        $users = getUsers();
+        $userMap = [];
+        foreach ($users as $user) {
+            $userMap[$user['id']] = $user;
+        }
+    } else {
+        $userMap = [];
+    }
+
+    $filtered = array_filter($payments, function ($payment) use ($userId, $statuses) {
+        $matchesUser = empty($userId) || (($payment['user_id'] ?? ($payment['userId'] ?? null)) === $userId);
+        $status = $payment['status'] ?? 'completed';
+        $matchesStatus = empty($statuses) || in_array($status, $statuses, true);
+        return $matchesUser && $matchesStatus;
+    });
+
+    usort($filtered, function ($a, $b) {
+        $dateA = $a['payment_date'] ?? ($a['paymentDate'] ?? '');
+        $dateB = $b['payment_date'] ?? ($b['paymentDate'] ?? '');
+        if ($dateA === $dateB) {
+            $createdA = $a['created_at'] ?? ($a['createdAt'] ?? '');
+            $createdB = $b['created_at'] ?? ($b['createdAt'] ?? '');
+            return strcmp($createdB, $createdA);
+        }
+        return strcmp($dateB, $dateA);
+    });
+
+    $filtered = array_slice($filtered, 0, $limit);
+
+    $normalized = [];
+    foreach ($filtered as $payment) {
+        if (isset($userMap[$payment['user_id'] ?? ($payment['userId'] ?? '')])) {
+            $user = $userMap[$payment['user_id'] ?? ($payment['userId'] ?? '')];
+            $payment['username'] = $user['username'] ?? '';
+            $payment['firstName'] = $user['firstName'] ?? ($user['first_name'] ?? '');
+            $payment['lastName'] = $user['lastName'] ?? ($user['last_name'] ?? '');
+            $payment['email'] = $user['email'] ?? '';
+        }
+        $normalized[] = normalizePaymentRecord($payment);
+    }
+
+    return $normalized;
 }
 
 
