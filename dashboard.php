@@ -8,6 +8,7 @@ require_once __DIR__ . '/includes/auth.php';
 requireLogin();
 
 $user = getCurrentUser();
+$displayName = function_exists('getUserDisplayName') ? getUserDisplayName(true) : strtoupper($user['username'] ?? '');
 require_once __DIR__ . '/includes/header.php';
 ?>
 
@@ -17,7 +18,7 @@ require_once __DIR__ . '/includes/header.php';
       <h1 class="text-4xl font-extrabold text-slate-900 mb-2">
         <span class="gradient-text">👤 Dashboard</span>
       </h1>
-      <p class="text-slate-600">Welcome back, <?php echo htmlspecialchars($user['username']); ?>!</p>
+      <p class="text-slate-600">Welcome back, <?php echo htmlspecialchars($displayName); ?>!</p>
     </div>
 
     <div class="grid gap-6 md:grid-cols-2">
@@ -27,10 +28,28 @@ require_once __DIR__ . '/includes/header.php';
           <span>👤</span> Account Information
         </h2>
         <div class="space-y-3">
+          <?php if (!empty($user['firstName'])): ?>
+          <div>
+            <span class="text-sm font-semibold text-slate-600">First Name:</span>
+            <span class="ml-2 text-slate-900 font-bold"><?php echo htmlspecialchars(strtoupper($user['firstName'])); ?></span>
+          </div>
+          <?php endif; ?>
+          <?php if (!empty($user['lastName'])): ?>
+          <div>
+            <span class="text-sm font-semibold text-slate-600">Last Name:</span>
+            <span class="ml-2 text-slate-900 font-bold"><?php echo htmlspecialchars(strtoupper($user['lastName'])); ?></span>
+          </div>
+          <?php endif; ?>
           <div>
             <span class="text-sm font-semibold text-slate-600">Username:</span>
             <span class="ml-2 text-slate-900 font-bold"><?php echo htmlspecialchars($user['username']); ?></span>
           </div>
+          <?php if (!empty($user['address'])): ?>
+          <div>
+            <span class="text-sm font-semibold text-slate-600">Address:</span>
+            <span class="ml-2 text-slate-900"><?php echo nl2br(htmlspecialchars($user['address'])); ?></span>
+          </div>
+          <?php endif; ?>
           <?php if (!empty($user['email'])): ?>
           <div>
             <span class="text-sm font-semibold text-slate-600">Email:</span>

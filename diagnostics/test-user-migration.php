@@ -178,13 +178,16 @@ header('Content-Type: text/html; charset=utf-8');
         if (is_array($jsonUsers) && !empty($jsonUsers)) {
             echo '<div class="info">Found ' . count($jsonUsers) . ' user(s) in JSON file:</div>';
             echo '<table>';
-            echo '<tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Created At</th></tr>';
+            echo '<tr><th>ID</th><th>Username</th><th>First Name</th><th>Last Name</th><th>Email</th><th>Role</th><th>Address</th><th>Created At</th></tr>';
             foreach ($jsonUsers as $user) {
                 echo '<tr>';
                 echo '<td>' . htmlspecialchars($user['id'] ?? 'N/A') . '</td>';
                 echo '<td>' . htmlspecialchars($user['username'] ?? 'N/A') . '</td>';
+                echo '<td>' . htmlspecialchars($user['firstName'] ?? ($user['first_name'] ?? 'N/A')) . '</td>';
+                echo '<td>' . htmlspecialchars($user['lastName'] ?? ($user['last_name'] ?? 'N/A')) . '</td>';
                 echo '<td>' . htmlspecialchars($user['email'] ?? 'N/A') . '</td>';
                 echo '<td>' . htmlspecialchars($user['role'] ?? 'user') . '</td>';
+                echo '<td>' . nl2br(htmlspecialchars($user['address'] ?? 'N/A')) . '</td>';
                 echo '<td>' . htmlspecialchars($user['createdAt'] ?? 'N/A') . '</td>';
                 echo '</tr>';
             }
@@ -201,18 +204,21 @@ header('Content-Type: text/html; charset=utf-8');
     echo '<div class="section">';
     echo '<h2>4. Database Users</h2>';
     try {
-        $dbUsers = dbQuery("SELECT id, username, email, role, created_at, last_login FROM users ORDER BY created_at");
+        $dbUsers = dbQuery("SELECT id, username, email, role, created_at, last_login, first_name, last_name, address FROM users ORDER BY created_at");
         if ($dbUsers !== false) {
             if (count($dbUsers) > 0) {
                 echo '<div class="success">Found ' . count($dbUsers) . ' user(s) in database:</div>';
                 echo '<table>';
-                echo '<tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Created At</th><th>Last Login</th></tr>';
+                echo '<tr><th>ID</th><th>Username</th><th>First Name</th><th>Last Name</th><th>Email</th><th>Role</th><th>Address</th><th>Created At</th><th>Last Login</th></tr>';
                 foreach ($dbUsers as $user) {
                     echo '<tr>';
                     echo '<td>' . htmlspecialchars($user['id']) . '</td>';
                     echo '<td>' . htmlspecialchars($user['username']) . '</td>';
+                    echo '<td>' . htmlspecialchars($user['first_name'] ?? 'N/A') . '</td>';
+                    echo '<td>' . htmlspecialchars($user['last_name'] ?? 'N/A') . '</td>';
                     echo '<td>' . htmlspecialchars($user['email'] ?? 'N/A') . '</td>';
                     echo '<td>' . htmlspecialchars($user['role']) . '</td>';
+                    echo '<td>' . nl2br(htmlspecialchars($user['address'] ?? 'N/A')) . '</td>';
                     echo '<td>' . htmlspecialchars($user['created_at']) . '</td>';
                     echo '<td>' . htmlspecialchars($user['last_login'] ?? 'Never') . '</td>';
                     echo '</tr>';
@@ -253,13 +259,16 @@ header('Content-Type: text/html; charset=utf-8');
         } else {
             echo '<div class="warning">⚠️ Found ' . count($missingUsers) . ' user(s) in JSON that are NOT in database:</div>';
             echo '<table>';
-            echo '<tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th></tr>';
+            echo '<tr><th>ID</th><th>Username</th><th>First Name</th><th>Last Name</th><th>Email</th><th>Role</th><th>Address</th></tr>';
             foreach ($missingUsers as $user) {
                 echo '<tr>';
                 echo '<td>' . htmlspecialchars($user['id'] ?? 'N/A') . '</td>';
                 echo '<td>' . htmlspecialchars($user['username'] ?? 'N/A') . '</td>';
+                echo '<td>' . htmlspecialchars($user['firstName'] ?? ($user['first_name'] ?? 'N/A')) . '</td>';
+                echo '<td>' . htmlspecialchars($user['lastName'] ?? ($user['last_name'] ?? 'N/A')) . '</td>';
                 echo '<td>' . htmlspecialchars($user['email'] ?? 'N/A') . '</td>';
                 echo '<td>' . htmlspecialchars($user['role'] ?? 'user') . '</td>';
+                echo '<td>' . nl2br(htmlspecialchars($user['address'] ?? 'N/A')) . '</td>';
                 echo '</tr>';
             }
             echo '</table>';

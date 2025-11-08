@@ -16,6 +16,17 @@ if (file_exists(__DIR__ . '/auth.php')) {
     }
 }
 
+// Determine display name for logged-in users
+$userDisplayName = '';
+if (function_exists('isLoggedIn') && isLoggedIn()) {
+    if (function_exists('getUserDisplayName')) {
+        $userDisplayName = getUserDisplayName(true);
+    } else {
+        $usernameFallback = $_SESSION['username'] ?? '';
+        $userDisplayName = strtoupper($usernameFallback);
+    }
+}
+
 // Get current page URL
 $currentUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 $baseUrl = isset($SITE) && isset($SITE['url']) ? $SITE['url'] : 'https://trash2cash.co.nz';
@@ -196,7 +207,7 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
         <a href="/contact.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'contact.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Contact us">📧 Contact</a>
         <?php if (isLoggedIn()): ?>
           <span class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600">
-            👤 <?php echo htmlspecialchars($_SESSION['username']); ?>
+            👤 <?php echo htmlspecialchars($userDisplayName); ?>
           </span>
           <a href="/api/logout.php" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-red-50 hover:text-red-600 transition-all" aria-label="Logout">🚪 Logout</a>
         <?php else: ?>
@@ -205,7 +216,7 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
       </nav>
       <div class="md:hidden flex items-center gap-2">
         <?php if (isLoggedIn()): ?>
-          <span class="text-sm text-slate-600">👤 <?php echo htmlspecialchars($_SESSION['username']); ?></span>
+          <span class="text-sm text-slate-600">👤 <?php echo htmlspecialchars($userDisplayName); ?></span>
           <a href="/api/logout.php" class="btn text-sm bg-red-600 hover:bg-red-700">Logout</a>
         <?php else: ?>
           <a href="/login.php" class="btn text-sm">Login</a>

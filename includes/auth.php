@@ -80,8 +80,8 @@ function migrateUsersToDatabase() {
                 }
             }
             
-            $sql = "INSERT INTO users (id, username, password, email, role, created_at, last_login) 
-                    VALUES (:id, :username, :password, :email, :role, :created_at, :last_login)";
+            $sql = "INSERT INTO users (id, username, password, email, role, created_at, last_login, first_name, last_name, address) 
+                    VALUES (:id, :username, :password, :email, :role, :created_at, :last_login, :first_name, :last_name, :address)";
             
             $params = [
                 ':id' => $user['id'] ?? bin2hex(random_bytes(8)),
@@ -90,7 +90,10 @@ function migrateUsersToDatabase() {
                 ':email' => !empty($user['email']) ? $user['email'] : null,
                 ':role' => $user['role'] ?? 'user',
                 ':created_at' => $createdAt,
-                ':last_login' => $lastLogin
+                ':last_login' => $lastLogin,
+                ':first_name' => $user['firstName'] ?? ($user['first_name'] ?? null),
+                ':last_name' => $user['lastName'] ?? ($user['last_name'] ?? null),
+                ':address' => $user['address'] ?? null
             ];
             
             $result = dbExecute($sql, $params);
@@ -131,7 +134,7 @@ function isDatabaseAvailable() {
  */
 function getUsers() {
     if (isDatabaseAvailable()) {
-        $users = dbQuery("SELECT id, username, password, email, role, created_at, last_login FROM users");
+        $users = dbQuery("SELECT id, username, password, email, role, created_at, last_login, first_name, last_name, address FROM users");
         if ($users !== false) {
             // Auto-migrate users from JSON if database is available
             // Check if migration is needed (only if JSON file exists and has users)
@@ -157,7 +160,7 @@ function getUsers() {
                         if ($result['migrated'] > 0) {
                             error_log("Auto-migrated {$result['migrated']} users from JSON to database via getUsers()");
                             // Re-fetch users after migration
-                            $users = dbQuery("SELECT id, username, password, email, role, created_at, last_login FROM users");
+                            $users = dbQuery("SELECT id, username, password, email, role, created_at, last_login, first_name, last_name, address FROM users");
                             if ($users === false) {
                                 $users = [];
                             }
@@ -165,7 +168,13 @@ function getUsers() {
                     }
                 }
             }
-            return $users;
+            return array_map(function($user) {
+                $user['firstName'] = $user['first_name'] ?? null;
+                $user['lastName'] = $user['last_name'] ?? null;
+                $user['address'] = $user['address'] ?? null;
+                unset($user['first_name'], $user['last_name']);
+                return $user;
+            }, $users);
         }
     }
     
@@ -186,22 +195,25 @@ function getUsers() {
  * @param string $role User role (default: 'user')
  * @return array|false User data on success, false on failure
  */
-function createUser($username, $password, $email = '', $role = 'user') {
+function createUser($username, $password, $email = '', $role = 'user', $firstName = '', $lastName = '', $address = '') {
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     $userId = bin2hex(random_bytes(8));
     $createdAt = gmdate('Y-m-d H:i:s');
     
     if (isDatabaseAvailable()) {
         // Use database
-        $sql = "INSERT INTO users (id, username, password, email, role, created_at) 
-                VALUES (:id, :username, :password, :email, :role, :created_at)";
+        $sql = "INSERT INTO users (id, username, password, email, role, created_at, first_name, last_name, address) 
+                VALUES (:id, :username, :password, :email, :role, :created_at, :first_name, :last_name, :address)";
         $params = [
             ':id' => $userId,
             ':username' => $username,
             ':password' => $hashedPassword,
             ':email' => $email ?: null,
             ':role' => $role,
-            ':created_at' => $createdAt
+            ':created_at' => $createdAt,
+            ':first_name' => $firstName ?: null,
+            ':last_name' => $lastName ?: null,
+            ':address' => $address ?: null
         ];
         
         if (dbExecute($sql, $params) !== false) {
@@ -210,6 +222,9 @@ function createUser($username, $password, $email = '', $role = 'user') {
                 'username' => $username,
                 'email' => $email,
                 'role' => $role,
+                'firstName' => $firstName,
+                'lastName' => $lastName,
+                'address' => $address,
                 'createdAt' => $createdAt,
                 'lastLogin' => null
             ];
@@ -234,6 +249,9 @@ function createUser($username, $password, $email = '', $role = 'user') {
         'password' => $hashedPassword,
         'email' => $email,
         'role' => $role,
+        'firstName' => $firstName,
+        'lastName' => $lastName,
+        'address' => $address,
         'createdAt' => gmdate('c'),
         'lastLogin' => null
     ];
@@ -263,7 +281,7 @@ function verifyUser($username, $password) {
     if (isDatabaseAvailable()) {
         // Use database first
         $user = dbQueryOne(
-            "SELECT id, username, password, email, role, created_at, last_login FROM users WHERE username = :username",
+            "SELECT id, username, password, email, role, created_at, last_login, first_name, last_name, address FROM users WHERE username = :username",
             [':username' => $username]
         );
         
@@ -283,6 +301,9 @@ function verifyUser($username, $password) {
                 'username' => $user['username'],
                 'email' => $user['email'],
                 'role' => $user['role'],
+                'firstName' => $user['first_name'] ?? '',
+                'lastName' => $user['last_name'] ?? '',
+                'address' => $user['address'] ?? '',
                 'createdAt' => $user['created_at'],
                 'lastLogin' => gmdate('c')
             ];
@@ -304,8 +325,8 @@ function verifyUser($username, $password) {
                                 $createdAt = date('Y-m-d H:i:s', strtotime($createdAt));
                             }
                             
-                            $sql = "INSERT INTO users (id, username, password, email, role, created_at, last_login) 
-                                    VALUES (:id, :username, :password, :email, :role, :created_at, :last_login)";
+                            $sql = "INSERT INTO users (id, username, password, email, role, created_at, last_login, first_name, last_name, address) 
+                                    VALUES (:id, :username, :password, :email, :role, :created_at, :last_login, :first_name, :last_name, :address)";
                             
                             $params = [
                                 ':id' => $jsonUser['id'] ?? bin2hex(random_bytes(8)),
@@ -314,7 +335,10 @@ function verifyUser($username, $password) {
                                 ':email' => !empty($jsonUser['email']) ? $jsonUser['email'] : null,
                                 ':role' => $jsonUser['role'] ?? 'user',
                                 ':created_at' => $createdAt,
-                                ':last_login' => gmdate('Y-m-d H:i:s')
+                                ':last_login' => gmdate('Y-m-d H:i:s'),
+                                ':first_name' => $jsonUser['firstName'] ?? ($jsonUser['first_name'] ?? null),
+                                ':last_name' => $jsonUser['lastName'] ?? ($jsonUser['last_name'] ?? null),
+                                ':address' => $jsonUser['address'] ?? null
                             ];
                             
                             // Check if user already exists (by ID or username) before inserting
@@ -451,6 +475,9 @@ function login($username, $password) {
         $_SESSION['username'] = $user['username'];
         $_SESSION['user_role'] = $user['role'] ?? 'user';
         $_SESSION['user_email'] = $user['email'] ?? '';
+        $_SESSION['first_name'] = $user['firstName'] ?? '';
+        $_SESSION['last_name'] = $user['lastName'] ?? '';
+        $_SESSION['user_address'] = $user['address'] ?? '';
         return $user;
     }
     return false;
@@ -486,7 +513,7 @@ function getCurrentUser() {
     
     if (isDatabaseAvailable()) {
         $user = dbQueryOne(
-            "SELECT id, username, email, role, created_at, last_login FROM users WHERE id = :id",
+            "SELECT id, username, email, role, created_at, last_login, first_name, last_name, address FROM users WHERE id = :id",
             [':id' => $_SESSION['user_id']]
         );
         
@@ -496,6 +523,9 @@ function getCurrentUser() {
                 'username' => $user['username'],
                 'email' => $user['email'],
                 'role' => $user['role'],
+                'firstName' => $user['first_name'] ?? '',
+                'lastName' => $user['last_name'] ?? '',
+                'address' => $user['address'] ?? '',
                 'createdAt' => $user['created_at'],
                 'lastLogin' => $user['last_login']
             ];
@@ -561,4 +591,30 @@ function hasRole($requiredRole) {
     $roles = is_array($requiredRole) ? $requiredRole : [$requiredRole];
     
     return in_array($userRole, $roles);
+}
+
+/**
+ * Get the current user's preferred display name.
+ *
+ * @param bool $uppercase Whether to convert the name to uppercase.
+ * @return string
+ */
+function getUserDisplayName($uppercase = false) {
+    if (!isLoggedIn()) {
+        return '';
+    }
+    
+    $first = trim($_SESSION['first_name'] ?? '');
+    $last = trim($_SESSION['last_name'] ?? '');
+    $displayName = trim($first . ' ' . $last);
+    
+    if ($displayName === '') {
+        $displayName = $_SESSION['username'] ?? '';
+    }
+    
+    if ($uppercase) {
+        $displayName = strtoupper($displayName);
+    }
+    
+    return $displayName;
 }

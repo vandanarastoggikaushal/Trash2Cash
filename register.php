@@ -19,12 +19,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $password = $_POST['password'] ?? '';
     $passwordConfirm = $_POST['password_confirm'] ?? '';
     $email = trim($_POST['email'] ?? '');
+    $firstName = trim($_POST['first_name'] ?? '');
+    $lastName = trim($_POST['last_name'] ?? '');
+    $address = trim($_POST['address'] ?? '');
     
     // Validation
     if (empty($username)) {
         $error = 'Username is required';
     } elseif (strlen($username) < 3) {
         $error = 'Username must be at least 3 characters';
+    } elseif (empty($firstName)) {
+        $error = 'First name is required';
+    } elseif (empty($lastName)) {
+        $error = 'Last name is required';
+    } elseif (empty($address)) {
+        $error = 'Address is required';
     } elseif (empty($email)) {
         $error = 'Email is required';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -36,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } elseif ($password !== $passwordConfirm) {
         $error = 'Passwords do not match';
     } else {
-        $user = createUser($username, $password, $email);
+        $user = createUser($username, $password, $email, 'user', $firstName, $lastName, $address);
         if ($user) {
             // Auto-login after registration
             login($username, $password);
@@ -90,6 +99,38 @@ require_once __DIR__ . '/includes/header.php';
           />
         </div>
 
+        <div class="grid gap-6 md:grid-cols-2">
+          <div>
+            <label for="first_name" class="block text-sm font-semibold text-slate-900 mb-2">
+              First Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="first_name"
+              name="first_name"
+              type="text"
+              required
+              class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all"
+              placeholder="Your first name"
+              value="<?php echo htmlspecialchars($_POST['first_name'] ?? ''); ?>"
+            />
+          </div>
+
+          <div>
+            <label for="last_name" class="block text-sm font-semibold text-slate-900 mb-2">
+              Last Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="last_name"
+              name="last_name"
+              type="text"
+              required
+              class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all"
+              placeholder="Your last name"
+              value="<?php echo htmlspecialchars($_POST['last_name'] ?? ''); ?>"
+            />
+          </div>
+        </div>
+
         <div>
           <label for="email" class="block text-sm font-semibold text-slate-900 mb-2">
             Email <span class="text-red-500">*</span>
@@ -103,6 +144,19 @@ require_once __DIR__ . '/includes/header.php';
             placeholder="your.email@example.com"
             value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>"
           />
+        </div>
+
+        <div>
+          <label for="address" class="block text-sm font-semibold text-slate-900 mb-2">
+            Address <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            id="address"
+            name="address"
+            required
+            rows="3"
+            class="w-full rounded-lg border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all"
+            placeholder="Street, suburb, city"><?php echo htmlspecialchars($_POST['address'] ?? ''); ?></textarea>
         </div>
 
         <div>
