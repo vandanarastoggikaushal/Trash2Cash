@@ -99,11 +99,17 @@ require_once __DIR__ . '/includes/header.php';
             ?>
           </p>
         </div>
-        <?php if ($payoutMethod === 'bank' && ($payoutBankName || $payoutBankAccount)): ?>
+        <?php if ($payoutMethod === 'bank'): ?>
         <div>
-          <p class="text-xs uppercase tracking-wide text-slate-500">Bank details</p>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Bank name</p>
           <p class="text-sm font-semibold text-slate-900 mt-1">
-            <?php echo htmlspecialchars(trim($payoutBankName . ' ' . $payoutBankAccount)); ?>
+            <?php echo $payoutBankName ? htmlspecialchars($payoutBankName) : '—'; ?>
+          </p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Bank account</p>
+          <p class="text-sm font-semibold text-slate-900 mt-1 font-mono tracking-wide">
+            <?php echo $payoutBankAccount ? htmlspecialchars($payoutBankAccount) : '—'; ?>
           </p>
         </div>
         <?php endif; ?>
