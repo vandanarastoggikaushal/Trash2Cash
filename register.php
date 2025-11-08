@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         } else {
             $digitsOnly = preg_replace('/\D/', '', $bankAccount);
             $digitCount = strlen($digitsOnly);
-            if ($digitCount < 12 || $digitCount > 16) {
+            if ($digitCount < 12 || $digitCount > 17) {
                 $error = 'Please enter a valid NZ bank account number (e.g. 12-1234-1234567-00)';
             } else {
                 $bankAccount = substr($digitsOnly, 0, 2) . '-' .
