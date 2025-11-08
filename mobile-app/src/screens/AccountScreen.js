@@ -133,13 +133,13 @@ export default function AccountScreen({ navigation }) {
           Log in to manage your contact details, payout preferences and schedule pickups.
         </Text>
         <TouchableOpacity
-          style={styles.primaryButton}
+          style={[styles.primaryButton, styles.fullWidthButton]}
           onPress={() => navigation.navigate('Login')}
         >
           <Text style={styles.primaryButtonText}>Login</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.secondaryButton}
+          style={[styles.secondaryButton, styles.fullWidthButton]}
           onPress={() => navigation.navigate('Register')}
         >
           <Text style={styles.secondaryButtonText}>Create an account</Text>
@@ -471,6 +471,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     marginBottom: 24,
+  },
+  fullWidthButton: {
+    alignSelf: 'stretch',
+    width: '100%',
   },
   secondaryButtonText: {
     color: colors.brand,
