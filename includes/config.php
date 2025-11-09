@@ -47,6 +47,10 @@ define('SUPPORT_PHONE', '+64221758458');
 define('COMPANY_NAME', 'Trash2Cash NZ');
 define('CITY', 'Wellington');
 
+define('SOCIAL_INSTAGRAM_URL', 'https://www.instagram.com/trash_2_cash_nz');
+define('SOCIAL_INSTAGRAM_HANDLE', '@trash_2_cash_nz');
+define('SOCIAL_INSTAGRAM_QR', '/assets/images/instagram-qr.png');
+
 // Address search feature - Set to true when you have AddressFinder or NZ Post API key
 define('ENABLE_ADDRESS_SEARCH', false);
 
