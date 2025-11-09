@@ -428,6 +428,257 @@ function getUsers() {
 }
 
 /**
+ * Get a specific user by ID.
+ *
+ * @param string $userId
+ * @return array|null
+ */
+function getUserById($userId) {
+    if (empty($userId)) {
+        return null;
+    }
+
+    $users = getUsers();
+    foreach ($users as $user) {
+        if (($user['id'] ?? null) === $userId) {
+            if (isset($user['password'])) {
+                unset($user['password']);
+            }
+            if (isset($user['marketing_opt_in']) && !isset($user['marketingOptIn'])) {
+                $user['marketingOptIn'] = (bool)$user['marketing_opt_in'];
+            }
+            return $user;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Update core account information for a user (name, username, email, role).
+ *
+ * @param string $userId
+ * @param array $data
+ * @param string|null $errorMessage
+ * @return bool
+ */
+function adminUpdateUserAccount($userId, array $data, &$errorMessage = null) {
+    $errorMessage = null;
+
+    if (empty($userId)) {
+        $errorMessage = 'Invalid user selected.';
+        return false;
+    }
+
+    $allowedKeys = ['firstName', 'lastName', 'email', 'username', 'role'];
+    $updates = array_intersect_key($data, array_flip($allowedKeys));
+
+    if (empty($updates)) {
+        $errorMessage = 'No account fields were provided.';
+        return false;
+    }
+
+    $currentUser = getUserById($userId);
+    if (!$currentUser) {
+        $errorMessage = 'User not found.';
+        return false;
+    }
+
+    if (isset($updates['role'])) {
+        $role = $updates['role'];
+        if (!in_array($role, ['user', 'admin'], true)) {
+            $errorMessage = 'Invalid role specified.';
+            return false;
+        }
+    }
+
+    if (isset($updates['email'])) {
+        $email = trim($updates['email']);
+        if ($email === '') {
+            $updates['email'] = null;
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errorMessage = 'Please provide a valid email address.';
+            return false;
+        } else {
+            $updates['email'] = $email;
+        }
+    }
+
+    if (isset($updates['firstName'])) {
+        $updates['firstName'] = trim($updates['firstName']);
+    }
+    if (isset($updates['lastName'])) {
+        $updates['lastName'] = trim($updates['lastName']);
+    }
+
+    if (isset($updates['username'])) {
+        $username = trim($updates['username']);
+        if ($username === '') {
+            $errorMessage = 'Username cannot be empty.';
+            return false;
+        }
+        if (strlen($username) < 3) {
+            $errorMessage = 'Username must be at least 3 characters.';
+            return false;
+        }
+        $users = getUsers();
+        foreach ($users as $user) {
+            if (($user['id'] ?? null) !== $userId && strcasecmp($user['username'] ?? '', $username) === 0) {
+                $errorMessage = 'That username is already in use.';
+                return false;
+            }
+        }
+        $updates['username'] = $username;
+    }
+
+    if (isDatabaseAvailable()) {
+        $fields = [];
+        $params = [':id' => $userId];
+
+        if (array_key_exists('firstName', $updates)) {
+            $fields[] = 'first_name = :first_name';
+            $params[':first_name'] = $updates['firstName'] !== '' ? $updates['firstName'] : null;
+        }
+        if (array_key_exists('lastName', $updates)) {
+            $fields[] = 'last_name = :last_name';
+            $params[':last_name'] = $updates['lastName'] !== '' ? $updates['lastName'] : null;
+        }
+        if (array_key_exists('email', $updates)) {
+            $fields[] = 'email = :email';
+            $params[':email'] = $updates['email'] ?: null;
+        }
+        if (array_key_exists('username', $updates)) {
+            $fields[] = 'username = :username';
+            $params[':username'] = $updates['username'];
+        }
+        if (array_key_exists('role', $updates)) {
+            $fields[] = 'role = :role';
+            $params[':role'] = $updates['role'];
+        }
+
+        if (empty($fields)) {
+            $errorMessage = 'No account changes detected.';
+            return false;
+        }
+
+        $sql = 'UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = :id';
+        $result = dbExecute($sql, $params);
+        if ($result === false) {
+            $errorMessage = 'Unable to update user account in the database.';
+            return false;
+        }
+    } else {
+        $users = getUsers();
+        $updated = false;
+        foreach ($users as &$user) {
+            if (($user['id'] ?? null) === $userId) {
+                if (array_key_exists('firstName', $updates)) {
+                    $user['firstName'] = $updates['firstName'];
+                    $user['first_name'] = $updates['firstName'];
+                }
+                if (array_key_exists('lastName', $updates)) {
+                    $user['lastName'] = $updates['lastName'];
+                    $user['last_name'] = $updates['lastName'];
+                }
+                if (array_key_exists('email', $updates)) {
+                    $user['email'] = $updates['email'] ?: null;
+                }
+                if (array_key_exists('username', $updates)) {
+                    $user['username'] = $updates['username'];
+                }
+                if (array_key_exists('role', $updates)) {
+                    $user['role'] = $updates['role'];
+                }
+                $updated = true;
+                break;
+            }
+        }
+        unset($user);
+
+        if (!$updated) {
+            $errorMessage = 'Unable to update user account.';
+            return false;
+        }
+
+        if (file_put_contents(USERS_FILE, json_encode($users, JSON_PRETTY_PRINT)) === false) {
+            $errorMessage = 'Failed to persist account changes to storage.';
+            return false;
+        }
+    }
+
+    if (isLoggedIn() && ($_SESSION['user_id'] ?? null) === $userId) {
+        refreshSessionUser();
+    }
+
+    return true;
+}
+
+/**
+ * Reset a user's password (administrator action).
+ *
+ * @param string $userId
+ * @param string $newPassword
+ * @param string|null $errorMessage
+ * @return bool
+ */
+function adminResetUserPassword($userId, $newPassword, &$errorMessage = null) {
+    $errorMessage = null;
+
+    if (empty($userId) || $newPassword === null) {
+        $errorMessage = 'Invalid password reset request.';
+        return false;
+    }
+
+    $newPassword = trim($newPassword);
+    if ($newPassword === '') {
+        $errorMessage = 'Password cannot be empty.';
+        return false;
+    }
+
+    if (strlen($newPassword) < 6) {
+        $errorMessage = 'Password must be at least 6 characters.';
+        return false;
+    }
+
+    $hashed = password_hash($newPassword, PASSWORD_DEFAULT);
+
+    if (isDatabaseAvailable()) {
+        $result = dbExecute('UPDATE users SET password = :password WHERE id = :id', [
+            ':password' => $hashed,
+            ':id' => $userId,
+        ]);
+        if ($result === false) {
+            $errorMessage = 'Failed to update password in the database.';
+            return false;
+        }
+    } else {
+        $users = getUsers();
+        $updated = false;
+        foreach ($users as &$user) {
+            if (($user['id'] ?? null) === $userId) {
+                $user['password'] = $hashed;
+                $updated = true;
+                break;
+            }
+        }
+        unset($user);
+
+        if (!$updated) {
+            $errorMessage = 'User not found. Password was not changed.';
+            return false;
+        }
+
+        if (file_put_contents(USERS_FILE, json_encode($users, JSON_PRETTY_PRINT)) === false) {
+            $errorMessage = 'Failed to write password change to storage.';
+            return false;
+        }
+    }
+
+    invalidateApiToken($userId);
+    return true;
+}
+
+/**
  * Create a new user
  * @param string $username Username
  * @param string $password Plain text password (will be hashed)

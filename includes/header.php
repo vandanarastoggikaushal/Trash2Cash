@@ -269,6 +269,10 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
                 <span>Account</span>
               </a>
               <?php if (function_exists('hasRole') && hasRole('admin')): ?>
+              <a href="/admin/users.php" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
+                <span>👥</span>
+                <span>Client Management</span>
+              </a>
               <a href="/admin/payments.php" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
                 <span>🧾</span>
                 <span>Payments Admin</span>
