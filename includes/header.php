@@ -217,6 +217,18 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
   <?php endif; ?>
 </head>
 <body class="min-h-screen bg-white text-slate-800">
+  <?php
+    $mobileNavLinks = [
+      ['href' => '/', 'icon' => '🏠', 'label' => 'Home'],
+      ['href' => '/how-it-works', 'icon' => '📖', 'label' => 'How it Works'],
+      ['href' => '/rewards', 'icon' => '💰', 'label' => 'Rewards'],
+      ['href' => '/partners', 'icon' => '🤝', 'label' => 'Partners'],
+      ['href' => '/faq', 'icon' => '❓', 'label' => 'FAQ'],
+      ['href' => '/resources', 'icon' => '📚', 'label' => 'Resources'],
+      ['href' => '/contact', 'icon' => '📧', 'label' => 'Contact'],
+      ['href' => '/schedule-pickup', 'icon' => '📅', 'label' => 'Schedule Pickup'],
+    ];
+  ?>
   <header class="sticky top-0 z-50 w-full border-b-2 border-emerald-200 bg-white/95 backdrop-blur-lg shadow-sm">
     <div class="container flex h-16 items-center justify-between gap-2 md:gap-4">
       <a href="/" class="flex items-center gap-3 font-bold text-lg sm:text-xl hover:scale-105 transition-transform">
@@ -279,12 +291,26 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
                 <span>Payments Admin</span>
               </a>
               <?php endif; ?>
+              <div class="border-t border-emerald-100 my-1"></div>
+              <?php foreach ($mobileNavLinks as $link): ?>
+              <a href="<?php echo $link['href']; ?>" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
+                <span><?php echo $link['icon']; ?></span>
+                <span><?php echo $link['label']; ?></span>
+              </a>
+              <?php endforeach; ?>
               <div class="border-t border-emerald-100"></div>
               <a href="/api/logout" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50" role="menuitem">
                 <span>🚪</span>
                 <span>Logout</span>
               </a>
             <?php else: ?>
+              <?php foreach ($mobileNavLinks as $link): ?>
+              <a href="<?php echo $link['href']; ?>" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
+                <span><?php echo $link['icon']; ?></span>
+                <span><?php echo $link['label']; ?></span>
+              </a>
+              <?php endforeach; ?>
+              <div class="border-t border-emerald-100 my-1"></div>
               <a href="/login" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
                 <span>🔐</span>
                 <span>Login</span>
