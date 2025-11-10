@@ -1,6 +1,6 @@
 <?php
-$pageTitle = 'Turn Your Trash Into Cash (or KiwiSaver)';
-$pageDescription = "We collect clean aluminium cans and old appliances from your home across Wellington. Earn \$1 per 100 cans—deposit to kids' accounts or KiwiSaver.";
+$pageTitle = 'Wellington Recycling & Trash Collection | Trash2Cash NZ';
+$pageDescription = "Trash2Cash NZ offers Wellington recycling pickup, trash collection for aluminium cans and appliances, and convenient door-to-door service across local suburbs. Earn \$1 per 100 cans and support kids’ savings or KiwiSaver.";
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -10,15 +10,15 @@ require_once __DIR__ . '/includes/header.php';
     <div class="container relative grid gap-8 py-16 lg:grid-cols-2 lg:items-center">
       <div class="animate-fade-in">
         <div class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-semibold text-brand mb-4">
-          <span class="animate-pulse-slow">💰</span>
-          <span>Turn waste into wealth</span>
+          <span class="animate-pulse-slow">♻️</span>
+          <span>Local recycling pickup across Wellington</span>
         </div>
         <h1 class="text-5xl font-extrabold tracking-tight text-slate-900 sm:text-6xl">
-          <span class="gradient-text">Turn Your Trash</span><br />
-          <span class="text-slate-800">Into Cash or KiwiSaver</span>
+          <span class="gradient-text">Wellington Recycling</span><br />
+          <span class="text-slate-800">Pickup & Trash Collection</span>
         </h1>
         <p class="mt-6 text-xl text-slate-700 leading-relaxed">
-          We collect your clean aluminium cans and old appliances from home. You earn <strong class="text-brand font-bold">$1 for every 100 cans</strong>—and can send it straight to your kids' accounts or KiwiSaver.
+          Trash2Cash NZ provides door-to-door recycling in Wellington. We collect clean aluminium cans and old appliances, recycle them responsibly, and pay you <strong class="text-brand font-bold">$1 per 100 cans</strong>. Choose cash, kids' savings, or KiwiSaver and keep valuable materials out of landfill.
         </p>
         <div class="mt-8 flex flex-wrap gap-4">
           <a class="btn text-lg px-8 py-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all" href="/schedule-pickup.php">
@@ -43,6 +43,108 @@ require_once __DIR__ . '/includes/header.php';
           <div class="absolute top-4 right-4 bg-white rounded-full px-3 py-1 text-sm font-bold text-brand shadow-lg">
             +$500/year
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container my-16">
+    <div class="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <div>
+        <h2 class="text-4xl font-bold text-slate-900 mb-4">Recycling guides &amp; resources for Wellington households</h2>
+        <p class="text-lg text-slate-700 leading-relaxed mb-4">
+          Want to recycle more, earn more, and keep Wellington beautiful? Our recycling hub covers aluminium can preparation,
+          appliance disposal tips, and the latest advice on council recycling rules. Check back regularly or subscribe to our updates for new guides.
+        </p>
+        <ul class="space-y-3 text-slate-700 text-base">
+          <li class="flex items-start gap-3"><span>📄</span> <a href="/resources/wellington-recycling-guide.php" class="text-brand font-semibold hover:underline">Wellington Recycling Guide: How to prepare cans &amp; appliances</a></li>
+          <li class="flex items-start gap-3"><span>🧠</span> <span>Expert tips on boosting household recycling rebates and rewards.</span></li>
+          <li class="flex items-start gap-3"><span>🌱</span> <span>Community initiatives and school fundraisers using Trash2Cash pickups.</span></li>
+        </ul>
+        <div class="mt-6">
+          <a href="/resources.php" class="btn-secondary text-base px-6 py-3">Browse all recycling resources</a>
+        </div>
+      </div>
+      <div class="rounded-3xl border-2 border-emerald-200 bg-white p-6 shadow-lg space-y-4">
+        <h3 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <span>📝</span> Latest resource highlights
+        </h3>
+        <div class="space-y-3 text-sm text-slate-600">
+          <p><strong class="text-slate-900">Seasonal recycling checklist:</strong> make the most of summer events and community clean-ups.</p>
+          <p><strong class="text-slate-900">Commercial workspace recycling:</strong> contact us for repeat office pickups across Wellington CBD.</p>
+          <p><strong class="text-slate-900">Schools &amp; charities:</strong> raise funds by recycling cans with our free promotion kit.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container py-16" id="wellington-recycling-areas">
+    <div class="text-center mb-10">
+      <h2 class="text-4xl font-bold text-slate-900 mb-3">Wellington suburbs we recycle in</h2>
+      <p class="text-lg text-slate-600 max-w-3xl mx-auto">
+        From the CBD to the Kapiti Coast, Trash2Cash NZ offers recycling pickup and trash collection across the region.
+        Book a visit, leave your rinsed cans or metal appliances by the door, and we will handle the recycling.
+      </p>
+    </div>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <?php foreach ($SERVICE_AREAS as $area): ?>
+        <a href="/recycling-wellington.php#<?php echo urlencode(strtolower(str_replace(' ', '-', $area))); ?>"
+          class="group rounded-2xl border-2 border-emerald-100 bg-white p-6 shadow-md transition-all hover:border-brand hover:shadow-xl">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm uppercase tracking-wide text-emerald-600 font-semibold">Service area</p>
+              <h3 class="text-xl font-bold text-slate-900 mt-1"><?php echo htmlspecialchars($area); ?></h3>
+            </div>
+            <span class="text-2xl group-hover:translate-x-1 transition-transform">➡️</span>
+          </div>
+          <p class="mt-4 text-sm text-slate-600">
+            Recycling pickup, trash collection and appliance removal in <?php echo htmlspecialchars($area); ?>.
+          </p>
+        </a>
+      <?php endforeach; ?>
+    </div>
+  </section>
+
+  <section class="container py-14">
+    <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
+      <div class="space-y-6">
+        <h2 class="text-4xl font-extrabold text-slate-900 leading-tight">
+          Wellington recycling pickup that keeps tins, cans and appliances out of landfill
+        </h2>
+        <p class="text-lg text-slate-700 leading-relaxed">
+          Searching for <strong>“recycling Wellington”</strong>, <strong>“trash collection”</strong> or even
+          <strong>“recycle collection near me”</strong>? We provide a friendly, local alternative to the skip.
+          Our trained team schedules a pickup, collects cans, whiteware and e-waste, and makes sure everything is diverted to the correct Wellington recycling streams.
+        </p>
+        <ul class="space-y-3 text-slate-700">
+          <li class="flex items-start gap-3"><span>✅</span> <span>Certified recycling partners for aluminium, appliances and scrap metals.</span></li>
+          <li class="flex items-start gap-3"><span>✅</span> <span>Fast turnaround across Wellington City, Hutt Valley, Porirua and Kapiti suburbs.</span></li>
+          <li class="flex items-start gap-3"><span>✅</span> <span>Transparent pricing with digital receipts and account tracking.</span></li>
+        </ul>
+        <div class="flex flex-wrap gap-4">
+          <a href="/recycling-wellington.php" class="btn-secondary text-base px-6 py-3">Learn about our Wellington service</a>
+          <a href="/faq.php" class="btn-secondary text-base px-6 py-3">Read recycling FAQs</a>
+        </div>
+      </div>
+      <div class="rounded-3xl border-2 border-emerald-100 bg-white shadow-xl p-8 space-y-6">
+        <h3 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <span>📍</span> Popular recycling searches we answer
+        </h3>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <?php
+          $keywordPills = [
+            'Recycling Wellington pickup',
+            'Trash collection Wellington NZ',
+            'Recycle collection for aluminium cans',
+            'Appliance recycling Wellington',
+            'Doorstep recycling service NZ',
+            'Wellington metal recycling collection',
+          ];
+          foreach ($keywordPills as $pill): ?>
+            <span class="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
+              <?php echo htmlspecialchars($pill); ?>
+            </span>
+          <?php endforeach; ?>
         </div>
       </div>
     </div>

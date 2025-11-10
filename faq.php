@@ -4,18 +4,18 @@ $pageDescription = 'FAQ about Trash2Cash NZ recycling service: what we collect, 
 require_once __DIR__ . '/includes/config.php';
 
 $faqs = [
-  ['q' => 'What do you collect?', 'a' => 'Clean aluminium cans and common household metal appliances.'],
-  ['q' => 'How do payments work?', 'a' => 'We tally your items, then pay out or transfer as chosen.'],
-  ['q' => 'Kids & KiwiSaver?', 'a' => 'Name a child beneficiary or provide KiwiSaver provider/member ID; we transfer after verification.'],
-  ['q' => 'Do I need to crush cans?', 'a' => 'Optional; please give a quick rinse.'],
-  ['q' => 'Which suburbs?', 'a' => 'Current service areas across Wellington region; more coming soon.'],
-  ['q' => 'Appliance condition?', 'a' => 'Must be safe to move; we handle recycling.'],
-  ['q' => 'Turnaround time?', 'a' => 'Usually a few days depending on suburb and volume.'],
-  ['q' => 'Cancelled pickups?', 'a' => 'Let us know ASAP - no worries, we will reschedule.'],
-  ['q' => 'Hygiene?', 'a' => 'Please rinse cans to keep collections clean and safe.'],
-  ['q' => 'Heavy items?', 'a' => 'We handle the heavy lifting—just ensure clear access.'],
-  ['q' => 'Data privacy?', 'a' => 'We store minimal details securely and never sell your data.'],
-  ['q' => 'Receipts?', 'a' => 'You will receive a reference ID after scheduling and confirmation after pickup.']
+  ['q' => 'What items can Trash2Cash recycle in Wellington?', 'a' => 'We collect rinsed aluminium cans, metal drink bottles, whiteware (washing machines, dryers, fridges), benchtop appliances, PC cases, laptops and other recyclable metals.'],
+  ['q' => 'How does the Wellington recycling pickup work?', 'a' => 'Book a slot online, leave cans or appliances at your doorway, and our team will weigh, collect and update your Trash2Cash balance the same day.'],
+  ['q' => 'Which Wellington suburbs do you service?', 'a' => 'We cover the entire region including Wellington CBD, Lower Hutt, Upper Hutt, Porirua, Tawa, Johnsonville, Karori, Churton Park, Newlands and Kapiti Coast suburbs.'],
+  ['q' => 'Can my payment go to a child or KiwiSaver?', 'a' => 'Yes. After your first pickup, add payout details in your account to send funds to a child\'s bank account or KiwiSaver provider.'],
+  ['q' => 'Do cans need to be crushed or labelled?', 'a' => 'No label required—just give them a quick rinse. Crushing is optional and can save space if you have a large volume.'],
+  ['q' => 'How quickly can you collect?', 'a' => 'Most Wellington recycling pickups happen within 2–4 business days. Larger community or business collections may be scheduled separately.'],
+  ['q' => 'What condition should appliances be in?', 'a' => 'Appliances should be disconnected, safe to move and free from food residue. We take care of lifting and recycling.'],
+  ['q' => 'Do you offer recycling for schools, clubs or events?', 'a' => 'Absolutely. We help PTAs, sports clubs and festivals run profitable can drives—contact us for bulk pickup scheduling.'],
+  ['q' => 'What happens if I need to change my booking?', 'a' => 'Let us know as soon as plans change. We can reschedule your trash collection at no charge.'],
+  ['q' => 'How do I track payouts and balances?', 'a' => 'Log in to your Trash2Cash account to see pending and completed payments, update bank details and download reference receipts.'],
+  ['q' => 'Is there a fee for Wellington recycling pickups?', 'a' => 'No pickup fee. We simply deduct recycling costs from the value of your cans or appliances. You always see the final payout before it is sent.'],
+  ['q' => 'Do you provide documentation for business recycling?', 'a' => 'Yes. We supply digital reference IDs and summary statements suitable for sustainability or ESG reporting.']
 ];
 
 require_once __DIR__ . '/includes/header.php';

@@ -45,6 +45,21 @@ $pages = [
         'priority' => '0.7',
         'changefreq' => 'monthly'
     ],
+    'recycling-wellington.php' => [
+        'url' => '/recycling-wellington.php',
+        'priority' => '0.9',
+        'changefreq' => 'monthly'
+    ],
+    'resources.php' => [
+        'url' => '/resources.php',
+        'priority' => '0.7',
+        'changefreq' => 'weekly'
+    ],
+    'resources/wellington-recycling-guide.php' => [
+        'url' => '/resources/wellington-recycling-guide.php',
+        'priority' => '0.6',
+        'changefreq' => 'monthly'
+    ],
     'privacy.php' => [
         'url' => '/privacy.php',
         'priority' => '0.5',

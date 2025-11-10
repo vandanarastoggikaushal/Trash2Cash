@@ -231,6 +231,7 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
         <a href="/rewards.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'rewards.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Rewards and pricing">💰 Rewards</a>
         <a href="/partners.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'partners.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Partners and fundraising">🤝 Partners</a>
         <a href="/faq.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'faq.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Frequently asked questions">❓ FAQ</a>
+        <a href="/resources.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'resources.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Recycling resources and guides">📚 Resources</a>
         <a href="/contact.php" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'contact.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Contact us">📧 Contact</a>
       </nav>
       <div class="flex items-center gap-2">
@@ -268,6 +269,10 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
                 <span>💼</span>
                 <span>Account</span>
               </a>
+              <a href="/resources.php" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
+                <span>📚</span>
+                <span>Resources</span>
+              </a>
               <?php if (function_exists('hasRole') && hasRole('admin')): ?>
               <a href="/admin/users.php" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
                 <span>👥</span>
@@ -284,6 +289,10 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
                 <span>Logout</span>
               </a>
             <?php else: ?>
+              <a href="/resources.php" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
+                <span>📚</span>
+                <span>Resources</span>
+              </a>
               <a href="/login.php" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
                 <span>🔐</span>
                 <span>Login</span>
