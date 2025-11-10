@@ -352,12 +352,15 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
       });
 
       var scheduleButton = document.querySelector('a[href="/schedule-pickup"]');
-      var navItems = Array.from(document.querySelectorAll('nav[aria-label="Main navigation"] a'));
+      var navItems = Array.from(document.querySelectorAll('nav[aria-label=\"Main navigation\"] a'));
       var fallbackLinks = navItems.map(function (anchor) {
+        var emojiMatch = (anchor.textContent || '').trim().match(/^\p{Emoji_Presentation}|\p{Extended_Pictographic}/u);
+        var icon = emojiMatch ? emojiMatch[0] : '';
+        var label = (anchor.textContent || '').replace(icon, '').trim();
         return {
           href: anchor.getAttribute('href'),
-          icon: anchor.textContent.trim().slice(0, 2),
-          label: anchor.textContent.trim(),
+          icon: icon || '•',
+          label: label || 'Link',
         };
       });
       if (scheduleButton) {
