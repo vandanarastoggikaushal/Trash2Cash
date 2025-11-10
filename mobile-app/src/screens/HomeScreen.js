@@ -15,6 +15,14 @@ import { colors } from '../theme';
 export default function HomeScreen({ navigation }) {
   const [cansPerWeek, setCansPerWeek] = useState(10);
   const cansReward = Math.floor((cansPerWeek * 52) / 100);
+  const keywordChips = [
+    'Recycling Wellington pickup',
+    'Trash collection for cans',
+    'Recycle collection near me',
+    'Wellington metal recycling',
+    'Appliance recycling NZ',
+    'Doorstep recycling service',
+  ];
 
   return (
     <ScrollView style={styles.container}>
@@ -23,10 +31,10 @@ export default function HomeScreen({ navigation }) {
         colors={['#15803d', '#22c55e']}
         style={styles.hero}
       >
-        <Text style={styles.heroTitle}>Turn Your Trash</Text>
-        <Text style={styles.heroSubtitle}>Into Cash or KiwiSaver</Text>
+        <Text style={styles.heroTitle}>Wellington Recycling</Text>
+        <Text style={styles.heroSubtitle}>Pickup &amp; Trash Collection</Text>
         <Text style={styles.heroText}>
-          Earn $1 for every 100 cans—deposit to kids' accounts or KiwiSaver
+          Trash2Cash NZ collects aluminium cans, appliances and scrap metal across Wellington. Earn $1 for every 100 cans and send it to kids' savings or KiwiSaver.
         </Text>
         <TouchableOpacity
           style={styles.ctaButton}
@@ -35,6 +43,46 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.ctaButtonText}>Schedule a Pickup</Text>
         </TouchableOpacity>
       </LinearGradient>
+
+      <View style={styles.section}>
+        <View style={styles.infoCard}>
+          <Text style={styles.infoTitle}>Keep Wellington cans &amp; appliances out of landfill</Text>
+          <Text style={styles.infoText}>
+            Searching for recycling or trash collection in Wellington? Trash2Cash NZ provides a friendly, local pickup service.
+            Book a time, leave rinsed cans or disconnected appliances at your doorway, and we will take care of the recycling and the rewards.
+          </Text>
+          <View style={styles.bulletList}>
+            <Bullet text="Certified recycling partners for aluminium, appliances and scrap metals." />
+            <Bullet text="Fast turnaround across Wellington City, Hutt Valley, Porirua and Kapiti suburbs." />
+            <Bullet text="Transparent pricing with instant digital receipts." />
+          </View>
+          <View style={styles.linkRow}>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => navigation.navigate('WellingtonRecycling')}
+            >
+              <Text style={styles.linkButtonText}>Learn about our Wellington service</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkButtonSecondary}
+              onPress={() => navigation.navigate('FAQ')}
+            >
+              <Text style={styles.linkButtonSecondaryText}>Read recycling FAQs</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Popular recycling searches we answer</Text>
+        <View style={styles.chipsWrap}>
+          {keywordChips.map((chip) => (
+            <View key={chip} style={styles.chip}>
+              <Text style={styles.chipText}>{chip}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
 
       {/* Quick Calculator */}
       <View style={styles.section}>
@@ -86,6 +134,33 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
 
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Wellington suburbs we visit</Text>
+        <View style={styles.serviceGrid}>
+          {APP_CONFIG.SERVICE_AREAS.map((area) => (
+            <View key={area} style={styles.serviceCard}>
+              <Text style={styles.serviceCardLabel}>Service area</Text>
+              <Text style={styles.serviceCardTitle}>{area}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <View style={styles.resourcesCard}>
+          <Text style={styles.resourcesTitle}>Recycling guides &amp; resources</Text>
+          <Text style={styles.resourcesText}>
+            Get expert tips on preparing cans, booking pickups, and running community recycling drives. New guides are added regularly.
+          </Text>
+          <TouchableOpacity
+            style={styles.linkButton}
+            onPress={() => navigation.navigate('Resources')}
+          >
+            <Text style={styles.linkButtonText}>Browse recycling resources</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* CTA */}
       <View style={styles.section}>
         <TouchableOpacity
@@ -105,6 +180,15 @@ function FeatureCard({ icon, title, description }) {
       <MaterialCommunityIcons name={icon} size={32} color={colors.brand} />
       <Text style={styles.featureTitle}>{title}</Text>
       <Text style={styles.featureDescription}>{description}</Text>
+    </View>
+  );
+}
+
+function Bullet({ text }) {
+  return (
+    <View style={styles.bulletItem}>
+      <View style={styles.bulletDot} />
+      <Text style={styles.bulletText}>{text}</Text>
     </View>
   );
 }
@@ -153,6 +237,97 @@ const styles = StyleSheet.create({
   },
   section: {
     padding: 20,
+  },
+  infoCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  infoTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 12,
+  },
+  infoText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#374151',
+    marginBottom: 16,
+  },
+  bulletList: {
+    marginBottom: 16,
+    gap: 10,
+  },
+  bulletItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  bulletDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.brand,
+    marginTop: 6,
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#374151',
+    lineHeight: 20,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  linkButton: {
+    backgroundColor: colors.brand,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+  },
+  linkButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  linkButtonSecondary: {
+    backgroundColor: '#ecfdf5',
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+  },
+  linkButtonSecondaryText: {
+    color: colors.brand,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  chipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: '#dcfce7',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  chipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#15803d',
   },
   sectionTitle: {
     fontSize: 24,
@@ -243,6 +418,54 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#374151',
     fontWeight: '500',
+  },
+  serviceGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  serviceCard: {
+    width: '48%',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  serviceCardLabel: {
+    fontSize: 12,
+    textTransform: 'uppercase',
+    color: '#16a34a',
+    fontWeight: '600',
+  },
+  serviceCardTitle: {
+    marginTop: 6,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+  resourcesCard: {
+    backgroundColor: '#f0fdf4',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    gap: 12,
+  },
+  resourcesTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#166534',
+  },
+  resourcesText: {
+    fontSize: 14,
+    color: '#374151',
+    lineHeight: 20,
   },
   ctaButtonSecondary: {
     backgroundColor: colors.brand,
