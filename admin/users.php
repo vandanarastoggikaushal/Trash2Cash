@@ -295,6 +295,7 @@ require_once __DIR__ . '/../includes/header.php';
         placeholder="Search by name, email, username or phone..."
         class="w-full rounded-xl border-2 border-emerald-100 px-4 py-3 text-sm shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/40"
       />
+      <div id="user-search-results" class="mt-4 space-y-2 hidden"></div>
     </div>
 
     <div class="space-y-8" id="user-list">
@@ -307,7 +308,7 @@ require_once __DIR__ . '/../includes/header.php';
           id="user-search-info"
           class="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/40 px-4 py-3 text-sm font-semibold text-emerald-700"
         >
-          Enter at least 2 characters to search for a client.
+          Enter at least 2 characters to search for a client, then pick from the list.
         </div>
         <?php foreach ($allUsers as $user): ?>
           <?php
@@ -329,6 +330,8 @@ require_once __DIR__ . '/../includes/header.php';
           <section
             class="rounded-3xl border-2 border-emerald-100 bg-white p-8 shadow-xl transition hover:-translate-y-1 hover:shadow-2xl hidden"
             data-user-card
+            data-user-card-id="<?php echo htmlspecialchars($userId, ENT_QUOTES, 'UTF-8'); ?>"
+            data-user-label="<?php echo htmlspecialchars($displayName . (!empty($user['email']) ? ' • ' . $user['email'] : ''), ENT_QUOTES, 'UTF-8'); ?>"
             data-filter-text="<?php echo htmlspecialchars(strtolower($displayName . ' ' . ($user['email'] ?? '') . ' ' . ($user['username'] ?? '') . ' ' . ($user['phone'] ?? '')), ENT_QUOTES, 'UTF-8'); ?>"
           >
             <header class="flex flex-col gap-4 border-b border-emerald-100 pb-5 md:flex-row md:items-start md:justify-between">
@@ -694,9 +697,10 @@ require_once __DIR__ . '/../includes/header.php';
       document.addEventListener('DOMContentLoaded', function () {
         const searchInput = document.getElementById('user-search');
         const infoBanner = document.getElementById('user-search-info');
+        const resultsContainer = document.getElementById('user-search-results');
         const userCards = Array.from(document.querySelectorAll('[data-user-card]'));
 
-        if (!searchInput || !infoBanner || userCards.length === 0) {
+        if (!searchInput || !infoBanner || !resultsContainer || userCards.length === 0) {
           return;
         }
 
@@ -706,6 +710,13 @@ require_once __DIR__ . '/../includes/header.php';
           result: `${baseClass} border border-emerald-200 bg-white text-emerald-700 shadow-sm`,
           empty: `${baseClass} border border-red-200 bg-red-50/80 text-red-700`,
         };
+
+        const userIndex = userCards.map((card) => ({
+          id: card.dataset.userCardId,
+          label: card.dataset.userLabel || card.dataset.filterText || '',
+          filter: card.dataset.filterText || '',
+          card,
+        }));
 
         const hideAllCards = () => {
           userCards.forEach((card) => card.classList.add('hidden'));
@@ -718,30 +729,91 @@ require_once __DIR__ . '/../includes/header.php';
 
         hideAllCards();
 
+        let activeButton = null;
+
+        const clearResults = () => {
+          resultsContainer.innerHTML = '';
+          resultsContainer.classList.add('hidden');
+          activeButton = null;
+        };
+
+        const selectUser = (id, label) => {
+          hideAllCards();
+          const match = userIndex.find((entry) => entry.id === id);
+          if (match) {
+            match.card.classList.remove('hidden');
+            setBanner('result', `Showing client: ${label}`);
+            setTimeout(() => {
+              match.card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
+          }
+        };
+
+        const renderResults = (matches) => {
+          resultsContainer.innerHTML = '';
+          resultsContainer.classList.remove('hidden');
+
+          matches.forEach((entry, idx) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = [
+              'w-full rounded-xl border border-emerald-200 bg-white px-4 py-2 text-left text-sm font-semibold text-emerald-700 transition hover:border-brand hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-brand/40',
+              idx === 0 ? 'shadow-sm' : '',
+            ].join(' ');
+            button.dataset.userId = entry.id;
+            button.textContent = entry.label;
+            button.addEventListener('click', () => {
+              if (activeButton) {
+                activeButton.classList.remove('bg-emerald-100', 'border-brand');
+              }
+              button.classList.add('bg-emerald-100', 'border-brand');
+              activeButton = button;
+              selectUser(entry.id, entry.label);
+            });
+            resultsContainer.appendChild(button);
+          });
+        };
+
         const handleLookup = () => {
           const query = (searchInput.value || '').trim().toLowerCase();
           if (query.length < 2) {
             hideAllCards();
-            setBanner('idle', 'Enter at least 2 characters to search for a client.');
+            clearResults();
+            setBanner('idle', 'Enter at least 2 characters to search for a client, then pick from the list.');
             return;
           }
 
-          const match = userCards.find((card) => card.dataset.filterText.includes(query));
-          if (match) {
+          const matches = userIndex.filter((entry) => entry.filter.includes(query));
+          if (matches.length > 0) {
             hideAllCards();
-            match.classList.remove('hidden');
-            setBanner('result', `Showing client matching “${searchInput.value.trim()}”.`);
-            setTimeout(() => {
-              match.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 50);
+            renderResults(matches.slice(0, 8));
+            setBanner('result', matches.length === 1
+              ? `1 match found. Select to view details.`
+              : `${matches.length} matches found. Select a client to view details.`);
           } else {
             hideAllCards();
+            clearResults();
             setBanner('empty', 'No clients match your search. Try a different name, email or phone number.');
           }
         };
 
         searchInput.addEventListener('input', handleLookup);
         searchInput.addEventListener('search', handleLookup);
+
+        searchInput.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') {
+            const query = (searchInput.value || '').trim().toLowerCase();
+            const matches = userIndex.filter((entry) => entry.filter.includes(query));
+            if (matches.length > 0) {
+              handleLookup();
+              const firstButton = resultsContainer.querySelector('button');
+              if (firstButton) {
+                firstButton.click();
+                event.preventDefault();
+              }
+            }
+          }
+        });
       });
     </script>
   </div>

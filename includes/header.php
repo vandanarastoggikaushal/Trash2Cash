@@ -218,8 +218,8 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
 </head>
 <body class="min-h-screen bg-white text-slate-800">
   <header class="sticky top-0 z-50 w-full border-b-2 border-emerald-200 bg-white/95 backdrop-blur-lg shadow-sm">
-    <div class="container flex h-16 items-center justify-between">
-      <a href="/" class="flex items-center gap-3 font-bold text-xl hover:scale-105 transition-transform">
+    <div class="container flex h-16 items-center justify-between gap-2 md:gap-4">
+      <a href="/" class="flex items-center gap-3 font-bold text-lg sm:text-xl hover:scale-105 transition-transform">
         <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg">
           <span class="text-xl">♻️</span>
         </span>
@@ -235,7 +235,7 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
         <a href="/contact" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all <?php echo (basename($_SERVER['PHP_SELF']) == 'contact.php') ? 'bg-emerald-100 text-brand shadow-md' : 'text-slate-700 hover:bg-emerald-50'; ?>" aria-label="Contact us">📧 Contact</a>
       </nav>
       <div class="flex items-center gap-2">
-        <a href="/schedule-pickup" class="btn text-sm">Schedule</a>
+        <a href="/schedule-pickup" class="hidden sm:inline-flex btn text-sm">Schedule</a>
         <div class="relative">
           <button
             id="user-menu-toggle"
@@ -269,10 +269,6 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
                 <span>💼</span>
                 <span>Account</span>
               </a>
-              <a href="/resources" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
-                <span>📚</span>
-                <span>Resources</span>
-              </a>
               <?php if (function_exists('hasRole') && hasRole('admin')): ?>
               <a href="/admin/users" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
                 <span>👥</span>
@@ -289,10 +285,6 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
                 <span>Logout</span>
               </a>
             <?php else: ?>
-              <a href="/resources" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
-                <span>📚</span>
-                <span>Resources</span>
-              </a>
               <a href="/login" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
                 <span>🔐</span>
                 <span>Login</span>
