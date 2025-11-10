@@ -8,11 +8,10 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { APP_CONFIG } from '../config/api';
 import { colors } from '../theme';
 
-export default function RewardsScreen() {
+export default function RewardsScreen({ navigation }) {
   const [cansPerWeek, setCansPerWeek] = useState(10);
   const [appliances, setAppliances] = useState({
     washing_machine: 0,
@@ -27,6 +26,8 @@ export default function RewardsScreen() {
     return sum + (APP_CONFIG.APPLIANCE_CREDITS[slug]?.credit || 0) * qty;
   }, 0);
   const totalReward = cansReward + applianceReward;
+  const monthlyReward = Math.round(totalReward / 12);
+  const pickupReward = Math.round((cansPerWeek * 4) / 100);
 
   const updateAppliance = (slug, value) => {
     setAppliances({ ...appliances, [slug]: parseInt(value) || 0 });
@@ -85,6 +86,9 @@ export default function RewardsScreen() {
         >
           <Text style={styles.totalLabel}>Estimated Yearly Earnings</Text>
           <Text style={styles.totalValue}>${totalReward}</Text>
+          <Text style={styles.totalSubtext}>
+            Around ${monthlyReward} per month • ${pickupReward} per pickup
+          </Text>
         </LinearGradient>
 
         {/* Info */}
@@ -92,6 +96,27 @@ export default function RewardsScreen() {
           <Text style={styles.infoText}>
             💡 Average NZ household ≈ $500/year in recyclable value!
           </Text>
+        </View>
+
+        <View style={styles.ctaCard}>
+          <Text style={styles.ctaTitle}>Ready to turn cans into KiwiSaver or cash?</Text>
+          <Text style={styles.ctaText}>
+            Create your Trash2Cash account to lock in payouts and track balances. Already a member? Schedule your next recycling pickup in seconds.
+          </Text>
+          <View style={styles.ctaActions}>
+            <TouchableOpacity
+              style={styles.ctaPrimary}
+              onPress={() => navigation.navigate('Register')}
+            >
+              <Text style={styles.ctaPrimaryText}>Create Account</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.ctaSecondary}
+              onPress={() => navigation.navigate('Schedule')}
+            >
+              <Text style={styles.ctaSecondaryText}>Schedule Pickup</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -206,6 +231,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
+  totalSubtext: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#dcfce7',
+  },
   infoCard: {
     backgroundColor: '#ecfdf5',
     padding: 16,
@@ -216,6 +246,57 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 14,
     color: '#065f46',
+  },
+  ctaCard: {
+    marginTop: 24,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+    gap: 12,
+  },
+  ctaTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+  ctaText: {
+    fontSize: 14,
+    color: '#374151',
+    lineHeight: 20,
+  },
+  ctaActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  ctaPrimary: {
+    backgroundColor: colors.brand,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  ctaPrimaryText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  ctaSecondary: {
+    backgroundColor: '#ecfdf5',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  ctaSecondaryText: {
+    color: colors.brand,
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
 
