@@ -528,7 +528,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Bank name</label>
+                    <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Account holder name</label>
                     <input
                       type="text"
                       name="bank_name"

@@ -46,6 +46,7 @@ export async function registerUser(form) {
     city: form.city,
     postcode: form.postcode,
     marketingOptIn: !!form.marketingOptIn,
+    setupPayoutNow: !!form.setupPayoutNow,
     payoutMethod: form.payoutMethod,
     bankName: form.bankName,
     bankAccount: form.bankAccount,
@@ -54,6 +55,16 @@ export async function registerUser(form) {
     kiwisaverProvider: form.kiwisaverProvider,
     kiwisaverMemberId: form.kiwisaverMemberId,
   };
+
+  if (!form.setupPayoutNow) {
+    payload.payoutMethod = 'bank';
+    payload.bankName = '';
+    payload.bankAccount = '';
+    payload.childName = '';
+    payload.childBankAccount = '';
+    payload.kiwisaverProvider = '';
+    payload.kiwisaverMemberId = '';
+  }
 
   const response = await fetch(API_ENDPOINTS.AUTH_REGISTER, {
     method: 'POST',

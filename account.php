@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $payoutError = 'Please choose a valid payout method.';
         } elseif ($payoutMethodInput === 'bank') {
             if ($bankNameInput === '') {
-                $payoutError = 'Bank name is required.';
+                $payoutError = 'Account holder name is required.';
             } elseif ($bankAccountInput === '') {
                 $payoutError = 'Bank account number is required.';
             } else {
@@ -269,7 +269,7 @@ require_once __DIR__ . '/includes/header.php';
               <input type="radio" name="payoutMethod" value="bank" <?php echo $payoutMethodValue === 'bank' ? 'checked' : ''; ?>> Bank account
             </label>
             <div class="grid gap-3 sm:grid-cols-2 <?php echo $payoutMethodValue === 'bank' ? '' : 'hidden'; ?>" id="account-bank-fields">
-              <input name="bankName" placeholder="Bank name" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($bankNameValue); ?>">
+              <input name="bankName" placeholder="Account holder name" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($bankNameValue); ?>">
               <input name="bankAccount" placeholder="Account number (e.g. 12-1234-1234567-00)" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($bankAccountValue); ?>">
             </div>
             <label class="flex items-center gap-2 text-sm font-semibold text-slate-900">
@@ -333,7 +333,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
         <?php if ($payoutMethod === 'bank'): ?>
         <div>
-          <p class="text-xs uppercase tracking-wide text-slate-500">Bank name</p>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Account holder name</p>
           <p class="text-sm font-semibold text-slate-900 mt-1">
             <?php echo $payoutBankName ? htmlspecialchars($payoutBankName) : '—'; ?>
           </p>

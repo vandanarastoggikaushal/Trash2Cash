@@ -24,6 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $lastName = trim($_POST['last_name'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
     $marketingOptIn = isset($_POST['marketingOptIn']) && $_POST['marketingOptIn'] === 'on';
+    $setupPayoutChoice = $_POST['setup_payout'] ?? 'now';
+    $setupPayoutNow = $setupPayoutChoice === 'now';
     $payoutMethod = $_POST['payoutMethod'] ?? 'bank';
     $bankName = trim($_POST['bankName'] ?? '');
     $bankAccount = trim($_POST['bankAccount'] ?? '');
@@ -37,6 +39,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $postcode = trim($_POST['address_postcode'] ?? '');
     $address = '';
     $normalizedAddressKey = '';
+
+    if (!$setupPayoutNow) {
+        $payoutMethod = 'bank';
+        $bankName = '';
+        $bankAccount = '';
+        $childName = '';
+        $childBankAccount = '';
+        $kiwisaverProvider = '';
+        $kiwisaverMemberId = '';
+    }
     
     // Validation
     if (empty($username)) {
@@ -61,11 +73,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $error = 'Phone number is required';
     } elseif (!preg_match('/^(\+64|0)[2-9]\d{7,8}$/', $phone)) {
         $error = 'Please enter a valid NZ phone number';
-    } elseif (!in_array($payoutMethod, ['bank', 'child_account', 'kiwisaver'], true)) {
+    } elseif ($setupPayoutNow && !in_array($payoutMethod, ['bank', 'child_account', 'kiwisaver'], true)) {
         $error = 'Please choose a valid payout method';
-    } elseif ($payoutMethod === 'bank') {
+    } elseif ($setupPayoutNow && $payoutMethod === 'bank') {
         if (empty($bankName)) {
-            $error = 'Please provide your bank name';
+            $error = 'Please provide the account holder name';
         } elseif (empty($bankAccount)) {
             $error = 'Please provide your bank account number';
         } else {
@@ -80,9 +92,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                substr($digitsOnly, -2);
             }
         }
-    } elseif ($payoutMethod === 'child_account' && empty($childName)) {
+    } elseif ($setupPayoutNow && $payoutMethod === 'child_account' && empty($childName)) {
         $error = 'Please provide the child name for the child account payout method';
-    } elseif ($payoutMethod === 'kiwisaver' && (empty($kiwisaverProvider) || empty($kiwisaverMemberId))) {
+    } elseif ($setupPayoutNow && $payoutMethod === 'kiwisaver' && (empty($kiwisaverProvider) || empty($kiwisaverMemberId))) {
         $error = 'Please provide your KiwiSaver provider and member ID';
     } elseif (empty($email)) {
         $error = 'Email is required';
@@ -121,16 +133,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 
     if (empty($error)) {
+        $effectivePayoutMethod = $setupPayoutNow ? $payoutMethod : 'bank';
+        $bankNameToSave = $setupPayoutNow ? $bankName : '';
+        $bankAccountToSave = $setupPayoutNow ? $bankAccount : '';
+        $childNameToSave = $setupPayoutNow ? $childName : '';
+        $childBankAccountToSave = $setupPayoutNow ? $childBankAccount : '';
+        $kiwiProviderToSave = $setupPayoutNow ? $kiwisaverProvider : '';
+        $kiwiMemberToSave = $setupPayoutNow ? $kiwisaverMemberId : '';
+
         $extra = [
             'phone' => $phone,
             'marketingOptIn' => $marketingOptIn,
-            'payoutMethod' => $payoutMethod,
-            'payoutBankName' => $bankName,
-            'payoutBankAccount' => $bankAccount,
-            'payoutChildName' => $childName,
-            'payoutChildBankAccount' => $childBankAccount,
-            'payoutKiwisaverProvider' => $kiwisaverProvider,
-            'payoutKiwisaverMemberId' => $kiwisaverMemberId
+            'payoutMethod' => $effectivePayoutMethod,
+            'payoutBankName' => $bankNameToSave,
+            'payoutBankAccount' => $bankAccountToSave,
+            'payoutChildName' => $childNameToSave,
+            'payoutChildBankAccount' => $childBankAccountToSave,
+            'payoutKiwisaverProvider' => $kiwiProviderToSave,
+            'payoutKiwisaverMemberId' => $kiwiMemberToSave
         ];
         $user = createUser($username, $password, $email, 'user', $firstName, $lastName, $address, $extra);
         if ($user) {
@@ -142,13 +162,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 'postcode' => $postcode,
                 'phone' => $phone,
                 'marketingOptIn' => $marketingOptIn,
-                'payoutMethod' => $payoutMethod,
-                'bankName' => $bankName,
-                'bankAccount' => $bankAccount,
-                'childName' => $childName,
-                'childBankAccount' => $childBankAccount,
-                'kiwisaverProvider' => $kiwisaverProvider,
-                'kiwisaverMemberId' => $kiwisaverMemberId
+                'payoutMethod' => $effectivePayoutMethod,
+                'bankName' => $bankNameToSave,
+                'bankAccount' => $bankAccountToSave,
+                'childName' => $childNameToSave,
+                'childBankAccount' => $childBankAccountToSave,
+                'kiwisaverProvider' => $kiwiProviderToSave,
+                'kiwisaverMemberId' => $kiwiMemberToSave
             ]);
 
             // Record promotional welcome credit (pending until first collection)
@@ -176,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-$selectedPayoutMethod = $_POST['payoutMethod'] ?? 'bank';
+$selectedPayoutMethod = $setupPayoutNow ? ($_POST['payoutMethod'] ?? 'bank') : 'bank';
 $bankNameValue = $_POST['bankName'] ?? '';
 $bankAccountValue = $_POST['bankAccount'] ?? '';
 $childNameValue = $_POST['childName'] ?? '';
@@ -297,6 +317,39 @@ require_once __DIR__ . '/includes/header.php';
           </label>
         </div>
 
+        <div class="rounded-2xl border-2 border-emerald-100 bg-white/70 p-4 shadow-inner space-y-3">
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <span>🚀</span> Reward setup timing
+          </h2>
+          <p class="text-sm text-slate-600">
+            You can add payout details now or finish registration and add them later from your account.
+            We’ll need payout information before your first pickup is confirmed.
+          </p>
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-6 text-sm font-semibold text-slate-700">
+            <label class="inline-flex items-center gap-2">
+              <input
+                type="radio"
+                name="setup_payout"
+                value="now"
+                <?php echo $setupPayoutChoice !== 'later' ? 'checked' : ''; ?>
+              />
+              I'll add payout details now
+            </label>
+            <label class="inline-flex items-center gap-2">
+              <input
+                type="radio"
+                name="setup_payout"
+                value="later"
+                <?php echo $setupPayoutChoice === 'later' ? 'checked' : ''; ?>
+              />
+              I'll add them later
+            </label>
+          </div>
+          <p class="text-xs text-slate-500">
+            You can update payout and bank information anytime from the Account page.
+          </p>
+        </div>
+
         <div class="rounded-2xl border-2 border-emerald-100 bg-white/70 p-4 shadow-inner space-y-4">
           <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
             <span>📍</span> Address Details
@@ -367,18 +420,20 @@ require_once __DIR__ . '/includes/header.php';
           </div>
         </div>
 
-        <fieldset class="rounded-2xl border-2 border-emerald-100 bg-white/70 p-4 shadow-inner space-y-4">
+        <fieldset id="register-payout-container" class="rounded-2xl border-2 border-emerald-100 bg-white/70 p-4 shadow-inner space-y-4 <?php echo $setupPayoutNow ? '' : 'hidden'; ?>">
           <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
             <span>💰</span> Payout Preference
           </h2>
-          <p class="text-sm text-slate-600">Choose how you'd like to receive your rewards. You can update this later by contacting us.</p>
+            <p class="text-sm text-slate-600">
+            Choose how you'd like to receive your rewards. You can update this later from your account before your first pickup.
+          </p>
           <div class="space-y-3 text-sm font-semibold text-slate-700">
             <label class="flex items-center gap-2">
               <input type="radio" name="payoutMethod" value="bank" <?php echo $selectedPayoutMethod === 'bank' ? 'checked' : ''; ?> />
               Bank account
             </label>
             <div id="register-payout-bank" class="ml-6 grid gap-3 sm:grid-cols-2 <?php echo $selectedPayoutMethod === 'bank' ? '' : 'hidden'; ?>">
-              <input name="bankName" placeholder="Bank name" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($bankNameValue); ?>" />
+              <input name="bankName" placeholder="Account holder name" class="rounded-md border-2 border-emerald-200 px-3 py-2" value="<?php echo htmlspecialchars($bankNameValue); ?>" />
               <input name="bankAccount" placeholder="Account number (e.g. 12-1234-1234567-00)" class="rounded-md border-2 border-emerald-200 px-3 py-2"
                 value="<?php echo htmlspecialchars($bankAccountValue); ?>"
                 autocomplete="off" />
@@ -458,8 +513,14 @@ require_once __DIR__ . '/includes/header.php';
     const bankSection = document.getElementById('register-payout-bank');
     const childSection = document.getElementById('register-payout-child');
     const kiwiSection = document.getElementById('register-payout-kiwi');
+    const payoutContainer = document.getElementById('register-payout-container');
+    const payoutIntentRadios = document.querySelectorAll('input[name="setup_payout"]');
+    const payoutInputs = payoutContainer ? payoutContainer.querySelectorAll('input, select') : [];
 
     function togglePayoutSections(method) {
+      if (!payoutContainer || payoutContainer.classList.contains('hidden')) {
+        return;
+      }
       if (bankSection) {
         bankSection.classList.toggle('hidden', method !== 'bank');
       }
@@ -471,16 +532,40 @@ require_once __DIR__ . '/includes/header.php';
       }
     }
 
+    function setPayoutVisibility(active) {
+      if (!payoutContainer) {
+        return;
+      }
+      payoutContainer.classList.toggle('hidden', !active);
+      payoutInputs.forEach(function (input) {
+        if (input.name === 'setup_payout') {
+          return;
+        }
+        input.disabled = !active;
+      });
+      if (active) {
+        const checkedMethod = document.querySelector('input[name="payoutMethod"]:checked');
+        if (checkedMethod) {
+          togglePayoutSections(checkedMethod.value);
+        }
+      }
+    }
+
     payoutRadios.forEach(function (radio) {
       radio.addEventListener('change', function () {
         togglePayoutSections(this.value);
       });
     });
 
-    const checked = document.querySelector('input[name="payoutMethod"]:checked');
-    if (checked) {
-      togglePayoutSections(checked.value);
-    }
+    payoutIntentRadios.forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        setPayoutVisibility(this.value === 'now');
+      });
+    });
+
+    const initialIntent = document.querySelector('input[name="setup_payout"]:checked');
+    const shouldShowPayout = !initialIntent || initialIntent.value === 'now';
+    setPayoutVisibility(shouldShowPayout);
   });
 </script>
 

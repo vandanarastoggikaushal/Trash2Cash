@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { ScrollView, View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { ScrollView, View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, Switch } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { APP_CONFIG } from '../config/api';
 import { colors } from '../theme';
@@ -17,6 +17,7 @@ const initialForm = {
   city: APP_CONFIG.CITY,
   postcode: '',
   marketingOptIn: true,
+  setupPayoutNow: true,
   payoutMethod: 'bank',
   bankName: '',
   bankAccount: '',
@@ -53,6 +54,24 @@ export default function RegisterScreen({ navigation }) {
     updateField('postcode', digitsOnly);
   };
 
+  const togglePayoutSetup = (value) => {
+    setForm((prev) => ({
+      ...prev,
+      setupPayoutNow: value,
+      ...(value
+        ? {}
+        : {
+            payoutMethod: 'bank',
+            bankName: '',
+            bankAccount: '',
+            childName: '',
+            childBankAccount: '',
+            kiwisaverProvider: '',
+            kiwisaverMemberId: '',
+          }),
+    }));
+  };
+
   const validate = () => {
     if (!form.username || form.username.length < 3) {
       return 'Username must be at least 3 characters.';
@@ -78,14 +97,16 @@ export default function RegisterScreen({ navigation }) {
     if (form.password !== form.passwordConfirm) {
       return 'Passwords do not match.';
     }
-    if (form.payoutMethod === 'bank') {
-      if (!form.bankName || !form.bankAccount) {
-        return 'Bank name and account are required.';
+    if (form.setupPayoutNow) {
+      if (form.payoutMethod === 'bank') {
+        if (!form.bankName || !form.bankAccount) {
+          return 'Account holder name and account number are required.';
+        }
+      } else if (form.payoutMethod === 'child_account' && !form.childName) {
+        return 'Child name is required for child account payouts.';
+      } else if (form.payoutMethod === 'kiwisaver' && (!form.kiwisaverProvider || !form.kiwisaverMemberId)) {
+        return 'KiwiSaver provider and member ID are required.';
       }
-    } else if (form.payoutMethod === 'child_account' && !form.childName) {
-      return 'Child name is required for child account payouts.';
-    } else if (form.payoutMethod === 'kiwisaver' && (!form.kiwisaverProvider || !form.kiwisaverMemberId)) {
-      return 'KiwiSaver provider and member ID are required.';
     }
     return '';
   };
@@ -209,81 +230,102 @@ export default function RegisterScreen({ navigation }) {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Payout Preferences</Text>
-          <View style={styles.payoutRow}>
-            {[
-              { value: 'bank', label: 'Bank' },
-              { value: 'child_account', label: 'Child' },
-              { value: 'kiwisaver', label: 'KiwiSaver' },
-            ].map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                style={[
-                  styles.payoutOption,
-                  form.payoutMethod === option.value && styles.payoutOptionActive,
-                ]}
-                onPress={() => updateField('payoutMethod', option.value)}
-              >
-                <Text
-                  style={[
-                    styles.payoutOptionText,
-                    form.payoutMethod === option.value && styles.payoutOptionTextActive,
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.switchRow}>
+            <Text style={styles.switchLabel}>Add payout details now?</Text>
+            <Switch
+              value={form.setupPayoutNow}
+              onValueChange={togglePayoutSetup}
+              trackColor={{ false: '#d1d5db', true: '#34d399' }}
+              thumbColor={form.setupPayoutNow ? colors.brand : '#f4f3f4'}
+            />
           </View>
+          <Text style={styles.helperText}>
+            You can add or update payout details later from your account before your first pickup.
+          </Text>
 
-          {form.payoutMethod === 'bank' && (
+          {form.setupPayoutNow ? (
             <>
-              <TextInput
-                style={styles.input}
-                placeholder="Bank name *"
-                value={form.bankName}
-                onChangeText={(text) => updateField('bankName', text)}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Account number * (e.g. 12-1234-1234567-00)"
-                value={form.bankAccount}
-                onChangeText={(text) => updateField('bankAccount', text)}
-              />
-            </>
-          )}
+              <View style={styles.payoutRow}>
+                {[
+                  { value: 'bank', label: 'Bank' },
+                  { value: 'child_account', label: 'Child' },
+                  { value: 'kiwisaver', label: 'KiwiSaver' },
+                ].map((option) => (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[
+                      styles.payoutOption,
+                      form.payoutMethod === option.value && styles.payoutOptionActive,
+                    ]}
+                    onPress={() => updateField('payoutMethod', option.value)}
+                  >
+                    <Text
+                      style={[
+                        styles.payoutOptionText,
+                        form.payoutMethod === option.value && styles.payoutOptionTextActive,
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-          {form.payoutMethod === 'child_account' && (
-            <>
-              <TextInput
-                style={styles.input}
-                placeholder="Child name *"
-                value={form.childName}
-                onChangeText={(text) => updateField('childName', text)}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Child bank account (optional)"
-                value={form.childBankAccount}
-                onChangeText={(text) => updateField('childBankAccount', text)}
-              />
-            </>
-          )}
+              {form.payoutMethod === 'bank' && (
+                <>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Account holder name *"
+                    value={form.bankName}
+                    onChangeText={(text) => updateField('bankName', text)}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Account number * (e.g. 12-1234-1234567-00)"
+                    value={form.bankAccount}
+                    onChangeText={(text) => updateField('bankAccount', text)}
+                  />
+                </>
+              )}
 
-          {form.payoutMethod === 'kiwisaver' && (
-            <>
-              <TextInput
-                style={styles.input}
-                placeholder="KiwiSaver provider *"
-                value={form.kiwisaverProvider}
-                onChangeText={(text) => updateField('kiwisaverProvider', text)}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="KiwiSaver member ID *"
-                value={form.kiwisaverMemberId}
-                onChangeText={(text) => updateField('kiwisaverMemberId', text)}
-              />
+              {form.payoutMethod === 'child_account' && (
+                <>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Child name *"
+                    value={form.childName}
+                    onChangeText={(text) => updateField('childName', text)}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Child bank account (optional)"
+                    value={form.childBankAccount}
+                    onChangeText={(text) => updateField('childBankAccount', text)}
+                  />
+                </>
+              )}
+
+              {form.payoutMethod === 'kiwisaver' && (
+                <>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="KiwiSaver provider *"
+                    value={form.kiwisaverProvider}
+                    onChangeText={(text) => updateField('kiwisaverProvider', text)}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="KiwiSaver member ID *"
+                    value={form.kiwisaverMemberId}
+                    onChangeText={(text) => updateField('kiwisaverMemberId', text)}
+                  />
+                </>
+              )}
             </>
+          ) : (
+            <Text style={styles.helperText}>
+              We'll remind you to add payout details later—just update them before requesting your first pickup.
+            </Text>
           )}
         </View>
 
@@ -382,6 +424,16 @@ const styles = StyleSheet.create({
   toggleText: {
     fontWeight: '600',
     color: colors.brand,
+  },
+  switchLabel: {
+    fontSize: 15,
+    color: '#374151',
+    flex: 1,
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 12,
   },
   payoutRow: {
     flexDirection: 'row',

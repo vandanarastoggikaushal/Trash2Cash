@@ -271,7 +271,7 @@ export default function AccountScreen({ navigation }) {
           <>
             <TextInput
               style={styles.input}
-              placeholder="Bank name"
+              placeholder="Account holder name"
               value={payoutForm.bankName}
               onChangeText={(text) => setPayoutForm((prev) => ({ ...prev, bankName: text }))}
             />

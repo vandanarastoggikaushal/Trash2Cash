@@ -38,6 +38,7 @@ $suburb = trim($input['suburb'] ?? '');
 $city = trim($input['city'] ?? '');
 $postcode = trim($input['postcode'] ?? '');
 $marketingOptIn = !empty($input['marketingOptIn']);
+$setupPayoutNow = array_key_exists('setupPayoutNow', $input) ? (bool)$input['setupPayoutNow'] : true;
 $payoutMethod = $input['payoutMethod'] ?? 'bank';
 $bankName = trim($input['bankName'] ?? '');
 $bankAccount = trim($input['bankAccount'] ?? '');
@@ -45,6 +46,17 @@ $childName = trim($input['childName'] ?? '');
 $childBankAccount = trim($input['childBankAccount'] ?? '');
 $kiwiProvider = trim($input['kiwisaverProvider'] ?? '');
 $kiwiMemberId = trim($input['kiwisaverMemberId'] ?? '');
+
+$effectivePayoutMethod = $payoutMethod;
+if (!$setupPayoutNow) {
+    $effectivePayoutMethod = 'bank';
+    $bankName = '';
+    $bankAccount = '';
+    $childName = '';
+    $childBankAccount = '';
+    $kiwiProvider = '';
+    $kiwiMemberId = '';
+}
 
 $errors = [];
 
@@ -65,12 +77,12 @@ if ($street === '' || $suburb === '' || $city === '' || $postcode === '') {
 if ($phone === '' || !preg_match('/^(\+64|0)[2-9]\d{7,8}$/', $phone)) {
     $errors[] = 'Please enter a valid NZ phone number.';
 }
-if (!in_array($payoutMethod, ['bank', 'child_account', 'kiwisaver'], true)) {
+if ($setupPayoutNow && !in_array($payoutMethod, ['bank', 'child_account', 'kiwisaver'], true)) {
     $errors[] = 'Please choose a valid payout method.';
 }
-if ($payoutMethod === 'bank') {
+if ($setupPayoutNow && $payoutMethod === 'bank') {
     if ($bankName === '') {
-        $errors[] = 'Bank name is required.';
+        $errors[] = 'Account holder name is required.';
     }
     if ($bankAccount === '') {
         $errors[] = 'Bank account number is required.';
@@ -93,9 +105,9 @@ if ($payoutMethod === 'bank') {
             $bankAccount = $parts[0] . '-' . $parts[1] . '-' . $parts[2] . '-' . $parts[3];
         }
     }
-} elseif ($payoutMethod === 'child_account' && $childName === '') {
+} elseif ($setupPayoutNow && $payoutMethod === 'child_account' && $childName === '') {
     $errors[] = 'Child name is required for child account payouts.';
-} elseif ($payoutMethod === 'kiwisaver' && ($kiwiProvider === '' || $kiwiMemberId === '')) {
+} elseif ($setupPayoutNow && $payoutMethod === 'kiwisaver' && ($kiwiProvider === '' || $kiwiMemberId === '')) {
     $errors[] = 'KiwiSaver provider and member ID are required.';
 }
 if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -118,7 +130,7 @@ $address = $street . "\n" . $suburb . "\n" . $city . ' ' . $postcode;
 $extra = [
     'phone' => $phone,
     'marketingOptIn' => $marketingOptIn,
-    'payoutMethod' => $payoutMethod,
+    'payoutMethod' => $effectivePayoutMethod,
     'payoutBankName' => $bankName,
     'payoutBankAccount' => $bankAccount,
     'payoutChildName' => $childName,
@@ -141,7 +153,7 @@ updateUserProfile($user['id'], [
     'postcode' => $postcode,
     'phone' => $phone,
     'marketingOptIn' => $marketingOptIn,
-    'payoutMethod' => $payoutMethod,
+    'payoutMethod' => $effectivePayoutMethod,
     'bankName' => $bankName,
     'bankAccount' => $bankAccount,
     'childName' => $childName,
