@@ -303,6 +303,12 @@ require_once __DIR__ . '/../includes/header.php';
           No registered users found yet.
         </div>
       <?php else: ?>
+        <div
+          id="user-search-info"
+          class="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/40 px-4 py-3 text-sm font-semibold text-emerald-700"
+        >
+          Enter at least 2 characters to search for a client.
+        </div>
         <?php foreach ($allUsers as $user): ?>
           <?php
             $userId = $user['id'] ?? '';
@@ -321,7 +327,7 @@ require_once __DIR__ . '/../includes/header.php';
             $lastLogin = $user['last_login'] ?? ($user['lastLogin'] ?? null);
           ?>
           <section
-            class="rounded-3xl border-2 border-emerald-100 bg-white p-8 shadow-xl transition hover:-translate-y-1 hover:shadow-2xl"
+            class="rounded-3xl border-2 border-emerald-100 bg-white p-8 shadow-xl transition hover:-translate-y-1 hover:shadow-2xl hidden"
             data-user-card
             data-filter-text="<?php echo htmlspecialchars(strtolower($displayName . ' ' . ($user['email'] ?? '') . ' ' . ($user['username'] ?? '') . ' ' . ($user['phone'] ?? '')), ENT_QUOTES, 'UTF-8'); ?>"
           >
@@ -683,6 +689,61 @@ require_once __DIR__ . '/../includes/header.php';
         <?php endforeach; ?>
       <?php endif; ?>
     </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('user-search');
+        const infoBanner = document.getElementById('user-search-info');
+        const userCards = Array.from(document.querySelectorAll('[data-user-card]'));
+
+        if (!searchInput || !infoBanner || userCards.length === 0) {
+          return;
+        }
+
+        const baseClass = 'rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200';
+        const variantClasses = {
+          idle: `${baseClass} border border-dashed border-emerald-200 bg-emerald-50/40 text-emerald-700`,
+          result: `${baseClass} border border-emerald-200 bg-white text-emerald-700 shadow-sm`,
+          empty: `${baseClass} border border-red-200 bg-red-50/80 text-red-700`,
+        };
+
+        const hideAllCards = () => {
+          userCards.forEach((card) => card.classList.add('hidden'));
+        };
+
+        const setBanner = (state, message) => {
+          infoBanner.className = variantClasses[state] || variantClasses.idle;
+          infoBanner.textContent = message;
+        };
+
+        hideAllCards();
+
+        const handleLookup = () => {
+          const query = (searchInput.value || '').trim().toLowerCase();
+          if (query.length < 2) {
+            hideAllCards();
+            setBanner('idle', 'Enter at least 2 characters to search for a client.');
+            return;
+          }
+
+          const match = userCards.find((card) => card.dataset.filterText.includes(query));
+          if (match) {
+            hideAllCards();
+            match.classList.remove('hidden');
+            setBanner('result', `Showing client matching “${searchInput.value.trim()}”.`);
+            setTimeout(() => {
+              match.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
+          } else {
+            hideAllCards();
+            setBanner('empty', 'No clients match your search. Try a different name, email or phone number.');
+          }
+        };
+
+        searchInput.addEventListener('input', handleLookup);
+        searchInput.addEventListener('search', handleLookup);
+      });
+    </script>
   </div>
 </div>
 
