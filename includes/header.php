@@ -217,18 +217,6 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
   <?php endif; ?>
 </head>
 <body class="min-h-screen bg-white text-slate-800">
-  <?php
-    $mobileNavLinks = [
-      ['href' => '/', 'icon' => '🏠', 'label' => 'Home'],
-      ['href' => '/how-it-works', 'icon' => '📖', 'label' => 'How it Works'],
-      ['href' => '/rewards', 'icon' => '💰', 'label' => 'Rewards'],
-      ['href' => '/partners', 'icon' => '🤝', 'label' => 'Partners'],
-      ['href' => '/faq', 'icon' => '❓', 'label' => 'FAQ'],
-      ['href' => '/resources', 'icon' => '📚', 'label' => 'Resources'],
-      ['href' => '/contact', 'icon' => '📧', 'label' => 'Contact'],
-      ['href' => '/schedule-pickup', 'icon' => '📅', 'label' => 'Schedule Pickup'],
-    ];
-  ?>
   <header class="sticky top-0 z-50 w-full border-b-2 border-emerald-200 bg-white/95 backdrop-blur-lg shadow-sm">
     <div class="container flex h-16 items-center justify-between gap-2 md:gap-4">
       <a href="/" class="flex items-center gap-3 font-bold text-lg sm:text-xl hover:scale-105 transition-transform">
@@ -265,7 +253,7 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
           </button>
           <div
             id="user-menu-panel"
-            class="hidden absolute right-0 z-50 mt-3 w-60 rounded-2xl border-2 border-emerald-100 bg-white shadow-2xl"
+            class="hidden absolute right-0 z-50 mt-3 w-64 max-h-[80vh] overflow-y-auto rounded-2xl border-2 border-emerald-100 bg-white shadow-2xl"
             role="menu"
             aria-labelledby="user-menu-toggle"
           >
@@ -291,26 +279,12 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
                 <span>Payments Admin</span>
               </a>
               <?php endif; ?>
-              <div class="border-t border-emerald-100 my-1"></div>
-              <?php foreach ($mobileNavLinks as $link): ?>
-              <a href="<?php echo $link['href']; ?>" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
-                <span><?php echo $link['icon']; ?></span>
-                <span><?php echo $link['label']; ?></span>
-              </a>
-              <?php endforeach; ?>
               <div class="border-t border-emerald-100"></div>
               <a href="/api/logout" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50" role="menuitem">
                 <span>🚪</span>
                 <span>Logout</span>
               </a>
             <?php else: ?>
-              <?php foreach ($mobileNavLinks as $link): ?>
-              <a href="<?php echo $link['href']; ?>" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
-                <span><?php echo $link['icon']; ?></span>
-                <span><?php echo $link['label']; ?></span>
-              </a>
-              <?php endforeach; ?>
-              <div class="border-t border-emerald-100 my-1"></div>
               <a href="/login" class="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50" role="menuitem">
                 <span>🔐</span>
                 <span>Login</span>
@@ -376,6 +350,66 @@ $canonicalUrl = preg_replace('/\?.*$/', '', $canonicalUrl);
           toggle.focus();
         }
       });
+
+      var scheduleButton = document.querySelector('a[href="/schedule-pickup"]');
+      var navItems = Array.from(document.querySelectorAll('nav[aria-label="Main navigation"] a'));
+      var fallbackLinks = navItems.map(function (anchor) {
+        return {
+          href: anchor.getAttribute('href'),
+          icon: anchor.textContent.trim().slice(0, 2),
+          label: anchor.textContent.trim(),
+        };
+      });
+      if (scheduleButton) {
+        fallbackLinks.push({
+          href: scheduleButton.getAttribute('href'),
+          icon: '📅',
+          label: scheduleButton.textContent.trim(),
+        });
+      }
+
+      function setMenuContent(isMobileWidth) {
+        var isLoggedIn = <?php echo isLoggedIn() ? 'true' : 'false'; ?>;
+        var panelBody = panel.querySelector('[data-nav-links]');
+        if (panelBody) {
+          panelBody.remove();
+        }
+
+        if (isMobileWidth) {
+          var fragment = document.createElement('div');
+          fragment.setAttribute('data-nav-links', 'true');
+
+          fallbackLinks.forEach(function (link) {
+            var anchor = document.createElement('a');
+            anchor.href = link.href;
+            anchor.className = 'flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-emerald-50';
+            anchor.setAttribute('role', 'menuitem');
+            anchor.innerHTML = '<span>' + link.icon + '</span><span>' + link.label + '</span>';
+            fragment.appendChild(anchor);
+          });
+
+          if (!isLoggedIn) {
+            var divider = document.createElement('div');
+            divider.className = 'border-t border-emerald-100';
+            fragment.appendChild(divider);
+          }
+
+          var logoutLink = panel.querySelector('a[href="/api/logout"]');
+          if (logoutLink && isLoggedIn) {
+            logoutLink.parentNode.insertBefore(fragment, logoutLink);
+          } else {
+            panel.appendChild(fragment);
+          }
+        }
+      }
+
+      function evaluateLayout() {
+        var isMobileWidth = window.matchMedia('(max-width: 767px)').matches;
+        setMenuContent(isMobileWidth);
+      }
+
+      evaluateLayout();
+      window.addEventListener('resize', evaluateLayout);
     });
   </script>
   <main>
