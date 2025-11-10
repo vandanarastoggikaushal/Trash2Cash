@@ -314,7 +314,7 @@ require_once __DIR__ . '/../includes/header.php';
             }
             $addressParts = parseAddressParts($user['address'] ?? '');
             $marketingOptIn = !empty($user['marketingOptIn']);
-            $balance = $balances[$userId] ?? 0.0;
+            $lifetimeEarnings = $balances[$userId] ?? 0.0;
             $pendingBalance = $pendingBalances[$userId] ?? 0.0;
             $role = $user['role'] ?? 'user';
             $created = $user['created_at'] ?? ($user['createdAt'] ?? null);
@@ -359,14 +359,12 @@ require_once __DIR__ . '/../includes/header.php';
               <div class="grid gap-2 text-sm text-slate-600">
                 <div class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 font-semibold">
                   <span>💰</span>
-                  <span>Balance: $<?php echo number_format($balance, 2); ?></span>
+                  <span>Total earned: $<?php echo number_format($lifetimeEarnings, 2); ?></span>
                 </div>
-                <?php if ($pendingBalance > 0): ?>
-                  <div class="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-amber-700 font-semibold">
-                    <span>⏳</span>
-                    <span>Pending payouts: $<?php echo number_format($pendingBalance, 2); ?></span>
-                  </div>
-                <?php endif; ?>
+                <div class="inline-flex items-center gap-2 rounded-full <?php echo ($pendingBalance > 0) ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'; ?> px-3 py-1 font-semibold">
+                  <span>⏳</span>
+                  <span>Current balance: $<?php echo number_format($pendingBalance, 2); ?></span>
+                </div>
                 <?php if (!empty($created)): ?>
                   <div class="flex items-center gap-2">
                     <span>🗓️</span>

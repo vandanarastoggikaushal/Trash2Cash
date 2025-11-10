@@ -9,6 +9,11 @@ function formatAddress(address) {
   return [street, suburb, `${city} ${postcode}`.trim()].filter(Boolean).join('\n');
 }
 
+function formatCurrency(amount) {
+  const value = Number.isFinite(Number(amount)) ? Number(amount) : 0;
+  return `NZ$${value.toFixed(2)}`;
+}
+
 export default function AccountScreen({ navigation }) {
   const {
     user,
@@ -172,6 +177,23 @@ export default function AccountScreen({ navigation }) {
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Payout method</Text>
           <Text style={styles.summaryValue}>{user?.payout?.method || 'Bank account'}</Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Total earned</Text>
+          <Text style={[styles.summaryValue, styles.summaryHighlight]}>
+            {formatCurrency(user?.balances?.totalEarned ?? 0)}
+          </Text>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Current balance</Text>
+          <Text
+            style={[
+              styles.summaryValue,
+              (user?.balances?.currentBalance ?? 0) > 0 ? styles.summaryOwed : styles.summarySettled,
+            ]}
+          >
+            {formatCurrency(user?.balances?.currentBalance ?? 0)}
+          </Text>
         </View>
       </View>
 
@@ -397,6 +419,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#111827',
     marginTop: 2,
+  },
+  summaryHighlight: {
+    color: colors.brand,
+    fontWeight: '600',
+  },
+  summaryOwed: {
+    color: '#b45309',
+    fontWeight: '600',
+  },
+  summarySettled: {
+    color: '#6b7280',
+    fontWeight: '500',
   },
   input: {
     borderWidth: 1,

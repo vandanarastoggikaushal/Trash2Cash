@@ -141,6 +141,14 @@ function formatUserForApi(array $user) {
     $addressParts = parseAddressString($user['address'] ?? '');
     $marketingOptIn = !empty($user['marketingOptIn'] ?? $user['marketing_opt_in'] ?? false);
     $payoutMethod = $user['payoutMethod'] ?? $user['payout_method'] ?? 'bank';
+    $userId = $user['id'] ?? null;
+
+    $totalEarned = 0.0;
+    $currentBalance = 0.0;
+    if ($userId && function_exists('getUserBalance')) {
+        $totalEarned = (float) getUserBalance($userId, ['completed']);
+        $currentBalance = (float) getUserBalance($userId, ['pending', 'processing']);
+    }
 
     return [
         'id' => $user['id'] ?? null,
@@ -160,6 +168,10 @@ function formatUserForApi(array $user) {
             'childBankAccount' => $user['payoutChildBankAccount'] ?? ($user['payout_child_bank_account'] ?? ''),
             'kiwisaverProvider' => $user['payoutKiwisaverProvider'] ?? ($user['payout_kiwisaver_provider'] ?? ''),
             'kiwisaverMemberId' => $user['payoutKiwisaverMemberId'] ?? ($user['payout_kiwisaver_member_id'] ?? ''),
+        ],
+        'balances' => [
+            'totalEarned' => $totalEarned,
+            'currentBalance' => $currentBalance,
         ],
         'createdAt' => $user['createdAt'] ?? ($user['created_at'] ?? null),
         'lastLogin' => $user['lastLogin'] ?? ($user['last_login'] ?? null),
@@ -217,6 +229,12 @@ if (file_exists($dbFile)) {
         // Database file exists but has errors - log but don't break the site
         error_log('Error loading db.php: ' . $e->getMessage());
     }
+}
+
+// Load payments helper to expose balance utilities for API responses
+$paymentsFile = __DIR__ . '/payments.php';
+if (file_exists($paymentsFile)) {
+    require_once $paymentsFile;
 }
 
 // User data file (fallback if database not available)
