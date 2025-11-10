@@ -15,6 +15,11 @@ ErrorDocument 503 /503.php
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.+)/$ /$1 [R=301,L]
 
+# Prefer PHP file when both a directory and PHP file share the same slug
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.+?)$ $1.php [NC,L]
+
 # Clean URLs - remove .php extension
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
