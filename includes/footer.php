@@ -1,4 +1,5 @@
   </main>
+  <?php $siteVersion = function_exists('getVersion') ? getVersion() : '1.0.0'; ?>
   <footer class="mt-16 border-t-2 border-emerald-200 bg-gradient-to-br from-slate-50 to-emerald-50/30">
     <div class="container grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-5">
       <div>
@@ -62,9 +63,15 @@
       </div>
     </div>
     <div class="border-t-2 border-emerald-200 py-6 text-center">
-      <p class="text-sm text-slate-700 font-semibold">
-        © <?php echo date('Y'); ?> <?php echo COMPANY_NAME; ?>. All rights reserved. ♻️
-      </p>
+      <div class="flex flex-col items-center gap-2">
+        <p class="text-sm text-slate-700 font-semibold">
+          © <?php echo date('Y'); ?> <?php echo COMPANY_NAME; ?>. All rights reserved. ♻️
+        </p>
+        <p class="text-xs text-slate-500 flex items-center gap-1">
+          <span>📦</span>
+          <span>Version <?php echo htmlspecialchars($siteVersion); ?></span>
+        </p>
+      </div>
     </div>
   </footer>
   <script src="/assets/main.js"></script>
