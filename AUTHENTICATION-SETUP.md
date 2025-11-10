@@ -37,7 +37,7 @@ The website now has a complete user authentication system with login, registrati
 
 ### Logging In
 
-1. Visit `/login.php`
+1. Visit `/login`
 2. Enter username and password
 3. Click "Sign In"
 4. You'll be redirected to the dashboard or the page you were trying to access
@@ -45,7 +45,7 @@ The website now has a complete user authentication system with login, registrati
 ### Logging Out
 
 - Click "Logout" in the navigation menu
-- Or visit `/api/logout.php`
+- Or visit `/api/logout`
 
 ### Protecting Pages
 

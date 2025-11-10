@@ -7,21 +7,21 @@ This is a PHP-based static website for Trash2Cash NZ, designed to run on Hosting
 ```
 /
 ├── index.php              # Homepage
-├── how-it-works.php       # How it works page
-├── rewards.php            # Rewards page
-├── schedule-pickup.php    # Schedule pickup form
-├── contact.php            # Contact form
-├── faq.php               # FAQ page
-├── partners.php          # Partners page
-├── terms.php             # Terms page
-├── privacy.php           # Privacy policy
+├── how-it-works.php       # How it works page (served at /how-it-works)
+├── rewards.php            # Rewards page (served at /rewards)
+├── schedule-pickup.php    # Schedule pickup form (served at /schedule-pickup)
+├── contact.php            # Contact form (served at /contact)
+├── faq.php               # FAQ page (served at /faq)
+├── partners.php          # Partners page (served at /partners)
+├── terms.php             # Terms page (served at /terms)
+├── privacy.php           # Privacy policy (served at /privacy)
 ├── includes/             # PHP includes
 │   ├── header.php        # Site header
 │   ├── footer.php        # Site footer
 │   └── config.php        # Configuration constants
 ├── api/                  # API endpoints
-│   ├── lead.php          # Lead submission endpoint
-│   └── contact.php       # Contact form endpoint
+│   ├── lead.php          # Lead submission endpoint (/api/lead)
+│   └── contact.php       # Contact form endpoint (/api/contact)
 ├── assets/               # Static assets
 │   ├── styles.css        # Custom CSS
 │   ├── main.js           # Main JavaScript
@@ -71,14 +71,14 @@ $DATA_DIR = '/home/username/apps/trash2cash/data';
 - All content is server-side rendered
 
 ### Forms
-- Contact form (`contact.php`)
-- Schedule pickup form (`schedule-pickup.php`)
+- Contact form (`/contact`)
+- Schedule pickup form (`/schedule-pickup`)
 - Both submit to PHP API endpoints
 - Data stored as JSON files in `data/` directory
 
 ### API Endpoints
-- `/api/lead.php` - Handles pickup lead submissions
-- `/api/contact.php` - Handles contact form submissions
+- `/api/lead` - Handles pickup lead submissions
+- `/api/contact` - Handles contact form submissions
 
 Both endpoints:
 - Accept POST requests

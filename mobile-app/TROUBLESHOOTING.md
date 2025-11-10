@@ -50,7 +50,7 @@
 
 2. **Test with PHP server:**
    - Make sure PHP server is running: `php -S localhost:8000`
-   - Test endpoint directly in browser: `http://localhost:8000/api/contact.php`
+   - Test endpoint directly in browser: `http://localhost:8000/api/contact`
    - Should see "Method not allowed" (expected for GET request)
 
 3. **Test email delivery:**

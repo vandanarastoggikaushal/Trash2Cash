@@ -3,15 +3,15 @@
 const API_BASE_URL = 'https://trash2cash.co.nz';
 
 export const API_ENDPOINTS = {
-  CONTACT: `${API_BASE_URL}/api/contact.php`,
-  LEAD: `${API_BASE_URL}/api/lead.php`,
-  HEALTH: `${API_BASE_URL}/api/health.php`,
-  ADDRESS_SEARCH: `${API_BASE_URL}/api/address-search.php`,
-  ADDRESS_DETAILS: `${API_BASE_URL}/api/address-details.php`,
-  AUTH_LOGIN: `${API_BASE_URL}/api/auth/login.php`,
-  AUTH_REGISTER: `${API_BASE_URL}/api/auth/register.php`,
-  AUTH_LOGOUT: `${API_BASE_URL}/api/auth/logout.php`,
-  PROFILE: `${API_BASE_URL}/api/profile.php`,
+  CONTACT: `${API_BASE_URL}/api/contact`,
+  LEAD: `${API_BASE_URL}/api/lead`,
+  HEALTH: `${API_BASE_URL}/api/health`,
+  ADDRESS_SEARCH: `${API_BASE_URL}/api/address-search`,
+  ADDRESS_DETAILS: `${API_BASE_URL}/api/address-details`,
+  AUTH_LOGIN: `${API_BASE_URL}/api/auth/login`,
+  AUTH_REGISTER: `${API_BASE_URL}/api/auth/register`,
+  AUTH_LOGOUT: `${API_BASE_URL}/api/auth/logout`,
+  PROFILE: `${API_BASE_URL}/api/profile`,
 };
 
 export const APP_CONFIG = {

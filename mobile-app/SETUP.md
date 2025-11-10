@@ -117,8 +117,8 @@ mobile-app/
 ## API Integration
 
 The app connects to your existing PHP backend:
-- Contact form → `/api/contact.php`
-- Pickup requests → `/api/lead.php`
+- Contact form → `/api/contact`
+- Pickup requests → `/api/lead`
 
 No changes needed to your PHP backend - it works as-is!
 

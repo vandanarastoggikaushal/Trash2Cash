@@ -18,7 +18,7 @@ document.getElementById('contact-form').addEventListener('submit', async functio
   errorDiv.classList.add('hidden');
   
   try {
-    const response = await fetch('/api/contact.php', {
+    const response = await fetch('/api/contact', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

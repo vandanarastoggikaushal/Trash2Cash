@@ -110,7 +110,7 @@ function initAddressAutocomplete() {
     
     addressSearchTimeout = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/address-search.php?q=${encodeURIComponent(query)}`);
+        const response = await fetch(`/api/address-search?q=${encodeURIComponent(query)}`);
         
         if (!response.ok) {
           console.error('Address search API error:', response.status, response.statusText);
@@ -177,7 +177,7 @@ function displaySuggestions(suggestions) {
       
       if (idToUse) {
         try {
-          const response = await fetch(`/api/address-details.php?id=${encodeURIComponent(idToUse)}`);
+          const response = await fetch(`/api/address-details?id=${encodeURIComponent(idToUse)}`);
           
           if (response.ok) {
             const data = await response.json();
@@ -440,7 +440,7 @@ document.getElementById('pickup-form').addEventListener('submit', async function
   errorDiv.classList.add('hidden');
   
   try {
-    const response = await fetch('/api/lead.php', {
+    const response = await fetch('/api/lead', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
