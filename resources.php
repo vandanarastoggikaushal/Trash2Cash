@@ -8,7 +8,7 @@ $resources = [
   [
     'title' => 'Wellington Recycling Guide: How to prepare cans & appliances',
     'description' => 'Step-by-step advice for rinsing aluminium cans, preparing appliances, and booking Wellington recycling pickups.',
-    'url' => '/resources/wellington-recycling-guide.php',
+    'url' => '/resources/wellington-recycling-guide',
     'icon' => '📘',
     'category' => 'Household recycling'
   ],

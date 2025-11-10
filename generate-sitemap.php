@@ -55,7 +55,7 @@ $pages = [
         'priority' => '0.7',
         'changefreq' => 'weekly'
     ],
-    'resources/wellington-recycling-guide.php' => [
+    'resources-pages/wellington-recycling-guide.php' => [
         'url' => '/resources/wellington-recycling-guide',
         'priority' => '0.6',
         'changefreq' => 'monthly'

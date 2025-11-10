@@ -20,6 +20,9 @@ RewriteCond %{REQUEST_FILENAME} -d
 RewriteCond %{REQUEST_FILENAME}.php -f
 RewriteRule ^(.+?)$ $1.php [NC,L]
 
+# Route resource landing pages after renaming directory
+RewriteRule ^resources/(.+)$ resources-pages/$1.php [NC,L]
+
 # Clean URLs - remove .php extension
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
