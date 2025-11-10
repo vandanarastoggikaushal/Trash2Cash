@@ -21,10 +21,10 @@ require_once __DIR__ . '/includes/header.php';
           Trash2Cash NZ provides door-to-door recycling in Wellington. We collect clean aluminium cans and old appliances, recycle them responsibly, and pay you <strong class="text-brand font-bold">$1 per 100 cans</strong>. Choose cash, kids' savings, or KiwiSaver and keep valuable materials out of landfill.
         </p>
         <div class="mt-8 flex flex-wrap gap-4">
-          <a class="btn text-lg px-8 py-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all" href="/schedule-pickup.php">
+          <a class="btn text-lg px-8 py-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all" href="/schedule-pickup">
             ✨ Schedule a Pickup
           </a>
-          <a class="btn-secondary text-lg px-8 py-3 hover:border-brand hover:text-brand transition-all" href="/how-it-works.php">📖 How It Works</a>
+          <a class="btn-secondary text-lg px-8 py-3 hover:border-brand hover:text-brand transition-all" href="/how-it-works">📖 How It Works</a>
         </div>
         <div class="mt-8 p-4 rounded-lg bg-gradient-to-r from-emerald-100 to-green-100 border-l-4 border-brand">
           <p class="text-sm font-semibold text-slate-800">
@@ -57,12 +57,12 @@ require_once __DIR__ . '/includes/header.php';
           appliance disposal tips, and the latest advice on council recycling rules. Check back regularly or subscribe to our updates for new guides.
         </p>
         <ul class="space-y-3 text-slate-700 text-base">
-          <li class="flex items-start gap-3"><span>📄</span> <a href="/resources/wellington-recycling-guide.php" class="text-brand font-semibold hover:underline">Wellington Recycling Guide: How to prepare cans &amp; appliances</a></li>
+          <li class="flex items-start gap-3"><span>📄</span> <a href="/resources/wellington-recycling-guide" class="text-brand font-semibold hover:underline">Wellington Recycling Guide: How to prepare cans &amp; appliances</a></li>
           <li class="flex items-start gap-3"><span>🧠</span> <span>Expert tips on boosting household recycling rebates and rewards.</span></li>
           <li class="flex items-start gap-3"><span>🌱</span> <span>Community initiatives and school fundraisers using Trash2Cash pickups.</span></li>
         </ul>
         <div class="mt-6">
-          <a href="/resources.php" class="btn-secondary text-base px-6 py-3">Browse all recycling resources</a>
+          <a href="/resources" class="btn-secondary text-base px-6 py-3">Browse all recycling resources</a>
         </div>
       </div>
       <div class="rounded-3xl border-2 border-emerald-200 bg-white p-6 shadow-lg space-y-4">
@@ -88,7 +88,7 @@ require_once __DIR__ . '/includes/header.php';
     </div>
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <?php foreach ($SERVICE_AREAS as $area): ?>
-        <a href="/recycling-wellington.php#<?php echo urlencode(strtolower(str_replace(' ', '-', $area))); ?>"
+        <a href="/recycling-wellington#<?php echo urlencode(strtolower(str_replace(' ', '-', $area))); ?>"
           class="group rounded-2xl border-2 border-emerald-100 bg-white p-6 shadow-md transition-all hover:border-brand hover:shadow-xl">
           <div class="flex items-center justify-between">
             <div>
@@ -122,8 +122,8 @@ require_once __DIR__ . '/includes/header.php';
           <li class="flex items-start gap-3"><span>✅</span> <span>Transparent pricing with digital receipts and account tracking.</span></li>
         </ul>
         <div class="flex flex-wrap gap-4">
-          <a href="/recycling-wellington.php" class="btn-secondary text-base px-6 py-3">Learn about our Wellington service</a>
-          <a href="/faq.php" class="btn-secondary text-base px-6 py-3">Read recycling FAQs</a>
+          <a href="/recycling-wellington" class="btn-secondary text-base px-6 py-3">Learn about our Wellington service</a>
+          <a href="/faq" class="btn-secondary text-base px-6 py-3">Read recycling FAQs</a>
         </div>
       </div>
       <div class="rounded-3xl border-2 border-emerald-100 bg-white shadow-xl p-8 space-y-6">
@@ -250,7 +250,7 @@ require_once __DIR__ . '/includes/header.php';
         <h3 class="text-3xl font-bold mb-2">Ready to turn trash into cash?</h3>
         <p class="text-emerald-100 text-lg">Door-to-door pickups across Wellington & suburbs.</p>
       </div>
-      <a href="/schedule-pickup.php" class="relative z-10 btn bg-white text-emerald-700 hover:bg-emerald-50 text-lg px-8 py-4 shadow-2xl transform hover:scale-105 transition-all font-bold">
+      <a href="/schedule-pickup" class="relative z-10 btn bg-white text-emerald-700 hover:bg-emerald-50 text-lg px-8 py-4 shadow-2xl transform hover:scale-105 transition-all font-bold">
         ✨ Schedule a Pickup Now
       </a>
     </div>

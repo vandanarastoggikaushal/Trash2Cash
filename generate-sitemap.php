@@ -16,57 +16,57 @@ $pages = [
         'changefreq' => 'weekly'
     ],
     'how-it-works.php' => [
-        'url' => '/how-it-works.php',
+        'url' => '/how-it-works',
         'priority' => '0.9',
         'changefreq' => 'monthly'
     ],
     'rewards.php' => [
-        'url' => '/rewards.php',
+        'url' => '/rewards',
         'priority' => '0.9',
         'changefreq' => 'monthly'
     ],
     'schedule-pickup.php' => [
-        'url' => '/schedule-pickup.php',
+        'url' => '/schedule-pickup',
         'priority' => '0.9',
         'changefreq' => 'monthly'
     ],
     'faq.php' => [
-        'url' => '/faq.php',
+        'url' => '/faq',
         'priority' => '0.8',
         'changefreq' => 'monthly'
     ],
     'contact.php' => [
-        'url' => '/contact.php',
+        'url' => '/contact',
         'priority' => '0.8',
         'changefreq' => 'monthly'
     ],
     'partners.php' => [
-        'url' => '/partners.php',
+        'url' => '/partners',
         'priority' => '0.7',
         'changefreq' => 'monthly'
     ],
     'recycling-wellington.php' => [
-        'url' => '/recycling-wellington.php',
+        'url' => '/recycling-wellington',
         'priority' => '0.9',
         'changefreq' => 'monthly'
     ],
     'resources.php' => [
-        'url' => '/resources.php',
+        'url' => '/resources',
         'priority' => '0.7',
         'changefreq' => 'weekly'
     ],
     'resources/wellington-recycling-guide.php' => [
-        'url' => '/resources/wellington-recycling-guide.php',
+        'url' => '/resources/wellington-recycling-guide',
         'priority' => '0.6',
         'changefreq' => 'monthly'
     ],
     'privacy.php' => [
-        'url' => '/privacy.php',
+        'url' => '/privacy',
         'priority' => '0.5',
         'changefreq' => 'yearly'
     ],
     'terms.php' => [
-        'url' => '/terms.php',
+        'url' => '/terms',
         'priority' => '0.5',
         'changefreq' => 'yearly'
     ]

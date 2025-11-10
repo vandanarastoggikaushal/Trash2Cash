@@ -29,20 +29,20 @@ $pageDescription = 'The page you are looking for could not be found.';
         <a href="/" class="btn text-lg px-6 py-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
           🏠 Home
         </a>
-        <a href="/schedule-pickup.php" class="btn text-lg px-6 py-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
+        <a href="/schedule-pickup" class="btn text-lg px-6 py-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
           📅 Schedule Pickup
         </a>
-        <a href="/how-it-works.php" class="btn-secondary text-lg px-6 py-3 hover:border-brand hover:text-brand transition-all">
+        <a href="/how-it-works" class="btn-secondary text-lg px-6 py-3 hover:border-brand hover:text-brand transition-all">
           📖 How It Works
         </a>
-        <a href="/contact.php" class="btn-secondary text-lg px-6 py-3 hover:border-brand hover:text-brand transition-all">
+        <a href="/contact" class="btn-secondary text-lg px-6 py-3 hover:border-brand hover:text-brand transition-all">
           📧 Contact Us
         </a>
       </div>
     </div>
 
     <div class="text-sm text-slate-500">
-      <p>If you believe this is an error, please <a href="/contact.php" class="text-brand hover:underline font-semibold">contact us</a>.</p>
+      <p>If you believe this is an error, please <a href="/contact" class="text-brand hover:underline font-semibold">contact us</a>.</p>
     </div>
   </div>
 </div>

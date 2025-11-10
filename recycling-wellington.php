@@ -21,8 +21,8 @@ require_once __DIR__ . '/includes/header.php';
         reducing landfill.
       </p>
       <div class="flex flex-wrap justify-center gap-4">
-        <a href="/schedule-pickup.php" class="btn text-base px-6 py-3">Schedule a recycling pickup</a>
-        <a href="/resources.php" class="btn-secondary text-base px-6 py-3">Read recycling guides</a>
+        <a href="/schedule-pickup" class="btn text-base px-6 py-3">Schedule a recycling pickup</a>
+        <a href="/resources" class="btn-secondary text-base px-6 py-3">Read recycling guides</a>
       </div>
     </header>
 
@@ -75,13 +75,13 @@ require_once __DIR__ . '/includes/header.php';
     <section class="rounded-3xl border-2 border-emerald-100 bg-gradient-to-br from-white to-emerald-50/40 p-8 shadow-xl space-y-6">
       <h2 class="text-3xl font-bold text-slate-900">How Wellington recycling pickups work</h2>
       <ol class="space-y-4 text-slate-700">
-        <li><strong>1. Book online:</strong> Use the <a href="/schedule-pickup.php" class="text-brand font-semibold hover:underline">schedule form</a> to choose a pickup date and share what you are recycling.</li>
+        <li><strong>1. Book online:</strong> Use the <a href="/schedule-pickup" class="text-brand font-semibold hover:underline">schedule form</a> to choose a pickup date and share what you are recycling.</li>
         <li><strong>2. Prep your items:</strong> Rinse cans, bundle them, and make sure appliances are disconnected with clear access.</li>
         <li><strong>3. We collect &amp; weigh:</strong> Our team confirms volumes on-site and updates your Trash2Cash balance.</li>
         <li><strong>4. Pick your payout:</strong> Transfer to a bank account, a child’s savings, or your KiwiSaver after the first successful collection.</li>
       </ol>
       <p class="text-slate-600">
-        Need help with regular recycling at schools, gyms or offices? Contact us via <a href="/contact.php" class="text-brand font-semibold hover:underline">the contact form</a> and we’ll tailor a recycling programme.
+        Need help with regular recycling at schools, gyms or offices? Contact us via <a href="/contact" class="text-brand font-semibold hover:underline">the contact form</a> and we’ll tailor a recycling programme.
       </p>
     </section>
 
@@ -91,8 +91,8 @@ require_once __DIR__ . '/includes/header.php';
         Keep aluminium, appliances and scrap metal out of landfill — and turn them into real value. We can usually collect within a few days anywhere in the Wellington region.
       </p>
       <div class="flex flex-wrap gap-4">
-        <a href="/schedule-pickup.php" class="btn bg-white text-emerald-700 hover:bg-emerald-50 text-base px-6 py-3">Book a pickup</a>
-        <a href="/faq.php" class="btn-secondary text-base px-6 py-3 text-white border-white hover:text-emerald-700 hover:bg-white">View recycling FAQ</a>
+        <a href="/schedule-pickup" class="btn bg-white text-emerald-700 hover:bg-emerald-50 text-base px-6 py-3">Book a pickup</a>
+        <a href="/faq" class="btn-secondary text-base px-6 py-3 text-white border-white hover:text-emerald-700 hover:bg-white">View recycling FAQ</a>
       </div>
     </section>
   </div>

@@ -6,7 +6,7 @@ require_once __DIR__ . '/includes/auth.php';
 requireLogin('/schedule-pickup.php');
 $user = getCurrentUser();
 if (!$user) {
-    header('Location: /login.php');
+    header('Location: /login');
     exit;
 }
 

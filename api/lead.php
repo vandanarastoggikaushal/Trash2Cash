@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   http_response_code(405);
   echo json_encode([ 'ok' => false, 'error' => 'Method not allowed' ]);
@@ -9,6 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // Load database helper if available
 require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/payments.php';
 $dbFile = __DIR__ . '/../includes/db.php';
 if (file_exists($dbFile)) {
     require_once $dbFile;
@@ -62,6 +65,57 @@ if (empty($data['person']['fullName']) || empty($data['person']['email'])) {
   exit;
 }
 
+$authenticatedUserId = null;
+if (function_exists('isLoggedIn') && isLoggedIn()) {
+  $authenticatedUserId = $_SESSION['user_id'] ?? null;
+}
+
+if (!$authenticatedUserId) {
+  $token = getBearerTokenFromHeaders();
+  if (!empty($token)) {
+    $tokenUser = fetchUserRowByApiToken($token);
+    if (!empty($tokenUser['id'])) {
+      $authenticatedUserId = $tokenUser['id'];
+    }
+  }
+}
+
+if (!$authenticatedUserId && isPaymentsDatabaseAvailable() && function_exists('dbQueryOne')) {
+  $emailLookup = trim((string) ($data['person']['email'] ?? ''));
+  if ($emailLookup !== '') {
+    $existingUser = dbQueryOne(
+      'SELECT id FROM users WHERE email = :email LIMIT 1',
+      [':email' => $emailLookup]
+    );
+    if ($existingUser && !empty($existingUser['id'])) {
+      $authenticatedUserId = $existingUser['id'];
+    }
+  }
+}
+
+$pickup = $data['pickup'] ?? [];
+$cansEstimate = isset($pickup['cansEstimate']) ? (int) $pickup['cansEstimate'] : 0;
+$cansReward = $cansEstimate > 0 ? floor($cansEstimate / 100) * CAN_REWARD_PER_100 : 0;
+$applianceReward = 0;
+
+if (!empty($pickup['appliances']) && is_array($pickup['appliances'])) {
+  $applianceMap = [];
+  foreach ($APPLIANCE_CREDITS as $applianceDefinition) {
+    if (!empty($applianceDefinition['slug'])) {
+      $applianceMap[$applianceDefinition['slug']] = $applianceDefinition['credit'] ?? 0;
+    }
+  }
+  foreach ($pickup['appliances'] as $appliance) {
+    $slug = $appliance['slug'] ?? '';
+    $qty = isset($appliance['qty']) ? (int) $appliance['qty'] : 0;
+    if ($slug !== '' && $qty > 0 && isset($applianceMap[$slug])) {
+      $applianceReward += (int) $applianceMap[$slug] * $qty;
+    }
+  }
+}
+
+$estimatedReward = round((float) ($cansReward + $applianceReward), 2);
+
 $id = bin2hex(random_bytes(6));
 $data['id'] = $id;
 $data['createdAt'] = gmdate('c');
@@ -84,25 +138,26 @@ if ($useDatabase) {
   }
   
   $sql = "INSERT INTO leads (
-    id, person_name, person_email, person_phone, person_marketing_optin,
+    id, user_id, person_name, person_email, person_phone, person_marketing_optin,
     address_street, address_suburb, address_city, address_postcode, address_access_notes,
     pickup_type, pickup_cans_estimate, pickup_preferred_date, pickup_preferred_window,
     payout_method, payout_bank_name, payout_bank_account,
     payout_child_name, payout_child_bank_account,
     payout_kiwisaver_provider, payout_kiwisaver_member_id,
-    items_are_clean, accepted_terms, appliances_json, created_at, status
+    items_are_clean, accepted_terms, appliances_json, estimated_reward, created_at, status
   ) VALUES (
-    :id, :person_name, :person_email, :person_phone, :person_marketing_optin,
+    :id, :user_id, :person_name, :person_email, :person_phone, :person_marketing_optin,
     :address_street, :address_suburb, :address_city, :address_postcode, :address_access_notes,
     :pickup_type, :pickup_cans_estimate, :pickup_preferred_date, :pickup_preferred_window,
     :payout_method, :payout_bank_name, :payout_bank_account,
     :payout_child_name, :payout_child_bank_account,
     :payout_kiwisaver_provider, :payout_kiwisaver_member_id,
-    :items_are_clean, :accepted_terms, :appliances_json, :created_at, :status
+    :items_are_clean, :accepted_terms, :appliances_json, :estimated_reward, :created_at, :status
   )";
   
   $params = [
     ':id' => $id,
+    ':user_id' => $authenticatedUserId,
     ':person_name' => $person['fullName'] ?? '',
     ':person_email' => $person['email'] ?? '',
     ':person_phone' => $person['phone'] ?? '',
@@ -126,6 +181,7 @@ if ($useDatabase) {
     ':items_are_clean' => ($confirm['itemsAreClean'] ?? false) ? 1 : 0,
     ':accepted_terms' => ($confirm['acceptedTerms'] ?? false) ? 1 : 0,
     ':appliances_json' => !empty($appliances) ? json_encode($appliances) : null,
+    ':estimated_reward' => $estimatedReward,
     ':created_at' => gmdate('Y-m-d H:i:s'),
     ':status' => 'pending'
   ];
@@ -149,9 +205,39 @@ if (!$useDatabase) {
     $json = json_decode($content, true);
     if (is_array($json)) { $existing = $json; }
   }
+
+  $data['userId'] = $authenticatedUserId;
+  $data['estimatedReward'] = $estimatedReward;
   
   $existing[] = $data;
   file_put_contents($file, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+}
+
+if ($authenticatedUserId && $estimatedReward > 0) {
+  $reference = 'Pickup #' . strtoupper($id);
+  if (!paymentExistsForReference($authenticatedUserId, $reference)) {
+    $noteParts = [];
+    if ($cansReward > 0) {
+      $noteParts[] = 'Cans $' . number_format($cansReward, 2);
+    }
+    if ($applianceReward > 0) {
+      $noteParts[] = 'Appliances $' . number_format($applianceReward, 2);
+    }
+    $notes = 'Auto credit from pickup request ' . strtoupper($id);
+    if (!empty($noteParts)) {
+      $notes .= ' (' . implode('; ', $noteParts) . ')';
+    }
+
+    recordUserPayment(
+      $authenticatedUserId,
+      $estimatedReward,
+      $reference,
+      $notes,
+      gmdate('Y-m-d'),
+      'pending',
+      'NZD'
+    );
+  }
 }
 
 // Send email notification

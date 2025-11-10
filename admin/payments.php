@@ -51,6 +51,8 @@ $successMessage = '';
 $errorMessage = '';
 $deleteSuccessMessage = '';
 $deleteErrorMessage = '';
+$statusSuccessMessage = '';
+$statusErrorMessage = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
@@ -80,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $reference = trim($_POST['reference'] ?? '');
         $notes = trim($_POST['notes'] ?? '');
         $paymentDate = trim($_POST['payment_date'] ?? '');
-        $status = $_POST['status'] ?? 'completed';
+        $status = $_POST['status'] ?? 'pending';
         $currency = strtoupper(trim($_POST['currency'] ?? 'NZD'));
 
         if (!isset($userOptions[$selectedUserId])) {
@@ -118,31 +120,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
             }
         }
+    } elseif ($action === 'update_payment_status') {
+        $paymentId = $_POST['payment_id'] ?? '';
+        $nextStatus = strtolower(trim($_POST['next_status'] ?? ''));
+
+        if ($paymentId === '' || $nextStatus === '') {
+            $statusErrorMessage = 'Please choose a payout entry and action.';
+        } else {
+            $payment = getPaymentById($paymentId);
+            if (!$payment) {
+                $statusErrorMessage = 'The selected payout could not be found.';
+            } else {
+                $currentStatus = strtolower($payment['status'] ?? '');
+                $allowedTransitions = [
+                    'pending' => ['processing', 'completed'],
+                    'processing' => ['completed']
+                ];
+
+                if (!isset($allowedTransitions[$currentStatus]) || !in_array($nextStatus, $allowedTransitions[$currentStatus], true)) {
+                    $statusErrorMessage = 'This payout cannot transition to the selected status.';
+                } else {
+                    $updates = [];
+                    if ($nextStatus === 'completed') {
+                        $updates['payment_date'] = gmdate('Y-m-d');
+                    }
+
+                    if (updatePaymentStatus($paymentId, $nextStatus, $updates)) {
+                        $statusSuccessMessage = 'Payout updated to ' . ucfirst($nextStatus) . '.';
+                        $_POST = [];
+                    } else {
+                        $statusErrorMessage = 'Unable to update payout status. Please try again.';
+                    }
+                }
+            }
+        }
     }
 }
 
-$balancesMap = getAllUserBalances();
-$pendingBalancesMap = getAllUserBalances(['pending', 'processing']);
+$paidBalancesMap = getAllUserBalances(['completed']);
+$owedBalancesMap = getAllUserBalances(['pending', 'processing']);
+$pendingPayments = getPaymentsByStatus(['pending', 'processing']);
 $recentPayments = getRecentPayments(50);
+$totalOwed = 0.0;
+foreach ($owedBalancesMap as $owedAmount) {
+    $totalOwed += (float) $owedAmount;
+}
+$pendingPaymentCount = count($pendingPayments);
 
 // Prepare balances list combining users and totals
 $userBalances = [];
 foreach ($activeUsers as $id => $details) {
     $firstName = $details['firstName'] ?? ($details['first_name'] ?? '');
     $lastName = $details['lastName'] ?? ($details['last_name'] ?? '');
-    $balance = $balancesMap[$id] ?? 0.0;
+    $owedBalance = $owedBalancesMap[$id] ?? 0.0;
+    $paidBalance = $paidBalancesMap[$id] ?? 0.0;
     $userBalances[] = [
         'id' => $id,
         'username' => $details['username'] ?? '',
         'firstName' => $firstName,
         'lastName' => $lastName,
         'email' => $details['email'] ?? '',
-        'balance' => $balance
+        'owed' => $owedBalance,
+        'paid' => $paidBalance
     ];
 }
 
 usort($userBalances, function ($a, $b) {
-    return $b['balance'] <=> $a['balance'];
+    return $b['owed'] <=> $a['owed'];
 });
 
 require_once __DIR__ . '/../includes/header.php';
@@ -164,9 +208,9 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="rounded-2xl border-2 border-emerald-200 bg-white px-6 py-4 text-sm text-slate-600 shadow-md">
           <p class="font-semibold text-slate-500 uppercase tracking-[0.2em]">Quick Tips</p>
           <ul class="mt-2 space-y-1 list-disc list-inside">
-            <li>Use completed status for confirmed payouts</li>
-            <li>Pending/processing won’t count toward balances</li>
-            <li>All amounts are stored in the selected currency</li>
+            <li>Pickup credits land as pending until you send the payout</li>
+            <li>Use “Initiate payout” when you start a transfer</li>
+            <li>Mark payouts as completed once funds are sent</li>
           </ul>
         </div>
       </div>
@@ -181,6 +225,132 @@ require_once __DIR__ . '/../includes/header.php';
       <?php echo htmlspecialchars($deleteSuccessMessage); ?>
     </div>
     <?php endif; ?>
+
+    <?php if (!empty($statusErrorMessage)): ?>
+    <div class="rounded-2xl border-2 border-red-200 bg-red-50/80 px-4 py-3 text-sm text-red-700">
+      <?php echo htmlspecialchars($statusErrorMessage); ?>
+    </div>
+    <?php elseif (!empty($statusSuccessMessage)): ?>
+    <div class="rounded-2xl border-2 border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-700">
+      <?php echo htmlspecialchars($statusSuccessMessage); ?>
+    </div>
+    <?php endif; ?>
+
+    <div class="rounded-3xl border-2 border-emerald-100 bg-emerald-50/40 p-8 shadow-xl">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+        <div class="flex items-center gap-2">
+          <span class="text-emerald-600 text-3xl">⏳</span>
+          <h2 class="text-2xl font-bold text-slate-900">Pending Payouts</h2>
+        </div>
+        <div class="flex flex-wrap gap-3 text-sm font-semibold text-slate-600">
+          <span class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">
+            <span>💵</span>
+            <span>Owed: $<?php echo number_format($totalOwed, 2); ?></span>
+          </span>
+          <span class="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">
+            <span>📋</span>
+            <span><?php echo (int) $pendingPaymentCount; ?> open payout<?php echo $pendingPaymentCount === 1 ? '' : 's'; ?></span>
+          </span>
+        </div>
+      </div>
+
+      <?php if (empty($pendingPayments)): ?>
+        <div class="rounded-2xl border-2 border-dashed border-emerald-200 bg-white/70 p-6 text-center text-slate-600">
+          No pending payouts right now. New pickup requests and bonuses will appear here automatically.
+        </div>
+      <?php else: ?>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-emerald-200">
+            <thead class="bg-emerald-100">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-emerald-700">User</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-emerald-700">Reference</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-emerald-700">Created</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-emerald-700">Amount</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-emerald-700">Status</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-emerald-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-emerald-100">
+              <?php foreach ($pendingPayments as $payment): ?>
+                <?php
+                  $status = strtolower($payment['status'] ?? 'pending');
+                  $statusStyles = [
+                    'pending' => 'bg-amber-100 text-amber-700',
+                    'processing' => 'bg-blue-100 text-blue-700',
+                    'completed' => 'bg-emerald-100 text-emerald-700',
+                    'failed' => 'bg-red-100 text-red-700',
+                    'cancelled' => 'bg-slate-200 text-slate-700'
+                  ];
+                  $statusClass = $statusStyles[$status] ?? 'bg-slate-200 text-slate-700';
+                  $notesPlain = trim((string)($payment['notes'] ?? ''));
+                  $createdAt = $payment['createdAt'] ?? $payment['created_at'] ?? null;
+                  $createdDisplay = $createdAt ? date('M j, Y H:i', strtotime($createdAt)) : '—';
+                  $displayUserName = trim(($payment['firstName'] ?? '') . ' ' . ($payment['lastName'] ?? ''));
+                  if ($displayUserName === '') {
+                    $displayUserName = $payment['username'] ?? 'Unknown user';
+                  }
+                ?>
+                <tr class="hover:bg-emerald-50/50 transition-colors">
+                  <td class="px-4 py-4 text-sm font-semibold text-slate-700">
+                    <?php echo htmlspecialchars($displayUserName); ?><br>
+                    <span class="text-xs font-medium text-slate-500"><?php echo htmlspecialchars($payment['username'] ?? ''); ?></span>
+                  </td>
+                  <td class="px-4 py-4 text-sm text-slate-600">
+                    <div class="font-semibold text-slate-800"><?php echo htmlspecialchars($payment['reference'] ?: '—'); ?></div>
+                    <?php if ($notesPlain !== ''): ?>
+                      <div class="mt-1 text-xs text-slate-500"><?php echo nl2br(htmlspecialchars($notesPlain)); ?></div>
+                    <?php endif; ?>
+                  </td>
+                  <td class="px-4 py-4 text-sm text-slate-600">
+                    <?php echo htmlspecialchars($createdDisplay); ?>
+                  </td>
+                  <td class="px-4 py-4 text-right text-sm font-bold text-slate-900">
+                    <?php echo 'NZ$' . number_format((float) ($payment['amount'] ?? 0), 2); ?>
+                  </td>
+                  <td class="px-4 py-4 text-center">
+                    <span class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold <?php echo $statusClass; ?>">
+                      <span class="text-base">
+                        <?php echo $status === 'pending' ? '⏳' : ($status === 'processing' ? '🚚' : '✅'); ?>
+                      </span>
+                      <span><?php echo htmlspecialchars(ucfirst($status)); ?></span>
+                    </span>
+                  </td>
+                  <td class="px-4 py-4 text-right text-sm">
+                    <div class="flex flex-wrap justify-end gap-2">
+                      <?php if ($status === 'pending'): ?>
+                        <form method="POST">
+                          <input type="hidden" name="action" value="update_payment_status">
+                          <input type="hidden" name="payment_id" value="<?php echo htmlspecialchars($payment['id']); ?>">
+                          <input type="hidden" name="next_status" value="processing">
+                          <button type="submit" class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-200">
+                            <span>🚚</span>
+                            <span>Initiate payout</span>
+                          </button>
+                        </form>
+                      <?php endif; ?>
+                      <?php if (in_array($status, ['pending', 'processing'], true)): ?>
+                        <form method="POST" onsubmit="return confirm('Mark this payout as completed?');">
+                          <input type="hidden" name="action" value="update_payment_status">
+                          <input type="hidden" name="payment_id" value="<?php echo htmlspecialchars($payment['id']); ?>">
+                          <input type="hidden" name="next_status" value="completed">
+                          <button type="submit" class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-200">
+                            <span>✅</span>
+                            <span>Mark completed</span>
+                          </button>
+                        </form>
+                      <?php else: ?>
+                        <span class="text-xs text-slate-400">No actions</span>
+                      <?php endif; ?>
+                    </div>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php endif; ?>
+    </div>
 
     <div class="grid gap-10 lg:grid-cols-2">
       <div class="rounded-3xl border-2 border-emerald-100 bg-white p-8 shadow-xl">
@@ -277,10 +447,10 @@ require_once __DIR__ . '/../includes/header.php';
                 name="status"
                 class="w-full rounded-xl border-2 border-emerald-200 px-4 py-3 focus:border-brand focus:ring-2 focus:ring-emerald-200 transition-all"
               >
-                <?php $selectedStatus = $_POST['status'] ?? 'completed'; ?>
-                <option value="completed" <?php echo ($selectedStatus === 'completed') ? 'selected' : ''; ?>>Completed</option>
+                <?php $selectedStatus = $_POST['status'] ?? 'pending'; ?>
                 <option value="pending" <?php echo ($selectedStatus === 'pending') ? 'selected' : ''; ?>>Pending</option>
                 <option value="processing" <?php echo ($selectedStatus === 'processing') ? 'selected' : ''; ?>>Processing</option>
+                <option value="completed" <?php echo ($selectedStatus === 'completed') ? 'selected' : ''; ?>>Completed</option>
                 <option value="failed" <?php echo ($selectedStatus === 'failed') ? 'selected' : ''; ?>>Failed</option>
                 <option value="cancelled" <?php echo ($selectedStatus === 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
               </select>
@@ -322,7 +492,7 @@ require_once __DIR__ . '/../includes/header.php';
       <div class="rounded-3xl border-2 border-emerald-100 bg-emerald-50/40 p-8 shadow-xl">
         <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-6">
           <span class="text-emerald-600 text-3xl">📊</span>
-          <span>Current Balances</span>
+          <span>Account Balances</span>
         </h2>
         <div class="overflow-x-auto rounded-2xl border border-emerald-200 bg-white shadow-md">
           <table class="min-w-full divide-y divide-emerald-200">
@@ -330,7 +500,8 @@ require_once __DIR__ . '/../includes/header.php';
               <tr>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-emerald-700">User</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-emerald-700">Contact</th>
-                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-emerald-700">Balance (NZD)</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-emerald-700">Owed (NZD)</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-emerald-700">Paid to Date</th>
                 <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-emerald-700">Actions</th>
               </tr>
             </thead>
@@ -341,8 +512,9 @@ require_once __DIR__ . '/../includes/header.php';
                   if ($displayName === '') {
                       $displayName = $user['username'];
                   }
-                  $pendingAmount = $pendingBalancesMap[$user['id']] ?? 0.0;
-                  $canDelete = ($user['id'] !== $currentAdminId) && ($pendingAmount <= 0);
+                  $owedAmount = $user['owed'] ?? 0.0;
+                  $paidAmount = $user['paid'] ?? 0.0;
+                  $canDelete = ($user['id'] !== $currentAdminId) && ($owedAmount <= 0);
                 ?>
                 <tr class="hover:bg-emerald-50/50 transition-colors">
                   <td class="px-4 py-4 text-sm font-semibold text-slate-700">
@@ -352,13 +524,16 @@ require_once __DIR__ . '/../includes/header.php';
                   <td class="px-4 py-4 text-sm text-slate-600">
                     <?php echo $user['email'] ? htmlspecialchars($user['email']) : '<span class="text-slate-400 italic">No email</span>'; ?>
                   </td>
-                  <td class="px-4 py-4 text-right text-sm font-bold text-slate-900">
-                    <?php echo 'NZ$' . number_format($user['balance'], 2); ?>
+                  <td class="px-4 py-4 text-right text-sm font-bold <?php echo ($owedAmount > 0) ? 'text-emerald-700' : 'text-slate-500'; ?>">
+                    <?php echo 'NZ$' . number_format($owedAmount, 2); ?>
+                  </td>
+                  <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900">
+                    <?php echo 'NZ$' . number_format($paidAmount, 2); ?>
                   </td>
                   <td class="px-4 py-4 text-right text-sm">
                     <?php if (!$canDelete && $user['id'] === $currentAdminId): ?>
                       <span class="text-xs text-slate-400">This is you</span>
-                    <?php elseif (!$canDelete && $pendingAmount > 0): ?>
+                    <?php elseif (!$canDelete && $owedAmount > 0): ?>
                       <span class="text-xs text-amber-600">Pending payouts</span>
                     <?php else: ?>
                       <form method="POST" onsubmit="return confirm('Delete user <?php echo htmlspecialchars($displayName); ?>? This action cannot be undone.');">

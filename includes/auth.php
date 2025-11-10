@@ -1335,7 +1335,7 @@ function getCurrentUser() {
 function requireLogin($redirectTo = null) {
     if (!isLoggedIn()) {
         $redirect = $redirectTo ? '?redirect=' . urlencode($redirectTo) : '';
-        header('Location: /login.php' . $redirect);
+        header('Location: /login' . $redirect);
         exit;
     }
 }

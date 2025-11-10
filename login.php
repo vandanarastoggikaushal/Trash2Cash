@@ -108,7 +108,7 @@ require_once __DIR__ . '/includes/header.php';
       <div class="mt-6 pt-6 border-t border-emerald-200 text-center">
         <p class="text-sm text-slate-600">
           Don't have an account? 
-          <a href="/register.php" class="text-brand font-semibold hover:underline">Register here</a>
+          <a href="/register" class="text-brand font-semibold hover:underline">Register here</a>
         </p>
       </div>
     </div>

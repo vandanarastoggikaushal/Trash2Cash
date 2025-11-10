@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- Leads table (pickup requests)
 CREATE TABLE IF NOT EXISTS `leads` (
   `id` VARCHAR(16) NOT NULL PRIMARY KEY,
+  `user_id` VARCHAR(16) DEFAULT NULL,
   `person_name` VARCHAR(255) NOT NULL,
   `person_email` VARCHAR(255) NOT NULL,
   `person_phone` VARCHAR(50) NOT NULL,
@@ -55,11 +56,14 @@ CREATE TABLE IF NOT EXISTS `leads` (
   `items_are_clean` TINYINT(1) DEFAULT 0,
   `accepted_terms` TINYINT(1) DEFAULT 0,
   `appliances_json` TEXT DEFAULT NULL COMMENT 'JSON array of appliances',
+  `estimated_reward` DECIMAL(10,2) DEFAULT 0,
   `created_at` DATETIME NOT NULL,
   `status` VARCHAR(20) DEFAULT 'pending',
   INDEX `idx_email` (`person_email`),
   INDEX `idx_status` (`status`),
-  INDEX `idx_created_at` (`created_at`)
+  INDEX `idx_created_at` (`created_at`),
+  INDEX `idx_leads_user_id` (`user_id`),
+  CONSTRAINT `fk_leads_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Messages table (contact form submissions)

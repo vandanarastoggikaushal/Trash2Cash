@@ -48,7 +48,7 @@ $pageDescription = 'We encountered an error processing your request.';
         </li>
         <li class="flex items-start gap-2">
           <span class="text-brand">✓</span>
-          <span>If the problem persists, <a href="/contact.php" class="text-brand hover:underline font-semibold">contact us</a></span>
+          <span>If the problem persists, <a href="/contact" class="text-brand hover:underline font-semibold">contact us</a></span>
         </li>
       </ul>
     </div>

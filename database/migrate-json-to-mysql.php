@@ -67,27 +67,48 @@ if (file_exists($leadsFile)) {
                 if (isset($pickup['appliances']) && is_array($pickup['appliances'])) {
                     $appliances = $pickup['appliances'];
                 }
+
+                $cansEstimate = isset($pickup['cansEstimate']) ? (int) $pickup['cansEstimate'] : 0;
+                $cansReward = $cansEstimate > 0 ? floor($cansEstimate / 100) * CAN_REWARD_PER_100 : 0;
+                $applianceReward = 0;
+                if (!empty($appliances)) {
+                    $applianceMap = [];
+                    foreach ($APPLIANCE_CREDITS as $applianceDef) {
+                        if (!empty($applianceDef['slug'])) {
+                            $applianceMap[$applianceDef['slug']] = $applianceDef['credit'] ?? 0;
+                        }
+                    }
+                    foreach ($appliances as $applianceItem) {
+                        $slug = $applianceItem['slug'] ?? '';
+                        $qty = isset($applianceItem['qty']) ? (int) $applianceItem['qty'] : 0;
+                        if ($slug !== '' && $qty > 0 && isset($applianceMap[$slug])) {
+                            $applianceReward += (int) $applianceMap[$slug] * $qty;
+                        }
+                    }
+                }
+                $estimatedReward = round((float) ($cansReward + $applianceReward), 2);
                 
                 $sql = "INSERT INTO leads (
-                    id, person_name, person_email, person_phone, person_marketing_optin,
+                    id, user_id, person_name, person_email, person_phone, person_marketing_optin,
                     address_street, address_suburb, address_city, address_postcode, address_access_notes,
                     pickup_type, pickup_cans_estimate, pickup_preferred_date, pickup_preferred_window,
                     payout_method, payout_bank_name, payout_bank_account,
                     payout_child_name, payout_child_bank_account,
                     payout_kiwisaver_provider, payout_kiwisaver_member_id,
-                    items_are_clean, accepted_terms, appliances_json, created_at, status
+                    items_are_clean, accepted_terms, appliances_json, estimated_reward, created_at, status
                 ) VALUES (
-                    :id, :person_name, :person_email, :person_phone, :person_marketing_optin,
+                    :id, :user_id, :person_name, :person_email, :person_phone, :person_marketing_optin,
                     :address_street, :address_suburb, :address_city, :address_postcode, :address_access_notes,
                     :pickup_type, :pickup_cans_estimate, :pickup_preferred_date, :pickup_preferred_window,
                     :payout_method, :payout_bank_name, :payout_bank_account,
                     :payout_child_name, :payout_child_bank_account,
                     :payout_kiwisaver_provider, :payout_kiwisaver_member_id,
-                    :items_are_clean, :accepted_terms, :appliances_json, :created_at, :status
-                ) ON DUPLICATE KEY UPDATE status = VALUES(status)";
+                    :items_are_clean, :accepted_terms, :appliances_json, :estimated_reward, :created_at, :status
+                ) ON DUPLICATE KEY UPDATE status = VALUES(status), user_id = VALUES(user_id), estimated_reward = VALUES(estimated_reward)";
                 
                 $params = [
                     ':id' => $lead['id'] ?? bin2hex(random_bytes(6)),
+                    ':user_id' => $lead['userId'] ?? null,
                     ':person_name' => $person['fullName'] ?? '',
                     ':person_email' => $person['email'] ?? '',
                     ':person_phone' => $person['phone'] ?? '',
@@ -111,6 +132,7 @@ if (file_exists($leadsFile)) {
                     ':items_are_clean' => ($confirm['itemsAreClean'] ?? false) ? 1 : 0,
                     ':accepted_terms' => ($confirm['acceptedTerms'] ?? false) ? 1 : 0,
                     ':appliances_json' => !empty($appliances) ? json_encode($appliances) : null,
+                    ':estimated_reward' => $estimatedReward,
                     ':created_at' => $lead['createdAt'] ?? gmdate('Y-m-d H:i:s'),
                     ':status' => 'pending'
                 ];

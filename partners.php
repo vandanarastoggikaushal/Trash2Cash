@@ -52,7 +52,7 @@ require_once __DIR__ . '/includes/header.php';
         <span class="text-4xl">💡</span> Interested in Partnering?
       </h3>
       <p class="text-emerald-100 text-lg mb-6">Contact us to set up your group code and start fundraising today!</p>
-      <a href="/contact.php" class="inline-block btn bg-white text-emerald-700 hover:bg-emerald-50 text-lg px-8 py-4 shadow-2xl transform hover:scale-105 transition-all font-bold">
+      <a href="/contact" class="inline-block btn bg-white text-emerald-700 hover:bg-emerald-50 text-lg px-8 py-4 shadow-2xl transform hover:scale-105 transition-all font-bold">
         📧 Contact Us
       </a>
     </div>

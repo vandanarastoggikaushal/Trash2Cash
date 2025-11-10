@@ -241,6 +241,12 @@ function recordUserPayment($userId, $amount, $reference = null, $notes = null, $
         return false;
     }
 
+    $status = strtolower((string) $status);
+    $validStatuses = ['pending', 'processing', 'completed', 'failed', 'cancelled'];
+    if (!in_array($status, $validStatuses, true)) {
+        $status = 'completed';
+    }
+
     $paymentId = bin2hex(random_bytes(8));
     $paymentDate = $paymentDate ?: gmdate('Y-m-d');
     $createdAt = gmdate('Y-m-d H:i:s');
@@ -280,6 +286,148 @@ function recordUserPayment($userId, $amount, $reference = null, $notes = null, $
     ];
 
     return savePaymentsToJson($payments);
+}
+
+/**
+ * Fetch a single payment by its identifier.
+ *
+ * @param string $paymentId
+ * @return array|null
+ */
+function getPaymentById($paymentId) {
+    if (empty($paymentId)) {
+        return null;
+    }
+
+    if (isPaymentsDatabaseAvailable() && function_exists('dbQueryOne')) {
+        $row = dbQueryOne(
+            "SELECT id, user_id, amount, currency, reference, notes, status, payment_date, created_at, updated_at
+             FROM user_payments
+             WHERE id = :id",
+            [':id' => $paymentId]
+        );
+
+        return $row ? normalizePaymentRecord($row) : null;
+    }
+
+    $payments = loadPaymentsFromJson();
+    foreach ($payments as $payment) {
+        if (($payment['id'] ?? null) === $paymentId) {
+            return normalizePaymentRecord($payment);
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Update status and metadata for a payment.
+ *
+ * @param string $paymentId
+ * @param string $newStatus
+ * @param array $updates
+ * @return bool
+ */
+function updatePaymentStatus($paymentId, $newStatus, array $updates = []) {
+    if (empty($paymentId) || empty($newStatus)) {
+        return false;
+    }
+
+    $newStatus = strtolower((string) $newStatus);
+    $validStatuses = ['pending', 'processing', 'completed', 'failed', 'cancelled'];
+    if (!in_array($newStatus, $validStatuses, true)) {
+        return false;
+    }
+
+    $now = gmdate('Y-m-d H:i:s');
+
+    if (isPaymentsDatabaseAvailable() && function_exists('dbExecute')) {
+        $setParts = ['status = :status', 'updated_at = :updated_at'];
+        $params = [
+            ':id' => $paymentId,
+            ':status' => $newStatus,
+            ':updated_at' => $now
+        ];
+
+        if (!empty($updates['payment_date'])) {
+            $setParts[] = 'payment_date = :payment_date';
+            $params[':payment_date'] = $updates['payment_date'];
+        }
+
+        if (array_key_exists('reference', $updates)) {
+            $setParts[] = 'reference = :reference';
+            $params[':reference'] = $updates['reference'];
+        }
+
+        if (array_key_exists('notes', $updates)) {
+            $setParts[] = 'notes = :notes';
+            $params[':notes'] = $updates['notes'];
+        }
+
+        $sql = 'UPDATE user_payments SET ' . implode(', ', $setParts) . ' WHERE id = :id';
+        return dbExecute($sql, $params) !== false;
+    }
+
+    $payments = loadPaymentsFromJson();
+    $updated = false;
+    foreach ($payments as &$payment) {
+        if (($payment['id'] ?? null) === $paymentId) {
+            $payment['status'] = $newStatus;
+            $payment['updated_at'] = $now;
+            if (!empty($updates['payment_date'])) {
+                $payment['payment_date'] = $updates['payment_date'];
+            }
+            if (array_key_exists('reference', $updates)) {
+                $payment['reference'] = $updates['reference'];
+            }
+            if (array_key_exists('notes', $updates)) {
+                $payment['notes'] = $updates['notes'];
+            }
+            $updated = true;
+            break;
+        }
+    }
+    unset($payment);
+
+    if ($updated) {
+        return savePaymentsToJson($payments);
+    }
+
+    return false;
+}
+
+/**
+ * Determine if a payment already exists for a user/reference pair.
+ *
+ * @param string $userId
+ * @param string $reference
+ * @return bool
+ */
+function paymentExistsForReference($userId, $reference) {
+    if (empty($userId) || $reference === null || $reference === '') {
+        return false;
+    }
+
+    if (isPaymentsDatabaseAvailable() && function_exists('dbQueryOne')) {
+        $row = dbQueryOne(
+            'SELECT id FROM user_payments WHERE user_id = :user_id AND reference = :reference LIMIT 1',
+            [
+                ':user_id' => $userId,
+                ':reference' => $reference
+            ]
+        );
+        return $row !== false && !empty($row);
+    }
+
+    $payments = loadPaymentsFromJson();
+    foreach ($payments as $payment) {
+        $paymentUserId = $payment['user_id'] ?? ($payment['userId'] ?? null);
+        if ($paymentUserId === $userId && ($payment['reference'] ?? '') === $reference) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -458,6 +606,117 @@ function getRecentPayments($limit = 50, $userId = null, array $statuses = []) {
     }
 
     return $normalized;
+}
+
+
+/**
+ * Retrieve payments filtered by status list.
+ *
+ * @param array $statuses
+ * @param int|null $limit
+ * @return array
+ */
+function getPaymentsByStatus(array $statuses, $limit = null) {
+    if (empty($statuses)) {
+        return [];
+    }
+
+    $validStatuses = ['pending', 'processing', 'completed', 'failed', 'cancelled'];
+    $filteredStatuses = array_values(array_intersect(array_map('strtolower', $statuses), $validStatuses));
+    if (empty($filteredStatuses)) {
+        return [];
+    }
+
+    $limitClause = '';
+    $limit = $limit !== null ? (int) $limit : null;
+    if ($limit !== null && $limit > 0) {
+        $limitClause = ' LIMIT ' . $limit;
+    }
+
+    if (isPaymentsDatabaseAvailable() && function_exists('dbQuery')) {
+        $params = [];
+        $statusPlaceholders = [];
+        foreach ($filteredStatuses as $idx => $status) {
+            $placeholder = ':status' . $idx;
+            $statusPlaceholders[] = $placeholder;
+            $params[$placeholder] = $status;
+        }
+
+        $sql = "SELECT 
+                    p.id,
+                    p.user_id,
+                    p.amount,
+                    p.currency,
+                    p.reference,
+                    p.notes,
+                    p.status,
+                    p.payment_date,
+                    p.created_at,
+                    p.updated_at,
+                    u.username AS user_username,
+                    u.email AS user_email,
+                    u.first_name AS user_first_name,
+                    u.last_name AS user_last_name
+                FROM user_payments p
+                LEFT JOIN users u ON u.id = p.user_id
+                WHERE p.status IN (" . implode(', ', $statusPlaceholders) . ")
+                ORDER BY p.payment_date ASC, p.created_at ASC" . $limitClause;
+
+        $rows = dbQuery($sql, $params);
+        if ($rows === false) {
+            return [];
+        }
+
+        return array_map('normalizePaymentRecord', $rows);
+    }
+
+    $payments = loadPaymentsFromJson();
+    if (empty($payments)) {
+        return [];
+    }
+
+    $userMap = [];
+    if (function_exists('getUsers')) {
+        foreach (getUsers() as $user) {
+            if (!empty($user['id'])) {
+                $userMap[$user['id']] = $user;
+            }
+        }
+    }
+
+    $matched = [];
+    foreach ($payments as $payment) {
+        $status = strtolower($payment['status'] ?? 'completed');
+        if (!in_array($status, $filteredStatuses, true)) {
+            continue;
+        }
+        $userId = $payment['user_id'] ?? ($payment['userId'] ?? null);
+        if ($userId && isset($userMap[$userId])) {
+            $user = $userMap[$userId];
+            $payment['username'] = $user['username'] ?? '';
+            $payment['firstName'] = $user['firstName'] ?? ($user['first_name'] ?? '');
+            $payment['lastName'] = $user['lastName'] ?? ($user['last_name'] ?? '');
+            $payment['email'] = $user['email'] ?? '';
+        }
+        $matched[] = $payment;
+    }
+
+    usort($matched, function ($a, $b) {
+        $dateA = $a['payment_date'] ?? ($a['paymentDate'] ?? '');
+        $dateB = $b['payment_date'] ?? ($b['paymentDate'] ?? '');
+        if ($dateA === $dateB) {
+            $createdA = $a['created_at'] ?? ($a['createdAt'] ?? '');
+            $createdB = $b['created_at'] ?? ($b['createdAt'] ?? '');
+            return strcmp($createdA, $createdB);
+        }
+        return strcmp($dateA, $dateB);
+    });
+
+    if ($limit !== null && $limit > 0) {
+        $matched = array_slice($matched, 0, $limit);
+    }
+
+    return array_map('normalizePaymentRecord', $matched);
 }
 
 

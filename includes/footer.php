@@ -20,23 +20,23 @@
       <div>
         <h3 class="text-lg font-bold text-slate-900 mb-4">Company</h3>
         <ul class="space-y-3 text-sm">
-          <li><a href="/how-it-works.php" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">📖 How it Works</a></li>
-          <li><a href="/rewards.php" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">💰 Rewards</a></li>
-          <li><a href="/partners.php" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">🤝 Partners</a></li>
+          <li><a href="/how-it-works" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">📖 How it Works</a></li>
+          <li><a href="/rewards" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">💰 Rewards</a></li>
+          <li><a href="/partners" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">🤝 Partners</a></li>
         </ul>
       </div>
       <div>
         <h3 class="text-lg font-bold text-slate-900 mb-4">Support</h3>
         <ul class="space-y-3 text-sm">
-          <li><a href="/faq.php" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">❓ FAQ</a></li>
-          <li><a href="/contact.php" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">📧 Contact</a></li>
+          <li><a href="/faq" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">❓ FAQ</a></li>
+          <li><a href="/contact" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">📧 Contact</a></li>
         </ul>
       </div>
       <div>
         <h3 class="text-lg font-bold text-slate-900 mb-4">Legal</h3>
         <ul class="space-y-3 text-sm">
-          <li><a href="/terms.php" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">📄 Terms</a></li>
-          <li><a href="/privacy.php" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">🔒 Privacy</a></li>
+          <li><a href="/terms" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">📄 Terms</a></li>
+          <li><a href="/privacy" class="text-slate-700 hover:text-brand font-semibold transition-colors flex items-center gap-2">🔒 Privacy</a></li>
         </ul>
       </div>
       <div>

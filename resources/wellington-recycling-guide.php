@@ -58,7 +58,7 @@ require_once __DIR__ . '/../includes/header.php';
   <section id="step-schedule">
     <h2>3. Schedule a recycling collection</h2>
     <p>
-      Use the <a href="/schedule-pickup.php">online scheduling form</a> to pick a date for your Wellington recycling pickup.
+      Use the <a href="/schedule-pickup">online scheduling form</a> to pick a date for your Wellington recycling pickup.
       We service the entire region — including <?php echo implode(', ', array_map('htmlspecialchars', $SERVICE_AREAS)); ?> — and can usually confirm a slot within a few days.
     </p>
     <p>
@@ -71,7 +71,7 @@ require_once __DIR__ . '/../includes/header.php';
     <h2>4. Choose your payout &amp; track balances</h2>
     <p>
       Every pickup is recorded in your Trash2Cash account, and we pay <strong>$1 per 100 aluminium cans</strong>.
-      After your first collection you can add <a href="/account.php">payout details in the account page</a>.
+      After your first collection you can add <a href="/account">payout details in the account page</a>.
     </p>
     <ul>
       <li>Deposit into a bank account or nominate a child’s savings account.</li>
@@ -88,7 +88,7 @@ require_once __DIR__ . '/../includes/header.php';
     <ul>
       <li>Run a month-long “Can Drive” at school and book a pickup once your cages are full.</li>
       <li>Partner with local cafés or offices to collect their aluminium drink cans.</li>
-      <li>Advertise on Neighbourly or community Facebook groups with a link to <a href="/recycling-wellington.php">our Wellington service page</a>.</li>
+      <li>Advertise on Neighbourly or community Facebook groups with a link to <a href="/recycling-wellington">our Wellington service page</a>.</li>
     </ul>
   </section>
 
@@ -97,7 +97,7 @@ require_once __DIR__ . '/../includes/header.php';
     <p class="text-emerald-100 mb-5">
       Ready to turn household recycling into savings? Schedule a pickup and we will handle everything from collection to payment.
     </p>
-    <a href="/schedule-pickup.php" class="btn bg-white text-emerald-700 hover:bg-emerald-50 text-base px-6 py-3">Schedule a Wellington pickup</a>
+    <a href="/schedule-pickup" class="btn bg-white text-emerald-700 hover:bg-emerald-50 text-base px-6 py-3">Schedule a Wellington pickup</a>
   </footer>
 </article>
 

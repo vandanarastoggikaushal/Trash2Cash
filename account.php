@@ -370,7 +370,7 @@ require_once __DIR__ . '/includes/header.php';
           <span class="text-emerald-600 text-3xl">📄</span>
           <span>Payout History</span>
         </h2>
-        <a href="/contact.php" class="btn text-sm md:text-base">Need help?</a>
+        <a href="/contact" class="btn text-sm md:text-base">Need help?</a>
       </div>
 
       <?php if (empty($payments)): ?>
@@ -451,7 +451,7 @@ require_once __DIR__ . '/includes/header.php';
             You have administrator access. Use the payments console to record payouts, view balances for all users, and manage monthly reports.
           </p>
         </div>
-        <a href="/admin/payments.php" class="btn text-base px-6 py-3 bg-slate-800 hover:bg-slate-900">
+        <a href="/admin/payments" class="btn text-base px-6 py-3 bg-slate-800 hover:bg-slate-900">
           Go to Payments Admin
         </a>
       </div>

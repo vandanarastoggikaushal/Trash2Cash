@@ -57,7 +57,7 @@ $resources = [
       We regularly update our recycling knowledge hub with new local insights. Suggest a topic about Wellington trash collection,
       school fundraising, or eco-friendly living and we will add it to the queue.
     </p>
-    <a href="/contact.php" class="btn text-base px-6 py-3">Suggest a guide</a>
+    <a href="/contact" class="btn text-base px-6 py-3">Suggest a guide</a>
   </section>
 </div>
 

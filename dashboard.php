@@ -85,13 +85,13 @@ require_once __DIR__ . '/includes/header.php';
           <span>⚡</span> Quick Actions
         </h2>
         <div class="space-y-3">
-          <a href="/schedule-pickup.php" class="block w-full px-4 py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-all text-center">
+          <a href="/schedule-pickup" class="block w-full px-4 py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-all text-center">
             📅 Schedule a Pickup
           </a>
-          <a href="/contact.php" class="block w-full px-4 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all text-center">
+          <a href="/contact" class="block w-full px-4 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all text-center">
             📧 Contact Us
           </a>
-          <a href="/rewards.php" class="block w-full px-4 py-3 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-all text-center">
+          <a href="/rewards" class="block w-full px-4 py-3 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-all text-center">
             💰 View Rewards
           </a>
         </div>

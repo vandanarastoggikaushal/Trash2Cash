@@ -41,7 +41,7 @@ $pageDescription = 'The service is temporarily unavailable for maintenance.';
         We're performing scheduled maintenance to improve our services. This usually takes just a few minutes.
       </p>
       <p class="text-slate-600 text-xs">
-        If you have urgent questions, please <a href="/contact.php" class="text-brand hover:underline font-semibold">contact us</a>.
+        If you have urgent questions, please <a href="/contact" class="text-brand hover:underline font-semibold">contact us</a>.
       </p>
     </div>
   </div>

@@ -29,14 +29,14 @@ $pageDescription = 'You do not have permission to access this resource.';
         <a href="/" class="block btn text-lg px-8 py-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
           🏠 Go to Homepage
         </a>
-        <a href="/login.php" class="block btn-secondary text-lg px-8 py-4 hover:border-brand hover:text-brand transition-all">
+        <a href="/login" class="block btn-secondary text-lg px-8 py-4 hover:border-brand hover:text-brand transition-all">
           🔐 Login
         </a>
       </div>
     </div>
 
     <div class="text-sm text-slate-500">
-      <p>If you believe you should have access, please <a href="/contact.php" class="text-brand hover:underline font-semibold">contact us</a>.</p>
+      <p>If you believe you should have access, please <a href="/contact" class="text-brand hover:underline font-semibold">contact us</a>.</p>
     </div>
   </div>
 </div>
